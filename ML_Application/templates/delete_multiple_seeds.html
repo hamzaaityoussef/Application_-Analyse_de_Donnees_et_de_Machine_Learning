@@ -1,0 +1,16 @@
+<form method="post" action="{% url 'delete_multiple_seeds' %}" >
+    {% csrf_token %}
+    <!-- Champs cachés pour stocker les valeurs des filtres actuels -->
+    <input type="hidden" name="id_entity" value="{{ request.GET.id_entity }}">
+    <input type="hidden" name="id_rdp" value="{{ request.GET.id_rdp }}">
+    <input type="hidden" name="id_sess" value="{{ request.GET.id_sess }}">
+    <!-- Ajoutez d'autres champs cachés pour les autres filtres si nécessaire -->
+    
+    <label for="id_locals_input"><h3><strong>Entrez les identifiants locaux:</strong></h3></label>
+    <div>
+        <textarea id="id_locals_input" name="id_locals_input" wrap="off"></textarea>
+    </div>
+    <div>
+        <button type="submit">Supprimer</button> 
+    </div>
+</form>

@@ -1,0 +1,647 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <meta content="width=device-width, initial-scale=1.0" name="viewport">
+
+  <title>WMN </title>
+  <meta content="" name="description">
+  <meta content="" name="keywords">
+   
+
+<!-- Include jQuery -->
+
+
+<!-- Include Bootstrap JS -->
+<!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script> -->
+
+
+
+
+
+  <!-- Favicons -->
+    <!-- <link rel="icon" href="{% static 'app/assets/img/WMN.png' %} " type="image/x-icon"> -->
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.gstatic.com" rel="preconnect">
+  <link href="https://fonts.googleapis.com/css?family=Open+Sans:300,300i,400,400i,600,600i,700,700i|Nunito:300,300i,400,400i,600,600i,700,700i|Poppins:300,300i,400,400i,500,500i,600,600i,700,700i" rel="stylesheet">
+
+  <!-- Vendor CSS Files -->
+  <link href="{% static 'app/assets/vendor/bootstrap/css/bootstrap.min.css' %}" rel="stylesheet">
+  <link href="{% static 'app/assets/vendor/bootstrap-icons/bootstrap-icons.css' %}" rel="stylesheet">
+  <!-- <link href="{% static 'app/app/assets/vendor/boxicons/css/boxicons.min.css' %}" rel="stylesheet"> -->
+  <link href="{% static 'app/assets/vendor/quill/quill.snow.css' %}" rel="stylesheet">
+  <link href="{% static 'app/assets/vendor/quill/quill.bubble.css' %}" rel="stylesheet">
+  <link href="{% static 'app/assets/vendor/remixicon/remixicon.css' %}" rel="stylesheet">
+  <link href="{% static 'app/assets/vendor/simple-datatables/style.css' %}" rel="stylesheet">
+
+  <!-- Template Main CSS File -->
+  <link href="{% static 'app/assets/css/style.css' %}" rel="stylesheet">
+  <script src="{% static 'app/assets/js/main.js' %}"></script> 
+
+
+
+  <!-- old template  -->
+  <!-- font Awesome -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
+
+
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto|Varela+Round">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css">
+
+  
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+  <!-- <script src="{% static 'app/js/table.js' %}" type="text/javascript"></script>   -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+  <link rel="icon" href="{% static 'app/assets/img/wmn_.ico' %} " type="image/x-icon">
+
+  <!-- for seeds page -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+  <!-- AdminLTE App -->
+  
+  <!-- <script src="{% static 'app/js/app.js' %}" type="text/javascript"></script>    -->
+  
+  <!-- tailwaind -->
+  <!-- <link href="https://cdn.tailwindcss.com" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>  -->
+  
+
+  <link rel="stylesheet" href="{% static 'app/css/output.css' %}">
+  
+  <!-- eye icon -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
+  
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+  
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
+
+
+  <style>
+    .select2-container--default .select2-selection--single {
+   
+    padding-top: 3px;
+}
+      .btn-custom {
+          background: linear-gradient(60deg, #080a22, #043d7a);
+          border: none;
+          border-radius: 10px;
+          color: white;
+          font-weight: bold;
+          padding: 10px 20px;
+          text-transform: uppercase;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+      }
+      .btn-custom i {
+          margin-right: 5px;
+      }
+      .btn-custom:hover {
+          color: #fff; 
+      }
+      html, body {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+}
+
+#main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.right-side {
+  flex: 1;
+}
+
+  </style>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script> 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+<style> 
+  /* Ensure custom styles override Bootstrap styles */ 
+ul.custom-pagination li.custom-page-item { 
+font-size: 10px !important; /* Increase font size */ 
+} 
+
+ul.custom-pagination li.custom-page-item a.custom-page-link, 
+ul.custom-pagination li.custom-page-item span.custom-page-link { 
+padding: 8px 16px !important; /* Increase padding */ 
+font-size: 10px !important; /* Increase font size */ 
+} 
+
+ul.custom-pagination li.custom-page-item.active span.custom-page-link { 
+background-color: #007bff !important; /* Active item background */ 
+color: white !important; /* Active item text color */ 
+border-color: #007bff !important; /* Active item border color */ 
+} 
+.active.no-underline {
+    text-decoration: none;
+}
+</style>
+
+
+<style>.form-control1,
+  .form-control.form-select1 {
+      display: block;
+      width: 100%;
+      min-height: 35px; /* Adjusted height to accommodate select arrow */
+    /* min-width: 128px; */
+      font-size: 13px;
+      line-height: 1.42857143;
+      color: #555;
+      background-color: #fff;
+      background-image: none;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+      
+      -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+      transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      padding-right: 30px;
+      background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50px' height='50px'><polyline points='46.139,15.518 25.166,36.49 4.193,15.519'/></svg>") right no-repeat; 
+    
+  }
+  </style>
+
+<!-- CSS to style the select elements -->
+<style>
+ 
+  .form-control1.form-select1 {
+      background-position: calc(100% - 10px) center;
+      background-repeat: no-repeat;
+      background-size: 12px 12px;
+      padding-right: 1.5em;
+  }
+  .form-control1.form-select1:focus {
+      border-color: #80bdff;
+      outline: 0;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+</style>
+
+
+<style>
+  .form-control1,
+  .form-control.form-select1 {
+      display: block;
+      width: 100%;
+      min-height: 35px; /* Adjusted height to accommodate select arrow */
+      font-size: 13px;
+      line-height: 1.42857143;
+      color: #555;
+      background-color: #fff;
+      background-image: none;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+      box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
+      transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
+      appearance: none;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      padding-right: 30px;
+      background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-chevron-down'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat right center;
+  }
+  .form-control1.form-select1:focus {
+      border-color: #80bdff;
+      outline: 0;
+      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+  }
+  .form-group {
+      margin-bottom: 1rem;
+  }
+</style>
+
+
+
+<!-- old style  -->
+<style>
+   /* popup affectation proxies  */
+  .modal-content {
+  background-color: #fefefe;
+  margin: 5% auto;
+  padding: 20px;
+  border: none;
+  width: 100%;
+  max-width: 800px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
+  border-radius: 5px;
+  position: relative;
+}
+</style> 
+
+<style>
+
+.modal-header .close {
+margin-top: -20px;
+}
+</style>
+
+<!-- for sticky table  -->
+<style>
+/* Container for the entire table, allowing horizontal scroll */
+.table-container {
+    overflow-x: auto; /* Enables horizontal scrolling */
+    max-height: 850px; /* Optional: sets a maximum height to allow vertical scrolling if the content is long */
+    width: 100%; /* Ensures the table takes full width */
+}
+
+/* Sticky header */
+.table-container thead th {
+    position: sticky;
+    top: 0; /* Sticks the header to the top during vertical scroll */
+    background-color: #f3f4f6; /* Sticky header background */
+    color: #374151; /* Text color */
+    z-index: 10; /* Ensures it stays on top of the table content */
+    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4); /* Adds shadow for clarity */
+}
+
+/* Table styling */
+.table-container table {
+    min-width: 100%; /* Ensures table content doesn’t shrink on horizontal scroll */
+}
+
+#InfoUserAuth {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: .5rem;
+  font-size: 2rem;
+  color: rgb(49, 0, 82);
+}
+
+
+#InfoUserAuth span {
+  font-size: 1.5rem;
+  color: rgb(49, 0, 82);
+}
+#InfoUserAuth i {
+  font-size: 2rem;
+  color: rgb(49, 0, 82);
+  position: relative;
+  top: .3rem;
+}
+
+
+/* 
+.InfoUserAuth i{
+  font-size: 2rem;
+} */
+
+
+</style>
+
+
+<!-- for search  -->
+
+<!-- select2 --> 
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" /> 
+<link href='https://unpkg.com/boxicons@2.1.4/css/boxicons.min.css' rel='stylesheet'>
+
+<!-- select2 -->
+</head>
+
+<body>
+
+  <!-- ======= Header ======= -->
+  <header id="header" class="header fixed-top d-flex align-items-center">
+
+    <div class="d-flex align-items-center justify-content-between">
+      <img src="../../../static/app/assets/img/ML.png" alt="H" width="80px" class="mb-4 mt-4" style="    margin-left: 40px;">
+      <i class="bi bi-list toggle-sidebar-btn"></i>
+    </div><!-- End Logo -->
+
+    <!-- <div class="search-bar">
+      <form class="search-form d-flex align-items-center" method="POST" action="#">
+        <input type="text" name="query" placeholder="Search" title="Enter search keyword">
+        <button type="submit" title="Search"><i class="bi bi-search"></i></button>
+      </form>
+    </div>End Search Bar -->
+
+    <nav class="header-nav ms-auto">
+      <ul class="d-flex align-items-center">
+
+        <li class="nav-item d-block d-lg-none">
+          <a class="nav-link nav-icon search-bar-toggle " href="#">
+            <i class="bi bi-search"></i>
+          </a>
+        </li><!-- End Search Icon-->
+
+        <li class="nav-item dropdown pe-3">
+
+          <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
+      <!-- <img src="../static/assets/img/0.jpg" class="rounded-circle" alt="hey"> -->
+      {% if user.is_authenticated %}
+            <span class="d-none d-md-block dropdown-toggle ps-2" id="InfoUserAuth"><i class='bx bxs-user-circle'></i> <span>{{ user.nom|slice:":1" }}. {{ user.prenom }}</span></span>
+          </a><!-- End Profile Iamge Icon -->
+
+          <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
+            <li class="dropdown-header">
+              <h6>{{ user.nom }} {{ user.prenom }}</h6>
+              <span>{{ user.Role }}</span> <br>
+              <span>last login:{{ user.last_login }}  </span>
+            </li>
+            {% endif %}
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+
+            <li>
+              <hr class="dropdown-divider">
+            </li>
+
+            <li>
+              <a class="dropdown-item d-flex align-items-center" href="{%url 'logout' %}">
+                <i class="bi bi-box-arrow-right"></i>
+                <span>Sign Out</span>
+              </a>
+            </li>
+
+          </ul><!-- End Profile Dropdown Items -->
+        </li><!-- End Profile Nav -->
+
+      </ul>
+    </nav><!-- End Icons Navigation -->
+
+  </header><!-- End Header -->
+
+  <!-- ======= Sidebar ======= -->
+  <aside id="sidebar" class="sidebar">
+
+    <ul class="sidebar-nav" id="sidebar-nav">
+      
+      <li class="nav-item"> 
+        <a class="nav-link collapsed" href="{% url 'logout' %}"> 
+          <i class="fa-solid fa-gauge"></i> 
+          <span>Home</span> 
+        </a> 
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'logout' %}">
+          <i class="glyphicon glyphicon-user"></i><span>Upload</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'logout' %}">
+          <i class="fa fa-envelope"></i><span>visualisation</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'logout' %}">
+          <i class="fa fa-envelope"></i><span>Modeles</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'logout' %}">
+          <i class="fa fa-envelope"></i><span>Predictions</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'logout' %}">
+          <i class="fa-solid fa-sort"></i><span>documentation</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'logout' %}">
+          <i class="bi bi-envelope-x-fill"></i><span>report</span>
+        </a>
+      </li>
+      
+      <!-- <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'logout' %}">
+          <i class="fas fa-server"></i><span>Repetition des proxies</span>
+        </a>
+      </li>
+     
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'logout' %}">
+          <i class="fa fa-history"></i>
+          <span>Historique</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'logout' %}">
+          <i class="fa-solid fa-check"></i>
+          <span>Check Proxies</span>
+        </a>
+      </li>
+      
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'logout' %}">
+          <i class="fa-solid fa-check"></i>
+          <span>Check Emails</span>
+        </a>
+      </li>
+      
+     
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'logout' %}">
+          <i class="fas fa-server"></i><span>CONNECT</span>
+        </a>
+      </li>
+     
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'logout' %}">
+          <i class="fa fa-history"></i>
+          <span>Sub-Scenarios Log History</span>
+        </a>
+      </li>
+
+
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'logout' %}">
+          <i class="fa fa-history"></i>
+          <span>Connect Historique</span>
+        </a>
+      </li>
+      
+      
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'logout' %}">
+          <i class="bi bi-box-arrow-right"></i>
+          <span>Sign out</span>
+        </a>
+      </li> -->
+    </ul>
+    
+  </aside><!-- End Sidebar-->
+ 
+  <main id="main" class="main">
+
+                 <!-- Main content -->
+                <section class="section">
+                  
+                    {% block content %}
+
+                    {% endblock %}
+                </section><!-- /.content -->
+            
+        </div><!-- ./wrapper -->
+
+      </main>
+         
+ 
+ 
+  <a href="#" class="back-to-top d-flex align-items-center justify-content-center"><i class="bi bi-arrow-up-short"></i></a>  
+        
+  
+<!-- jQuery 2.0.2 -->
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.2/jquery.min.js"></script>
+<!-- Bootstrap -->
+<script src="{% static 'app/js/bootstrap.min.js' %}" type="text/javascript"></script>
+<script src="{% static 'app/js/bootstrap.js' %}" type="text/javascript"></script>
+<!-- AdminLTE App -->
+<!-- <script src="{% static 'app/js/events.js' %}" type="text/javascript"></script>           -->
+<!-- Vendor JS Files -->
+<script src="{% static 'app/assets/vendor/bootstrap/js/bootstrap.bundle.min.js' %}"></script>
+<script src="{% static 'app/assets/vendor/simple-datatables/simple-datatables.js' %}"></script>
+<!-- Template Main JS File -->
+<script src="{% static 'app/assets/js/main.js' %}"></script>
+
+
+<script>
+document.addEventListener('DOMContentLoaded', (event) => {
+  const sidebarItems = document.querySelectorAll('.sidebar-nav .nav-link');
+
+  const setActiveSidebarItem = (el) => {
+    sidebarItems.forEach(item => item.classList.remove('active'));
+    el.classList.add('active');
+    el.classList.remove('collapsed');
+  };
+
+  sidebarItems.forEach(item => {
+    item.addEventListener('click', (e) => {
+      setActiveSidebarItem(item);
+    });
+  });
+
+  // Optionally, you can add logic to highlight the active link based on the current page URL
+  const currentUrl = window.location.href;
+  const activeSidebarItem = Array.from(sidebarItems).find(item => currentUrl.includes(item.getAttribute('href')));
+  if (activeSidebarItem) {
+    setActiveSidebarItem(activeSidebarItem);
+  }
+});
+</script>
+
+<!-- Hidden div to store messages --> 
+<div id="message-container" data-messages='[ 
+{% for message in messages %} 
+    {"message": "{{ message }}", "tags": "{{ message.tags }}"}{% if not forloop.last %},{% endif %} 
+{% endfor %} 
+]'></div> 
+
+<script> 
+  $(document).ready(function() { 
+  // Setting Toastr options 
+  toastr.options = { 
+      "closeButton": true, 
+      "debug": false, 
+      "newestOnTop": false, 
+      "progressBar": false, 
+      "positionClass": "toast-top-center", 
+      "preventDuplicates": false, 
+      "showDuration": "300", 
+      "hideDuration": "1000", 
+      "timeOut": "5000", 
+      "extendedTimeOut": "1000", 
+      "showEasing": "swing", 
+      "hideEasing": "linear", 
+      "showMethod": "fadeIn", 
+      "hideMethod": "fadeOut", 
+      "toastClass": "custom-toast" // Custom CSS class for the toast 
+  }; 
+   
+  // Extract messages from the data attribute 
+  var messages = JSON.parse($('#message-container').attr('data-messages')); 
+   
+  // Display messages with Toastr 
+  for (var i = 0; i < messages.length; i++) { 
+      if (messages[i].tags == 'warning') { 
+          toastr.warning(messages[i].message); 
+      } else if (messages[i].tags == 'success') { 
+          toastr.success(messages[i].message); 
+      } 
+  } 
+  }); 
+  </script>
+<script>
+  const searchableHeaders = document.querySelectorAll('th.searchable');
+
+  searchableHeaders.forEach(header => {
+      header.addEventListener('dblclick', () => {
+          const originalText = header.textContent;
+          const input = document.createElement('input');
+          input.type = 'text';
+          input.placeholder = `search in ${header.textContent}`;
+          input.classList.add('form-control');
+
+          input.addEventListener('input', () => {
+              const searchTerm = input.value.toLowerCase();
+              const rows = document.querySelectorAll('tbody tr');
+
+              rows.forEach(row => {
+                  const cellValue = row.querySelector(`td:nth-child(${Array.from(header.parentNode.children).indexOf(header) + 1})`).textContent.toLowerCase();
+                  row.style.display = cellValue.includes(searchTerm) ? '' : 'none';
+              });
+          });
+
+          input.addEventListener('blur', () => {
+              header.innerHTML = originalText;
+          });
+
+          header.innerHTML = '';
+          header.appendChild(input);
+          input.focus();
+      });
+  });
+</script>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script> 
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script> 
+
+
+
+
+
+
+    </body>
+</html>

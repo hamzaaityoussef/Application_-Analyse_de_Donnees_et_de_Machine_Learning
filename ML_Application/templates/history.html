@@ -1,0 +1,310 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+
+<style>
+.scrollable-td {
+    max-height: 80px;  /* Adjust the height as needed */
+    overflow-y: auto;   /* Enable vertical scrolling */
+    overflow-x: hidden; /* Hide horizontal scrolling */
+    word-wrap: break-word; /* Break words to prevent overflow */
+    display: block;     /* This is important for enabling scroll inside <td> */
+       
+}
+
+
+</style>
+
+
+<h1 class="mb-7 text-5xl" >Gestion des <b> Historiques</b></h1>
+<div class="border-t-4 border-t-indigo-500 border-transparent ...">
+    <br><br>
+</div>
+
+
+<div class="container"> 
+    <form method="GET" action="{% url 'history' %}" id="filterForm" onsubmit="return submitForm()"> 
+        {% csrf_token %} 
+        <div class="form-row align-items-center"> 
+            <div class="form-group col-md-2"> 
+                <input type="text" id="start_date_filter" name="start_date_filter" class="form-control form-control-sm" placeholder="Date de début YYYY-MM-DD" value="{% if start_date_filter %}{{ start_date_filter }}{% endif %}"> 
+            </div> 
+            <div class="form-group col-md-2"> 
+                <input type="text" id="end_date_filter" name="end_date_filter" class="form-control form-control-sm" placeholder="Date de fin YYYY-MM-DD" value="{% if end_date_filter %}{{ end_date_filter }}{% endif %}"> 
+            </div> 
+            <div class="form-group col-md-2"> 
+                <input type="text" class="form-control form-control-sm" name="name_filter" placeholder="Nom de l'action" value="{% if name_filter %}{{ name_filter }}{% endif %}"> 
+            </div> 
+            <div class="form-group col-md-2"> 
+                <input type="text" class="form-control form-control-sm" name="user_name_filter" placeholder="Nom de l'utilisateur" value="{% if user_name_filter %}{{ user_name_filter }}{% endif %}"> 
+            </div> 
+            <div class="form-group col-md-1"> 
+                <button type="submit" class="btn btn-primary btn-sm">Filtrer</button> 
+            </div> 
+        </div> 
+    </form> 
+</div>
+<br>
+
+<!-- modal delete -->
+
+
+<div id="deleteHistoryModal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="confirmDeleteForm" action="{% url 'delete_history' %}" method="post">
+                {% csrf_token %}
+                <div class="modal-header d-flex justify-content-between">
+                    <h4 class="modal-title mr-96">supprimer l'historique</h4>
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p>Etes vous sur  de vouloir supprimer les actions historiques?</p>
+                    
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Annuler</button>
+                    <button type="submit" class="btn btn-danger">Supprimer </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Partie du formulaire d'exportation -->
+<form id="exportForm" method="post" action="{% url 'export_history' %}">
+    {% csrf_token %}
+    <input type="hidden" name="start_date_filter" value="{{ start_date_filter }}">
+    <input type="hidden" name="end_date_filter" value="{{ end_date_filter }}">
+    <input type="hidden" name="name_filter" value="{{ name_filter }}">
+    <input type="hidden" name="user_name_filter" value="{{ user_name_filter }}">
+    <div class="container">
+        <div class="form-row align-items-center">
+            <div class="form-group col-md-2">
+                <select class="form-control1 form-control-lg" id="export_format_select" name="export_format">
+                    <option value="">Format d'exportation</option>
+                    <option value="csv">CSV</option>
+                    <option value="txt">Txt</option>
+                </select>
+            </div>
+            <div class="form-group col-md-1">
+                <button type="button" class="btn btn-primary btn-sm" onclick="exportData()">Exporter</button>
+            </div>
+            {% if user_role in roles %}
+            <div class="delete-button" align="right" style="margin-right: 30px;">
+                <button type="button" class="btn btn-danger" data-toggle="modal" data-target="#deleteHistoryModal">
+                    <i class="fas fa-trash-alt"></i> <span>Delete All</span>
+                </button>  
+            </div>           
+            {% endif %} 
+        </div>
+    </div>
+</form>
+
+<br>
+<!-- ================================================================ -->
+<br>
+
+<!-- table  -->
+<div class="table-container">
+    <table class="min-w-full bg-white shadow-md rounded-lg  " >
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 uppercase leading-normal font-bold ">
+                <th class="py-4 px-6 text-left text-xl">ID Action</th>
+                <th class="py-4 px-6 text-left text-xl">Nom Action</th>
+                <th class="py-4 px-6 text-left text-xl">Date Action</th>
+                <th class="py-4 px-6 text-left text-xl">User</th>
+                {% if user_role in roles %}
+                <th class="py-4 px-6 text-left text-xl content-center justify-center flex">Infos</th>
+                {% endif %}
+            </tr>
+        </thead>
+        <tbody class="text-gray-700">
+            {% for action in actions %}
+            <tr class="border-b border-gray-200 hover:bg-gray-50">
+                <td class="py-4 px-6 text-xl ">{{ action.id_action }}</td>
+                <td class="py-4 px-6 text-2xl">{{ action.name_action }}</td>
+                <td class="py-4 px-6 text-xl ">{{ action.date_action }}</td>
+                <td class="py-4 px-6 text-xl ">{{ action.id_user.username }}</td>
+                {% if user_role in roles %}
+                <td class=" text-xl scrollable-td  mt-3 mb-2">{{ action.infos|safe }}</td>
+                {% endif %}
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<br>
+<!-- ===================================== -->
+<br>
+
+<!-- pagination -->
+<div class="clearfix"> 
+    <div class="d-flex justify-content-between align-items-center mt-2"> 
+        <!-- Align this div to the far left -->
+        <div class="hint-text">Showing <b>{{ actions.start_index }}</b> to <b>{{ actions.end_index }}</b> of <b>{{ actions.paginator.count }}</b> entries</div> 
+        
+        <!-- Align this ul to the center -->
+        <ul class="pagination mb-0 custom-pagination" id="pagination" style="margin: 0 auto;"> 
+            <!-- Pagination links will be dynamically generated here -->
+            <li class="page-item">
+                <a class="page-link text-xl px-3 py-2 rounded-l-lg bg-gray-100 text-gray-600 hover:bg-blue-600 hover:text-white transition duration-300" href="#">Previous</a>
+            </li>
+            <li class="page-item active">
+                <a class="page-link text-xl px-3 py-2 bg-blue-600 text-white rounded" href="#">1</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link text-xl px-3 py-2 bg-gray-100 text-gray-600 hover:bg-blue-600 hover:text-white transition duration-300" href="#">2</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link text-xl px-3 py-2 bg-gray-100 text-gray-600 hover:bg-blue-600 hover:text-white transition duration-300" href="#">3</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link text-xl px-3 py-2 rounded-r-lg bg-gray-100 text-gray-600 hover:bg-blue-600 hover:text-white transition duration-300" href="#">Next</a>
+            </li>
+        </ul> 
+
+        <form id="columnsForm" method="get" class="d-flex align-items-center ml-3 mt-7"> 
+            {% for key, value in request.GET.items %} 
+                {% if key != 'columns' %} 
+                    <input type="hidden" name="{{ key }}" value="{{ value }}"> 
+                {% endif %} 
+            {% endfor %} 
+            <select class="form-select  h-12 text-xl px-3 py-2" name="columns" id="columns" style=" width:  200px ;" onchange="changeColumnsPerPage()"> 
+                <option value="" id="defaultOption" class="text-xl px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">{{ columns }} éléments par page </option> 
+                <option value="2" {% if columns == 2 %} selected {% endif %}>2</option> 
+                <option value="4" {% if columns == 4 %} selected {% endif %}>4</option> 
+                <option value="10" {% if columns == 10 %} selected {% endif %}>10</option> 
+                <option value="50" {% if columns == 50 %} selected {% endif %}>50</option> 
+                <option value="100" {% if columns == 100 %} selected {% endif %}>100</option> 
+                <option value="1000" {% if columns == 1000 %} selected {% endif %}>1000</option> 
+                <option value="{{ actions.paginator.count }}" {% if columns == actions.paginator.count %} selected {% endif %}>all</option>
+
+                
+            </select> 
+        </form> 
+    </div> 
+</div>
+
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const totalPages = parseInt("{{ actions.paginator.num_pages|default:0 }}");
+        const currentPage = parseInt("{{ actions.number|default:1 }}");
+        const columnsPerPage = parseInt("{{ columns|default:10 }}");
+        const urlParams = new URLSearchParams(window.location.search);
+
+        function createPageLink(page, text, isActive = false) {
+            const li = document.createElement('li');
+            li.className = `page-item custom-page-item ${isActive ? 'active' : ''}`;
+            const a = document.createElement('a');
+            a.className = 'page-link custom-page-link';
+            a.href = `?${urlParams.toString()}&page=${page}&columns=${columnsPerPage}`;
+            a.textContent = text;
+            li.appendChild(a);
+            return li;
+        }
+
+        function updatePagination() {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            
+
+            if (currentPage > 4 ) {
+                if (currentPage != 5){
+                pagination.appendChild(createPageLink(1, '1'));
+                pagination.appendChild(createPageLink(2, '2'));
+               
+                pagination.appendChild(createPageLink(3, '...'));
+            }
+            }
+            if (currentPage == 5) {
+                pagination.appendChild(createPageLink(1, '1'));
+                pagination.appendChild(createPageLink(2, '2'));
+                // pagination.appendChild(createPageLink(3, '3'));
+                // pagination.appendChild(createPageLink(4, '4'));
+                pagination.appendChild(createPageLink(5, '...'));
+            }
+            if (currentPage == 4) {
+                pagination.appendChild(createPageLink(1, '1'));
+               
+            }
+            for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+                pagination.appendChild(createPageLink(i, i, i === currentPage));
+            }
+
+            if (currentPage < totalPages - 3) {
+                pagination.appendChild(createPageLink(totalPages - 2, '...'));
+                
+                pagination.appendChild(createPageLink(totalPages - 1, totalPages - 1));
+                pagination.appendChild(createPageLink(totalPages, totalPages));
+            }
+
+           
+        }
+
+        updatePagination();
+    });
+
+    
+</script>
+<script>
+    function changeColumnsPerPage() {
+        var select = document.getElementById("columns");
+        var selectedOption = select.options[select.selectedIndex].value;
+        var defaultOption = document.getElementById("defaultOption");
+        defaultOption.textContent = select.options[select.selectedIndex].textContent;
+        // Mettre à jour la valeur de la colonne dans la session
+        fetch('?columns=' + selectedOption, { method: 'GET' });
+        // Soumettre le formulaire lorsque la sélection change
+        document.getElementById("columnsForm").submit();
+    }
+
+    function exportData() {
+        var select = document.getElementById("export_format_select");
+        var selectedFormat = select.options[select.selectedIndex].value;
+        if (selectedFormat) {
+            // Soumettre le formulaire d'exportation
+            document.getElementById("exportForm").submit();
+        } else {
+            alert("Veuillez sélectionner un format d'exportation.");
+        }
+    }
+</script>
+
+
+<script>
+    function validateDateFormat(dateString) {
+    // Expression régulière pour vérifier le format YYYY-MM-DD
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+
+    // Vérifie si la chaîne de caractères correspond au format attendu
+    return dateRegex.test(dateString);
+}
+
+function submitForm() {
+    const startDateInput = document.getElementById('start_date_filter');
+    const endDateInput = document.getElementById('end_date_filter');
+
+    // Vérifier le format de la date de début
+    if (startDateInput.value && !validateDateFormat(startDateInput.value)) {
+        alert('Le format de la date de début est incorrect. Veuillez entrer une date au format YYYY-MM-DD.');
+        return false;
+    }
+
+    // Vérifier le format de la date de fin
+    if (endDateInput.value && !validateDateFormat(endDateInput.value)) {
+        alert('Le format de la date de fin est incorrect. Veuillez entrer une date au format YYYY-MM-DD.');
+        return false;
+    }
+
+    // Si les formats sont corrects, soumettre le formulaire
+    return true;
+}
+</script>
+
+ 
+
+{% endblock %}

@@ -1,0 +1,379 @@
+{% extends 'app/base.html' %}
+
+{% block content %}
+
+
+<style>
+    .fade1 {
+        opacity: 1;
+        -webkit-transition: opacity  .15s linear;
+        -o-transition: opacity .15s linear;
+        transition: opacity .15s linear;
+    }
+ 
+    .table-container { 
+        display: flex; 
+        flex-wrap: wrap; 
+        gap: 20px; /* Espace entre les tables */ 
+    } 
+    .table-item { 
+        flex: 1 1 30%; /* Chaque table prendra au moins 30% de la largeur disponible */ 
+        min-width: 300px; /* Largeur minimale pour chaque table */ 
+    } 
+</style>
+
+
+<style>
+    .modal-header {
+    display: inline;
+}
+.modal-header .close {
+margin-top: -20px;
+}
+</style>
+
+<style>
+    /* Remove border */
+    .select2-container--default .select2-selection--single {
+      display: block;
+      width: 100%;
+      /* min-height: 34px; */
+      padding-bottom: 28px;
+      
+      font-size: 1em;
+      line-height: 1.5;
+      color: #a39c9c;
+      background-color: #fff;
+      border: #95949454 0.5px solid;
+      border-radius: 4px;
+      padding-right: 2em; /* Adjust padding to accommodate arrow icon */
+      
+    }
+    /* .select2-container--default{
+      max-width: 39.5vw;
+      
+    } */
+  /* Base styles for select2 container */
+.select2-container--default {
+    width: 100%; /* Full width by default */
+    max-width: 100%; /* Override to control max width via JS */
+    transition: width 0.3s ease; /* Smooth transition when resizing */
+}
+
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+    .select2-container--default {
+        max-width: 20vw; /* Max width for medium screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .select2-container--default {
+        max-width: 18vw; /* Max width for small screens */
+    }
+}
+
+@media (max-width: 480px) {
+    .select2-container--default {
+        max-width: 60vw; /* Max width for very small screens */
+    }
+}
+
+  </style>
+
+
+<h3 class="mb-4  text-4xl px-6 py-3 text-left font-medium text-gray-700 uppercase tracking-wider">Nombre de repetition des proxies</h3>
+   <br>
+
+    <!-- filter  -->
+    
+
+<div class="flex-none w-1/2 max-w-full px-3">
+    <div class="border-t-2 border-t-indigo-500 border-transparent">
+        <div class="p-6 pt-10 mt-0 bg-white rounded-lg">
+            <div class="container mx-auto mb-4">
+                <form method="get" action="">
+                    <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-2 gap-4">
+
+                        <div class="form-group">
+                            <div class="relative h-12 min-w-[200px]">
+                                <select class="hamza  peer h-full w-full rounded-[7px] border border-blue-gray-200 border-t-transparent bg-transparent px-3 py-1 font-sans font-normal text-blue-gray-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 empty:!bg-gray-900 focus:border-2 focus:border-gray-900 focus:border-t-transparent focus:outline-0 disabled:border-0 disabled:bg-blue-gray-50" name="id_proxy" id="id_proxy">
+                                    <option value="">Select Proxy</option>
+                                    {% for proxy in all_proxies %}
+                                    <option value="{{ proxy }}" {% if proxy == id_proxy_query %}selected{% endif %}>{{ proxy }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group col-span-1">
+                            <input type="number" class="form-control1 form-control-sm form-select1 peer h-full w-full rounded-[7px] border border-blue-gray-200 border-t-transparent bg-transparent px-3 py-1 font-sans font-normal text-blue-gray-700 outline outline-0 transition-all placeholder-shown:border placeholder-shown:border-blue-gray-200 placeholder-shown:border-t-blue-gray-200 empty:!bg-white focus:border-2 focus:border-gray-900 focus:border-t-transparent focus:outline-0 disabled:border-0 disabled:bg-blue-gray-50" name="count_filter" id="count_filter" placeholder="Enter count">
+                        </div>
+                        <div class="form-group col-span-1">
+                            <button class="btn btn-primary btn-md" type="submit">Search</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+<!-- table  -->
+{% if ip_counts_items %}
+<div class="overflow-x-auto">
+    <table class="min-w-full bg-white shadow-md rounded-lg overflow-hidden" >
+        <thead>
+            <tr class="bg-gray-100 text-gray-700 uppercase leading-normal font-bold">
+                <th scope="col" class="px-4 py-3 text-left text-xl font-medium text-gray-700 uppercase tracking-wider" id="ip">IP Address</th>
+                <th scope="col" class="px-4 py-3 text-left text-xl font-medium text-gray-700 uppercase tracking-wider">Count</th>
+            </tr>
+        </thead>
+        <tbody class="bg-white divide-y divide-gray-200">
+            {% for proxy, count in ip_counts_items %}
+            <tr class="ip-count-row" data-ip="{{ proxy }}">
+                <td class="px-4 py-3 whitespace-nowrap text-2xl">{{ proxy }}</td>
+                <td class="px-4 py-3 whitespace-nowrap cursor-pointer text-2xl">{{ count }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    
+</div>
+{% endif %}
+
+<br><br>
+
+
+
+
+
+
+  
+<!-- Modal more infos -->
+<div class="modal fade1" id="infoModal" tabindex="-1" role="dialog" aria-labelledby="infoModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" role="document"> <!-- Use 'modal-lg' class for a large modal -->
+      <div class="modal-content">
+        <div class="modal-header  justify-content-between text-3
+        2xl">
+          <h5 class="modal-title mr-96" id="infoModalLabel">{ip}</h5>
+          <button type="button" class="close " data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        <div class="modal-body text-2xl">
+  
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-primary" data-dismiss="modal">Close</button>     
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+<!-- pagination -->
+<div class="clearfix"> 
+    <div class="d-flex justify-content-between align-items-center mt-2"> 
+        <!-- Align this div to the far left -->
+        <div class="hint-text">Showing <b>{{ ip_counts_items.start_index }}</b> to <b>{{ ip_counts_items.end_index }}</b> of <b>{{ ip_counts_items.paginator.count }}</b> entries</div> 
+        
+        <!-- Align this ul to the center -->
+        <ul class="pagination mb-0 custom-pagination" id="pagination" style="margin: 0 auto;"> 
+            <!-- Pagination links will be dynamically generated here -->
+            <li class="page-item">
+                <a class="page-link text-xl px-3 py-2 rounded-l-lg bg-gray-100 text-gray-600 hover:bg-blue-600 hover:text-white transition duration-300" href="#">Previous</a>
+            </li>
+            <li class="page-item active">
+                <a class="page-link text-xl px-3 py-2 bg-blue-600 text-white rounded" href="#">1</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link text-xl px-3 py-2 bg-gray-100 text-gray-600 hover:bg-blue-600 hover:text-white transition duration-300" href="#">2</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link text-xl px-3 py-2 bg-gray-100 text-gray-600 hover:bg-blue-600 hover:text-white transition duration-300" href="#">3</a>
+            </li>
+            <li class="page-item">
+                <a class="page-link text-xl px-3 py-2 rounded-r-lg bg-gray-100 text-gray-600 hover:bg-blue-600 hover:text-white transition duration-300" href="#">Next</a>
+            </li>
+        </ul> 
+
+        <form id="columnsForm" method="get" class="d-flex align-items-center ml-3 mt-7"> 
+            {% for key, value in request.GET.items %} 
+                {% if key != 'columns' %} 
+                    <input type="hidden" name="{{ key }}" value="{{ value }}"> 
+                {% endif %} 
+            {% endfor %} 
+            <select class="form-select  h-12 text-xl px-3 py-2" name="columns" id="columns" style=" width:  200px ;" onchange="changeColumnsPerPage()"> 
+                <option value="" id="defaultOption" class="text-xl px-6 py-3 text-left font-medium text-gray-500 uppercase tracking-wider">{{ columns }} éléments par page </option> 
+                <option value="2" {% if columns == 2 %} selected {% endif %}>2</option> 
+                <option value="4" {% if columns == 4 %} selected {% endif %}>4</option> 
+                <option value="10" {% if columns == 10 %} selected {% endif %}>10</option> 
+                <option value="50" {% if columns == 50 %} selected {% endif %}>50</option> 
+                <option value="100" {% if columns == 100 %} selected {% endif %}>100</option> 
+                <option value="1000" {% if columns == 1000 %} selected {% endif %}>1000</option> 
+                <option value="{{ ip_counts_items.paginator.count }}" {% if columns == ip_counts_items.paginator.count %} selected {% endif %}>all</option>
+
+            </select> 
+        </form> 
+    </div> 
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const totalPages = parseInt("{{ ip_counts_items.paginator.num_pages|default:0 }}");
+        const currentPage = parseInt("{{ ip_counts_items.number|default:1 }}");
+        const columnsPerPage = parseInt("{{ columns|default:10 }}");
+        const urlParams = new URLSearchParams(window.location.search);
+
+        function createPageLink(page, text, isActive = false) {
+            const li = document.createElement('li');
+            li.className = `page-item custom-page-item ${isActive ? 'active' : ''}`;
+            const a = document.createElement('a');
+            a.className = 'page-link custom-page-link';
+            a.href = `?${urlParams.toString()}&page=${page}&columns=${columnsPerPage}`;
+            a.textContent = text;
+            li.appendChild(a);
+            return li;
+        }
+
+        function updatePagination() {
+            const pagination = document.getElementById('pagination');
+            pagination.innerHTML = '';
+
+            
+
+            if (currentPage > 4 ) {
+                if (currentPage != 5){
+                pagination.appendChild(createPageLink(1, '1'));
+                pagination.appendChild(createPageLink(2, '2'));
+               
+                pagination.appendChild(createPageLink(3, '...'));
+            }
+            }
+            if (currentPage == 5) {
+                pagination.appendChild(createPageLink(1, '1'));
+                pagination.appendChild(createPageLink(2, '2'));
+                // pagination.appendChild(createPageLink(3, '3'));
+                // pagination.appendChild(createPageLink(4, '4'));
+                pagination.appendChild(createPageLink(5, '...'));
+            }
+            if (currentPage == 4) {
+                pagination.appendChild(createPageLink(1, '1'));
+               
+            }
+            for (let i = Math.max(1, currentPage - 2); i <= Math.min(totalPages, currentPage + 2); i++) {
+                pagination.appendChild(createPageLink(i, i, i === currentPage));
+            }
+
+            if (currentPage < totalPages - 3) {
+                pagination.appendChild(createPageLink(totalPages - 2, '...'));
+                
+                pagination.appendChild(createPageLink(totalPages - 1, totalPages - 1));
+                pagination.appendChild(createPageLink(totalPages, totalPages));
+            }
+
+           
+        }
+
+        updatePagination();
+    });
+
+    
+</script>
+
+ 
+<script>  
+    function changeColumnsPerPage() {  
+        var select = document.getElementById("columns");  
+        var selectedOption = select.options[select.selectedIndex].value;  
+        var defaultOption = document.getElementById("defaultOption");  
+        defaultOption.textContent = select.options[select.selectedIndex].textContent;  
+        // Mettre à jour la valeur de la colonne dans la session  
+        fetch('?columns=' + selectedOption, { method: 'GET' });  
+        // Soumettre le formulaire lorsque la sélection change  
+        document.getElementById("columnsForm").submit();  
+    }  
+  
+    function exportData() {  
+        var select = document.getElementById("export_format_select");  
+        var selectedFormat = select.options[select.selectedIndex].value;  
+        if (selectedFormat) {  
+            // Soumettre le formulaire d'exportation  
+            document.getElementById("exportForm").submit();  
+        } else {  
+            alert("Veuillez sélectionner un format d'exportation.");  
+        }  
+    }  
+</script>
+
+
+<!-- script pour modal ip  -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.ip-count-row').forEach(function(row) {
+            row.addEventListener('click', function() {
+                var ip = this.getAttribute('data-ip');
+                // j'ajoute ca pour avoir le resultat selon  le filter 
+                var queryString = new URLSearchParams(window.location.search).toString();
+                // ca pour le titre de popup
+                var modalTitle = document.querySelector('#infoModalLabel');
+                modalTitle.innerHTML = `<h4><strong>IP Address: ${ip}</strong></h4>`;
+
+                // Adjust the URL based on whether IP is None or not
+                var url;
+                if (ip !== 'None') {
+                    url = `/get_seeds_by_ip/?ip=${ip}&${queryString}`;
+                } else {
+                    url = `/get_seeds_by_ip/?proxy=None&${queryString}`;
+                }
+
+                fetch(url)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Clear previous data
+                        var modalBody = document.querySelector('#infoModal .modal-body');
+                        modalBody.innerHTML = '';
+
+                        // Populate modal with new data
+                        data.seeds.forEach(function(seed) {
+                            var seedInfo = document.createElement('p');
+                            seedInfo.innerHTML = `<h4><strong>ID seeds: </strong>${seed.order}&nbsp;&nbsp;&nbsp;&nbsp;  {% if selected_role in roles %}  <strong>Email: </strong> ${seed.email} &nbsp;&nbsp;&nbsp;&nbsp;  <strong>date import : </strong> ${seed.date_import}{% else %}<strong>date import : :</strong> ${seed.date_import} {% endif %}&nbsp;&nbsp;&nbsp;&nbsp;</h4><br>`;
+
+                            modalBody.appendChild(seedInfo);
+                        });
+
+                        // Show the modal
+                        $('#infoModal').modal('show');
+                    });
+            });
+        });
+
+
+   
+
+
+    
+        // Close modal when close button is clicked
+        document.querySelector('.modal-footer button[data-dismiss="modal"]').addEventListener('click', function() {
+            $('#infoModal').modal('hide');
+        });
+        // Close modal when close button is clicked
+        document.querySelector('.modal-header button[data-dismiss="modal"]').addEventListener('click', function() {
+            $('#infoModal').modal('hide');
+        });
+    });
+    </script>
+    
+
+    <script>
+        $(document).ready(function() {
+            $('.hamza').select2();
+        });
+    </script>
+
+
+
+{% endblock %}    

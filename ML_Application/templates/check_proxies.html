@@ -1,0 +1,586 @@
+{% extends 'app/base.html' %}
+{% block content %}
+
+<!-- created by hamza ait youssef le 26/08/2024 -->
+
+<!-- Tailwind custom styles -->
+<style>
+    .fixed-size {
+        height: 250px;
+        overflow-y: auto;
+    }
+
+    .container {
+        display: flex;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    .fixed-section {
+        flex: 1;
+        min-width: 300px;
+    }
+</style>
+
+<!-- style pour les buttons -->
+<style>
+    .btn{
+        background-color: #3b82f6;
+        color: black;
+    }
+    .btn:hover{
+        background-color: #2563eb;
+    }
+
+
+</style>
+
+
+<style>
+    /* Example CSS for animate-spin */
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .animate-spin {
+      animation: spin 1s linear infinite;
+    }
+    
+</style>
+
+<h1 class="mb-4 text-5xl px-6 py-3 text-left font-medium text-gray-700 uppercase tracking-wider">Status des Proxies</h1>
+<div class="border-t-4 border-t-indigo-500 border-transparent ...">
+    <br><br>
+</div>
+
+<!-- Upload Proxy File -->
+<div class="mb-12">
+    <h3 class="text-3xl font-medium text-gray-700 uppercase tracking-wider mb-4">Upload Proxy File</h3>
+    <form id="upload-form" method="post" enctype="multipart/form-data" class=" shadow-md rounded p-4">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn bg-blue-500 text-white py-2 px-4 rounded shadow hover:bg-blue-600 mt-3">Upload Proxies</button>
+    </form>
+</div>
+
+<!-- container  -->
+<div class="container mx-auto mt-10 px-4">
+
+    <!-- Proxy List -->
+    <div class="fixed-section">
+        <h3 class="text-3xl font-medium text-gray-700 uppercase tracking-wider mb-4">Proxy List</h3>
+        
+        <!-- Editable Area -->
+        <div id="exists" contenteditable="true" class="border p-4 fixed-size bg-white shadow-md rounded">
+            <!-- Paste proxies here -->
+        </div>
+        
+        <button id="export-exists" class="mt-4 btn bg-green-500 text-white py-2 px-4 rounded shadow hover:bg-green-600">Export Proxies</button>
+    </div>
+
+
+    
+
+
+
+
+    <!-- Port and Speed Settings -->
+    <div class="fixed-section">
+        <h3 class="text-3xl font-medium text-gray-700 uppercase tracking-wider mb-4">Test Proxies</h3>
+        <div class="bg-white shadow-md rounded p-4">
+            <div class="form-group mb-4">
+                <label class="inline-flex items-center">
+                    <input type="checkbox" id="change-port-checkbox" class="mr-2"> Change Port
+                </label>
+                <input type="text" id="port-input" class="mt-2 block w-full px-3 py-2 border rounded-md" placeholder="New Port" disabled>
+            </div>
+            <div class="form-group mb-4">
+                <label for="speed-input" class="block text-gray-700 font-medium">Check Speed (in ms):</label>
+                <input type="number" id="speed-input" class="mt-2 block w-full px-3 py-2 border rounded-md" placeholder="2000">
+            </div>
+            <!-- Checkbox to Show Details -->
+            <div class="form-group mt-4">
+                <label>
+                    <input type="checkbox" id="details-checkbox">
+                    Show Details
+                </label>
+            </div>
+
+            
+            <button id="start-test" class="btn bg-blue-500 text-white py-2 px-4 rounded shadow hover:bg-blue-600">Start Test</button>
+            <!-- Loading Spinner -->
+        <!-- Spinner Button (Hidden initially, will be shown during loading) -->
+            <button id="loading-spinner" type="button" class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800 inline-flex items-center hidden">
+                <svg aria-hidden="true" role="status" class="inline w-4 h-4 me-3 text-white animate-spin" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895 90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="#E5E7EB"/>
+                    <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentColor"/>
+                </svg>
+                Loading...
+            </button>
+
+
+
+        </div>
+    </div>
+
+
+    <!-- Test Results Section -->
+    <div class="fixed-section">
+        <h3 class="text-3xl font-medium text-gray-700 uppercase tracking-wider mb-4">Test Results</h3>
+        <div class="fixed-size bg-white shadow-md rounded p-4 overflow-auto">
+            <table class="table-auto w-full border-collapse border border-gray-300 h-auto">
+                <thead>
+                    <tr>
+                        <th class="px-4 py-2 border border-gray-300">
+                            <span>Up</span>
+                            <button id="copy-up" class="copy-btn py-1 px-2 rounded shadow ml-8">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </th>
+                        <th class="px-4 py-2 border border-gray-300">
+                            <span>Down</span>
+                            <button id="copy-down" class="copy-btn py-1 px-2 rounded shadow ml-8">
+                                <i class="fa-regular fa-copy"></i>
+                            </button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody id="results-body">
+                    <!-- Rows will be added dynamically -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+
+
+</div>
+<br>
+
+
+<!-- Container for Proxy Details Table -->
+<div class="mt-4" id="details-section" style="display: none;">
+    <button onclick="copyTableContent()" class="btn bg-blue-500 text-white px-4 py-2 rounded mb-3">Copy Table </button> <!-- Copy Table Button -->
+    
+    <table class="table-auto w-full border-collapse border border-gray-300 h-auto" id="proxy-table">
+        <thead>
+            <tr>
+                <th class="px-4 py-2 border border-gray-300"   >
+                    <div class="flex items-center justify-between" style="justify-content: space-between;">
+                        <span class="ml-2 cursor-pointer" onclick="sortTable(0)">IP</span>
+                        <input type="text" id="search-ip" class="hidden px-2 py-1 border border-gray-300 rounded ml-2" oninput="searchTable(0)" placeholder="Search IP">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-sort cursor-pointer" onclick="sortTable(0)"></i>
+                            <i class="fas fa-search cursor-pointer ml-4" onclick="toggleSearch(0)"></i>
+                        </div>
+                    </div>
+                </th>
+                <th class="px-4 py-2 border border-gray-300">
+                    <div class="flex items-center justify-between" style="justify-content: space-between;">
+                        <span class="ml-2 cursor-pointer" onclick="sortTable(1)">Port</span>
+                        <input type="text" id="search-port" class="hidden px-2 py-1 border border-gray-300 rounded ml-2" oninput="searchTable(1)" placeholder="Search Port">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-sort cursor-pointer" onclick="sortTable(1)"></i>
+                            <i class="fas fa-search cursor-pointer ml-4" onclick="toggleSearch(1)"></i>
+                        </div>
+                    </div>
+                </th>
+                <th class="px-4 py-2 border border-gray-300">
+                    <div class="flex items-center justify-between" style="justify-content: space-between;">
+                        <span class="ml-2 cursor-pointer" onclick="sortTable(2)">Status</span>
+                        <input type="text" id="search-status" class="hidden px-2 py-1 border border-gray-300 rounded ml-2" oninput="searchTable(2)" placeholder="Search Status">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-sort cursor-pointer" onclick="sortTable(2)"></i>
+
+                            <i class="fas fa-search cursor-pointer ml-4" onclick="toggleSearch(2)"></i>
+                        </div>
+                    </div>
+                </th>
+                <th class="px-4 py-2 border border-gray-300">
+                    <div class="flex items-center justify-between" style="justify-content: space-between;">
+                        <span class="ml-2 cursor-pointer" onclick="sortTable(3)">Country</span>
+                        <input type="text" id="search-country" class="hidden px-2 py-1 border border-gray-300 rounded ml-2" oninput="searchTable(3)" placeholder="Search Country">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-sort cursor-pointer" onclick="sortTable(3)"></i>
+
+                            <i class="fas fa-search cursor-pointer ml-4" onclick="toggleSearch(3)"></i>
+                        </div>
+                    </div>
+                </th>
+                <th class="px-4 py-2 border border-gray-300">
+                    <div class="flex items-center justify-between" style="justify-content: space-between;">
+                        <span class="ml-2 cursor-pointer" onclick="sortTable(4)">Speed (ms)</span>
+                        <input type="text" id="search-speed" class="hidden px-2 py-1 border border-gray-300 rounded ml-2" oninput="searchTable(4)" placeholder="Search Speed">
+                        <div class="flex items-center">
+                            <i class="fa-solid fa-sort cursor-pointer" onclick="sortTable(4)"></i>
+
+                            <i class="fas fa-search cursor-pointer ml-4" onclick="toggleSearch(4)"></i>
+                        </div>
+                    </div>
+                </th>
+            </tr>
+        </thead>
+        <tbody id="details-body">
+            <!-- Detailed rows will be added dynamically -->
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- this script for manage the table  -->
+<script>
+
+// *************************// for copy all table infos*******************************
+function copyTableContent() {
+    // Select the table
+    const table = document.getElementById("details-section");
+    
+    // Create a range and select the table
+    const range = document.createRange();
+    range.selectNode(table);
+    
+    // Clear any existing selection
+    window.getSelection().removeAllRanges();
+    
+    // Add the range to the selection
+    window.getSelection().addRange(range);
+    
+    // Copy the selected content to the clipboard
+    try {
+        document.execCommand('copy');
+        message = 'Table content copied to clipboard!'
+        toastr.success(message)
+    } catch (err) {
+        console.error('Failed to copy table content', err);
+    }
+    
+    // Clear the selection
+    window.getSelection().removeAllRanges();
+}
+
+
+
+// *************************// for do sort in table *******************************
+function sortTable(columnIndex) {
+    const table = document.getElementById('proxy-table');
+    const tbody = table.tBodies[0];
+    const rows = Array.from(tbody.rows);
+    let isAscending = table.getAttribute('data-sort-direction') === 'asc';
+
+    rows.sort((a, b) => {
+        let cellA = a.cells[columnIndex].textContent.trim();
+        let cellB = b.cells[columnIndex].textContent.trim();
+
+        // Handle IP Address Sorting
+        if (columnIndex === 0) {  // Sort IP addresses
+            cellA = cellA.split('.').map(Number);
+            cellB = cellB.split('.').map(Number);
+            for (let i = 0; i < 4; i++) {
+                if (cellA[i] !== cellB[i]) {
+                    return isAscending ? cellA[i] - cellB[i] : cellB[i] - cellA[i];
+                }
+            }
+            return 0;
+        } else if (columnIndex === 1) { // Sort numbers for Port column
+            return isAscending ? parseFloat(cellA) - parseFloat(cellB) : parseFloat(cellB) - parseFloat(cellA);
+        } else if (columnIndex === 4) { // Sort numbers for Speed column, prioritize non-empty values
+            // Convert empty cells to Infinity or -Infinity for proper sorting
+            const speedA = cellA === '' ? (isAscending ? Infinity : -Infinity) : parseFloat(cellA);
+            const speedB = cellB === '' ? (isAscending ? Infinity : -Infinity) : parseFloat(cellB);
+            return isAscending ? speedA - speedB : speedB - speedA;
+        } else {  // Sort alphabetically for other columns
+            return isAscending ? cellA.localeCompare(cellB) : cellB.localeCompare(cellA);
+        }
+    });
+
+    // Toggle the sort direction for the next click
+    table.setAttribute('data-sort-direction', isAscending ? 'desc' : 'asc');
+
+    // Append sorted rows to the tbody
+    tbody.append(...rows);
+}
+
+
+// *************************// for search by column *******************************
+
+// List of column names for search input IDs
+const columnNames = ['ip', 'port', 'status', 'country', 'speed'];
+
+// Toggle the search input field visibility
+function toggleSearch(columnIndex) {
+    const inputField = document.querySelector(`#search-${columnNames[columnIndex]}`);
+    inputField.classList.toggle('hidden');
+    // Focus the input field when it is made visible
+    if (!inputField.classList.contains('hidden')) {
+        inputField.focus();
+    }
+}
+
+// Search functionality for each column
+function searchTable(columnIndex) {
+    const input = document.querySelector(`#search-${columnNames[columnIndex]}`).value.toLowerCase();
+    const rows = document.querySelectorAll('#proxy-table tbody tr');
+    
+    rows.forEach(row => {
+        const cell = row.cells[columnIndex];
+        if (cell) {
+            const cellText = cell.textContent.toLowerCase();
+            row.style.display = cellText.includes(input) ? '' : 'none';
+        }
+    });
+}
+
+// Handle blur event to hide search input
+function handleBlur(event) {
+    // Hide the search input field when it loses focus
+    event.target.classList.add('hidden');
+}
+
+// Attach blur event listeners to all search input fields
+function addBlurEventListeners() {
+    columnNames.forEach((columnName, index) => {
+        const inputField = document.querySelector(`#search-${columnName}`);
+        if (inputField) {
+            inputField.addEventListener('blur', handleBlur);
+        }
+    });
+}
+
+// Initialize blur event listeners
+addBlurEventListeners();
+
+</script>
+
+
+
+
+<!-- verify -->
+
+<script>
+// Utility function to get the CSRF token
+function getCsrfToken() {
+    return document.querySelector('[name=csrfmiddlewaretoken]').value;
+}
+
+// Utility function to make fetch requests
+function fetchRequest(url, method, formData) {
+    return fetch(url, {
+        method: method,
+        body: formData,
+        headers: {
+            'X-CSRFToken': getCsrfToken(),
+            'Accept': 'application/json'
+        }
+    });
+}
+
+// Function to handle proxy upload
+function handleProxyUpload(event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    fetchRequest('{% url "upload_proxies" %}', 'POST', formData)
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                console.error('Error:', data.error);
+                return;
+            }
+
+            const existsDiv = document.getElementById('exists');
+            existsDiv.innerHTML = '';
+            data.exists.forEach(proxy => {
+                const p = document.createElement('p');
+                p.textContent = proxy;
+                existsDiv.appendChild(p);
+            });
+
+            // Show the test section
+            document.getElementById('test-section').style.display = 'block';
+        })
+        .catch(error => {
+            console.error('There was a problem with the fetch operation:', error);
+        });
+}
+
+
+
+
+
+// Utility function to fetch proxy details using an external API
+function fetchProxyDetails(proxies, status) {
+    const detailsBody = document.getElementById('details-body');
+    detailsBody.innerHTML = ''; // Clear previous details
+    console.log(proxies)
+    proxies.forEach(proxy => {
+        console.log('tst',proxy[0])
+        console.log('vtss',proxy[1])
+        const [ip, port] = proxy[0].split(':'); // Split the proxy into IP and port
+
+        // Use a public API to fetch IP details;
+        fetch(`http://ip-api.com/json/${ip}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'fail') return; // Skip failed fetches
+
+                const row = document.createElement('tr'); 
+                row.innerHTML = `
+                    <td class="px-4 py-2 border border-gray-300">${ip}</td>
+                    <td class="px-4 py-2 border border-gray-300">${port}</td>
+                    <td class="px-4 py-2 border border-gray-300">${status}</td>
+                    <td class="px-4 py-2 border border-gray-300">${data.country}</td>
+                    <td class="px-4 py-2 border border-gray-300">${proxy[1] !== null ? proxy[1].toFixed(2) + ' ms' : ''}</td>
+
+
+                `;
+                detailsBody.appendChild(row);
+            })
+            .catch(error => {
+                console.error('Error fetching proxy details:', error);
+            });
+    });
+
+    document.getElementById('details-section').style.display = 'block'; // Show details section
+}
+
+
+
+// Function to start the test
+function startTest() {
+    const existsDiv = document.getElementById('exists');
+    const proxies = existsDiv.innerText.split('\n').map(proxy => proxy.trim()).filter(proxy => proxy !== '');
+
+    if (proxies.length === 0) {
+        alert('No proxies to test. Please add some proxies.');
+        return;
+    }
+
+    const formData = new FormData();
+    proxies.forEach(proxy => formData.append('proxies[]', proxy));
+
+    if (document.getElementById('change-port-checkbox').checked) {
+        formData.append('port', document.getElementById('port-input').value);
+    }
+    formData.append('speed', document.getElementById('speed-input').value);
+
+    // Show loading spinner
+    const spinner = document.getElementById('loading-spinner');
+    spinner.classList.remove('hidden');
+
+    fetchRequest('{% url "test_proxies" %}', 'POST', formData)
+        .then(response => response.json())
+        .then(data => {
+            // Hide loading spinner after receiving data
+            spinner.classList.add('hidden');
+
+            if (data.error) {
+                console.error('Error:', data.error);
+                return;
+            }
+
+            const resultsBody = document.getElementById('results-body');
+            resultsBody.innerHTML = ''; // Clear previous results
+
+            const maxLength = Math.max(data.up.length, data.down.length);
+
+            for (let i = 0; i < maxLength; i++) {
+                const row = document.createElement('tr');
+
+                const upProxy = data.up[i] ? data.up[i][0] : ''; // Up proxy if available
+                const downProxy = data.down[i] ? data.down[i][0] : ''; // Down proxy if available
+
+                row.innerHTML = `
+                    <td class="px-4 py-2 border border-gray-300">${upProxy}</td>
+                    <td class="px-4 py-2 border border-gray-300">${downProxy}</td>
+                `;
+
+                resultsBody.appendChild(row);
+            }
+
+            // Display proxy details if the checkbox is checked
+            if (document.getElementById('details-checkbox').checked) {
+                fetchProxyDetails(data.up, 'Up');
+                fetchProxyDetails(data.down, 'Down');
+            } else {
+                document.getElementById('details-section').style.display = 'none';
+            }
+        })
+        .catch(error => {
+            // Hide spinner in case of an error
+            spinner.classList.add('hidden');
+            console.error('There was a problem with the fetch operation:', error);
+        });
+}
+
+// Function to handle copying proxies to clipboard
+function copyProxies(selector, message) {
+    const proxies = Array.from(document.querySelectorAll(selector)).map(td => td.textContent.trim());
+    const proxiesText = proxies.join('\n');
+    navigator.clipboard.writeText(proxiesText)
+        .then(() => toastr.success(message))
+        .catch(err => console.error('Error copying text: ', err));
+}
+
+// Function to handle export
+function exportDivToCSV(divId, filename) {
+    const rows = document.getElementById(divId).querySelectorAll('p');
+    let csvContent = '';
+    rows.forEach(row => csvContent += row.textContent + '\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.setAttribute('download', filename);
+    link.click();
+}
+
+// Event listeners
+document.getElementById('upload-form').addEventListener('submit', handleProxyUpload);
+document.getElementById('start-test').addEventListener('click', startTest);
+document.getElementById('copy-up').addEventListener('click', () => copyProxies('#results-body td:nth-child(1)', 'Copied all "Up" proxies to clipboard.'));
+document.getElementById('copy-down').addEventListener('click', () => copyProxies('#results-body td:nth-child(2)', 'Copied all "Down" proxies to clipboard.'));
+document.getElementById('export-exists').addEventListener('click', () => exportDivToCSV('exists', 'exists.csv'));
+
+document.getElementById('change-port-checkbox').addEventListener('change', function() {
+    document.getElementById('port-input').disabled = !this.checked;
+});
+
+
+</script>
+
+
+<!-- Customize Toastr -->
+<script>
+    toastr.options = {
+        "closeButton": true,
+        "debug": false,
+        "newestOnTop": false,
+        "progressBar": true,
+        "positionClass": "toast-top-right", // Adjust the position
+        "preventDuplicates": false,
+        "onclick": null,
+        "showDuration": "300", // Duration for showing the message
+        "hideDuration": "200", // Duration for hiding the message
+        "timeOut": "300", // Time to display the message
+        "extendedTimeOut": "300",
+        "showEasing": "swing",
+        "hideEasing": "linear",
+        "showMethod": "fadeIn",
+        "hideMethod": "fadeOut"
+    };
+</script>
+
+{% endblock %}

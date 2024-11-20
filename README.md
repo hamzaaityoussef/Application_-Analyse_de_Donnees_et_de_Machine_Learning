@@ -1,0 +1,2 @@
+# Application_Analyse_de_Donnees_et_de_Machine_Learning
+ A Python application for dataset management, visualization, and machine learning. Features include:  Dataset Upload/Creation: Import or create datasets for analysis. Visualization: Generate interactive charts to explore data trends. ML Model Implementation: Apply various ML algorithms (regression, clustering, classification, etc.). Reporting: Automatically generate and export analysis reports. Ideal for learning and applying the end-to-end data science workflow.

@@ -1,0 +1,2379 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block stylesheets %}
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+{% endblock stylesheets %}
+
+{% block content %}
+
+
+
+  <div class="justify-content-between flex">
+
+<h1 class="mb-7 text-5xl" >Connect</h1>
+      <button type="button" class="  text-4xl btn btn-link " data-toggle="modal" data-target="#actionLogModal">
+                <i class="fas fa-history"></i>
+            </button>
+    </div>
+
+<div class="border-t-4 border-t-indigo-500 border-transparent ..."></div>
+<br>
+
+
+<div class="container my-1">
+    <div class="card shadow-sm">
+
+        <div class="card-body">
+
+            <form id="openProfilesForm" method="post"   class="needs-validation " novalidate>
+                {% csrf_token %}
+             <div class="form-row grid">
+
+<!-- <div style="">
+    <div class="col-12 flex justify-content-around">
+        <div class="col-5 pb-3">
+            <label for="entity-select" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider form-label">Select Entity:</label>
+            <select id="entity-select" name="entity" class="form-control" required>
+                <option value="">Select Entity</option>
+                {% for entity in entities %}
+                    <option value="{{ entity.id_entity }}">{{ entity.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="col-5 pb-3">
+            <label for="rdp-select" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider form-label">Select RDP:</label>
+            <select id="rdp-select" name="rdp" class="form-control" required>
+                <option value="">Select RDP</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="col-12 pb-3 flex justify-content-center " style="">
+
+
+        <div class="col-11 pb-3">
+            <label for="session-checkboxes" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider form-label">Select Sessions:</label>
+            <div  class="col-10" id="session-checkboxes">
+                
+            </div>
+        </div>
+    </div>
+
+
+ <div id="selectedsessionstableshiideninit" class="col-12 flex justify-center pt-0 p-2 pb-4">
+    <div class="col-11">
+        <div id="exists" class="fixed-size bg-white shadow-md rounded">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Backend</th>
+                        <th>Entity ID</th>
+                        <th>Entity</th>
+                        <th>RDP ID</th>
+                        <th>RDP</th>
+                        <th>Session ID</th>
+                        <th>Session</th>
+                        <th>Actions</th>
+                        <th>Start Status</th>
+                    </tr>
+                </thead>
+                <tbody id="infoTableBody">
+                    
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
+
+</div> -->
+
+
+<div class="col-12  justify-center">
+
+    <div class="col-12 flex justify-content-around">
+        <div class="col-5 pb-3">
+            <label for="scenarioCategory" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider form-label">Scenario Category:</label>
+            <select id="scenarioCategory" name="scenarioCategory" class="form-control" required>
+            </select>
+        </div>
+    
+        <div class="col-5 pb-3" id="scenariodiv">
+            <label for="scenario" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider form-label">Scenario:</label>
+            <select id="scenario" name="scenario" class="form-control" required>
+            </select>
+        </div>
+        <!-- number of news letter input field -->
+        
+            <div class="col-5 pb-3 " id="newsletterInputContainer" style="display: none;">
+                <label for="newsletterInput" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider form-label">Enter Number of News letter:</label>
+                <input type="text" id="newsletterInput" name="newsletterInput" class="form-control" placeholder="Enter Number of News letter here">
+            </div>
+        
+    </div>
+    <div class="flex justify-center">
+        <!-- URL input field -->
+        <div class="col-11 pb-3 " id="urlInputContainer" style="display: none;">
+            <label for="urlInput" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider form-label">Enter URL:</label>
+            <input type="text" id="urlInput" name="urlInput" class="form-control" placeholder="Paste URL here">
+        </div>
+    </div>
+    
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+    const scenarioCategoryselect = document.getElementById('scenarioCategory');
+    const scenarioSelect = document.getElementById('scenario');
+    const scenariodiv = document.getElementById('scenariodiv');
+    const urlInputContainer = document.getElementById('urlInputContainer');
+    const newsletterInputContainer = document.getElementById('newsletterInputContainer');
+
+    // Listen for changes on the scenario dropdown
+    scenarioSelect.addEventListener('change', function() {
+        const selectedValue = scenarioSelect.value;
+
+        // Show the URL input field if "URL Search" is selected
+        if (selectedValue === 'url search') {
+            urlInputContainer.style.display = 'block';
+        } 
+        // else if(selectedValue === 'select number of news letter'){
+        //     urlInputContainer.style.display = 'block';
+        // }
+        else {
+            urlInputContainer.style.display = 'none';
+        }
+    });
+
+
+    // Listen for changes on the scenario categorie dropdown
+    scenarioCategoryselect.addEventListener('change', function() {
+        const selectedcategorieValue = scenarioCategoryselect.value;
+
+        // Show the URL input field if "URL Search" is selected
+        if (selectedcategorieValue === 'News Letter') {
+            newsletterInputContainer.style.display = 'block';
+            scenariodiv.style.display = 'none';
+        } 
+        // else if(selectedValue === 'select number of news letter'){
+        //     urlInputContainer.style.display = 'block';
+        // }
+        else {
+            newsletterInputContainer.style.display = 'none';
+            scenariodiv.style.display = 'block';
+        }
+    });
+
+    // Populate scenario categories and scenarios dynamically (example setup)
+    const scenarioCategorySelect = document.getElementById('scenarioCategory');
+
+    // This function should be adjusted to your actual data fetching
+    function populateScenarios(scenarioData) {
+        scenarioCategorySelect.innerHTML = ''; // Reset options
+        scenarioData.forEach(category => {
+            const option = document.createElement('option');
+            option.value = category.category;
+            option.textContent = category.category;
+            scenarioCategorySelect.appendChild(option);
+        });
+    }
+
+    // Fetch scenario data and populate dropdowns
+    // Example data fetching function
+    // const scenarioData = get_scenarios_by_categories(); // Replace this with your actual function
+    // populateScenarios(scenarioData);
+});
+
+        // event listener to only two specific checkboxes where selecting one will uncheck the other
+
+
+    </script>
+
+
+
+
+
+                <div class="form-row col-12 flex justify-center">
+                    <div class="col-11 pb-3">
+                        <label for="profileInputType" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Profile Input Type:</label>
+                        <select id="profileInputType" name="profileInputType" class="form-control" required>
+                            <option value="range">Range</option>
+                            <option value="ids">Specific IDs</option>
+                            <option value="scheduledRange">Scheduled Range</option>
+                        </select>
+                    </div>
+                </div>
+<style>
+
+
+    .session-label {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 5px;
+    background-color:   rgb(99, 102, 241)  ;
+    color: white;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.3s, transform 0.2s;
+}
+
+.session-label:hover {
+    background-color: rgb(142, 143, 255) ;
+    transform: scale(1.05);
+}
+
+.session-label.selected {
+    background-color: #6c757d;
+}
+
+.session-label.disabled {
+    background-color: #d6d6d6;
+    color: #888888;
+    pointer-events: none;
+}
+
+#session-checkboxes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+
+    .status-dot {
+        height: 12px;
+        width: 12px;
+        border-radius: 50%;
+        display: inline-block;
+    }
+
+    .status-dot.green {
+        background-color: green;
+    }
+
+    .status-dot.red {
+        background-color: red;
+    }
+</style>
+                <div id="rangeInput" class="form-row col-12  justify-content-around" >
+                    <div class="col-5 pb-3">
+                        <label for="start" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Start:</label>
+                        <input type="number" class="form-control" min="0" id="start" name="start">
+                    </div>
+                    <div class="col-5 pb-3">
+                        <label for="end" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">End:</label>
+                        <input type="number" class="form-control" min="0" id="end" name="end">
+                    </div>
+                </div>
+
+                <div id="idsInput" class="form-row col-12 flex justify-center" style="display: none;">
+                    <div class="col-11 pb-3">
+                        <label for="profileIds" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Profile IDs:</label>
+                        <textarea class="form-control" id="profileIds" name="profileIds" rows="9"></textarea>
+                    </div>
+                </div>
+
+                <div id="scheduledRangeInput" class="form-row col-12 flex justify-center" style="display: none;">
+                    <div class="col-11 pb-3">
+                        <label for="scheduledProfileInputType" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Scheduled Profile Input Type:</label>
+                        <select id="scheduledProfileInputType" name="scheduledProfileInputType" class="form-control" required>
+                            <option value="scheduledRange">Range</option>
+                            <option value="scheduledIds">Specific IDs</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="scheduledRangeFields" class="form-row col-12 flex justify-center" style="display: none;">
+                    <div class="col-12 flex justify-content-around">
+                      <div class="col-5 pb-3">
+                        <label for="scheduledStart" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Start:</label>
+                        <input type="number" class="form-control" id="scheduledStart" min="0" name="scheduledStart">
+                     </div>
+
+                        <div class="col-5 pb-3">
+                            <label for="scheduledEnd" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">End:</label>
+                            <input type="number" class="form-control" id="scheduledEnd" min="0" name="scheduledEnd">
+                        </div>
+
+                    </div>
+                    <div class="col-12 flex justify-content-around">
+                        <div class="col-11 pb-3">
+                        <label for="scheduledDateTime" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Scheduled Date and Time:</label>
+                        <input type="datetime-local" class="form-control" id="scheduledDateTime" name="scheduledDateTime">
+                    </div>
+                    </div>
+                </div>
+
+                <div id="scheduledIdsFields" class="form-row col-12 flex justify-content-around" style="display: none;">
+                    <div class="col-5 pb-3">
+                        <label for="scheduledProfileIds" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Scheduled Profile IDs:</label>
+                        <textarea class="form-control" id="scheduledProfileIds" name="scheduledProfileIds" rows="9"></textarea>
+                    </div>
+                    <div class="col-5 pb-3">
+                        <label for="scheduledDateTimeIds" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Scheduled Date and Time:</label>
+                        <input type="datetime-local" class="form-control" id="scheduledDateTimeIds" name="scheduledDateTimeIds">
+                    </div>
+                </div>
+
+
+    <div class="form-row col-12 flex justify-content-around">
+
+                <div class="form-row col-6 flex justify-content-around">
+                    <div class="col-10 pb-3">
+                        <label for="delay_profiles" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Delay profiles (seconds):</label>
+                        <input type="number" class="form-control" id="delay_profiles" name="delay_profiles" min="0" required>
+                    </div>
+                </div>
+
+                <div class="form-row col-6 justify-content-center flex" >
+
+                    <div id="batchDelayStep" class="form-row col-10 flex justify-content-around mb-3">
+
+                        <div class="col-4 flex-fill mx-2 pb-3" id="batchDelayStepDiv">
+                            <label for="delay_batches" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Delay batches (seconds):</label>
+                            <input type="number" class="form-control" id="delay_batches" name="delay_batches" min="0" required>
+                        </div>
+
+                        <div id="steptxtdiv" class="col-4 flex-fill mx-2 pb-3">
+                            <label for="step" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Step:</label>
+                            <input type="number" class="form-control" id="step" name="step" min="0" required>
+                        </div>
+
+                    </div>
+
+                </div>
+    </div>
+
+
+                <div class="form-row">
+                     <div id="status" class=" text-danger"></div>
+                </div>
+
+
+</div>
+<!--        -->
+<!--        -->
+<style>
+    /* Button styling */
+    #toggle-button {
+        /* background-color: rgb(243, 244, 246);
+        color: #000; */
+        background-color: rgb(99, 102, 241);
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        padding: 10px 20px;
+        cursor: pointer;
+        margin-bottom: 20px;
+        margin-top: 20px;
+        font-size: 16px;
+        transition: background-color 0.3s, color 0.3s;
+    }
+
+    #toggle-button.showing {
+        background-color: rgb(243, 244, 246);
+        color: #000;
+    }
+
+    /* Custom Grid Styling */
+    #custom-grid-container {
+        display: grid;
+        gap: 20px;
+        padding: 20px;
+        background-color: #f9f9f9;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+    }
+
+    .custom-grid-item {
+        background-color: #ffffff;
+        border: 1px solid #ddd;
+        padding: 15px;
+        border-radius: 8px;
+    }
+
+    .custom-grid-item label {
+        display: flex;
+        align-items: center;
+    }
+
+    .custom-checkbox {
+        margin-right: 10px;
+    }
+
+    /* Sub-grid Styling */
+    .sub-grid-container {
+        padding-left: 20px;
+        margin-top: 10px;
+        border-left: 3px solid #ddd;
+    }
+
+    .sub-grid-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+
+    .sub-grid {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .sub-input {
+        width: 200px;
+        border: 2px solid  rgb(99, 102, 241);
+        border-radius: 8px;
+        font-size: 14px;
+        padding: 2px;
+        margin-left: 20px;
+    }
+</style>
+
+
+
+<!-- File input and upload button -->
+<div id="file_input_container" class="mt-4 " style="display: none;">
+    <label class="block mb-2 text-gray-900 dark:text-white" for="file_input">Upload Excel schedule file</label>
+    <div class="flex items-center">
+        <input
+            class="block w-full text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"
+            id="file_input"
+            type="file"
+            accept=".xlsx, .xls"
+        >
+       <button
+    id="upload_btn"
+    class="ml-4 px-4 py-2 text-white bg-blue-500 rounded-lg hover:bg-blue-600 focus:outline-none"
+    style="background-color: #1D4ED8; color: #ffffff;"
+>
+    run
+</button>
+
+    </div>
+</div>
+
+             <script>
+                     document.getElementById('upload_btn').addEventListener('click', function (event) {
+                     event.preventDefault(); // Prevent the default form submission
+
+                    const fileInput = document.getElementById('file_input');
+                    const file = fileInput.files[0];
+
+                    if (!file) {
+                        alert('Please select a file to upload.');
+                        return;
+                    }
+
+                    const formData = new FormData();
+                    formData.append('file', file);
+
+                    fetch('/uploadexcelSchedule/', {
+                        method: 'POST',
+                        body: formData,
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token }}', // Make sure to include the CSRF token in Django templates
+                        }
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                             toastr.success('File uploaded successfully! ');
+                        } else {
+                             toastr.error('File upload failed!');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                         toastr.error('An error occurred while uploading the file.');
+                    });
+                    });
+
+             </script>
+
+<!-- Button to toggle grid visibility -->
+<p class="text-3xl text-left font-medium text-gray-700 uppercase tracking-wider" id="toggle-button">Hide Items</p>
+
+<!-- Main grid container -->
+<div id="custom-grid-container" style="display: block;">
+    <div id="subScenarioDiv" class="custom-grid-item">
+        <label id="Sub-Scenarios-name" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider form-label">Sub-Scenarios :</label>
+        <div id="subScenarioCheckboxes">
+            <!-- Checkboxes will be populated dynamically based on selected scenario -->
+        </div>
+    </div>
+
+    <!-- <div class="custom-grid-item">
+        <label>
+            <input type="checkbox" id="checkbox2" class="custom-checkbox m-2" data-subgrid="subgrid2">
+            <span>Alert Email</span>
+        </label>
+      
+        <div id="subgrid2" class="sub-grid-container" style="display: none;">
+            <div class="sub-grid">
+                <label>
+                    <input type="checkbox" class="m-2 sub-checkbox" data-subinput="subinput2-1"> Option A
+                </label>
+                <input type="text" id="subinput2-1" class="sub-input" style="display: none;" placeholder="Input for Option A">
+
+                <label>
+                    <input type="checkbox" class="m-2 sub-checkbox" data-subinput="subinput2-2"> Option B
+                </label>
+                <input type="text" id="subinput2-2" class="sub-input" style="display: none;" placeholder="Input for Option B">
+            </div>
+        </div>
+    </div> -->
+
+    <!-- <div class="custom-grid-item">
+        <label>
+            <input type="checkbox" id="checkbox3" class="custom-checkbox m-2" data-subgrid="subgrid3">
+            <span>Account Email</span>
+        </label>
+
+        <div id="subgrid3" class="sub-grid-container" style="display: none;">
+            <div class="sub-grid">
+                <label>
+                    <input type="checkbox" class="m-2 sub-checkbox" data-subinput="subinput3-1"> Account Setting 1
+                </label>
+                <input type="text" id="subinput3-1" class="sub-input" style="display: none;" placeholder="Input for Setting 1">
+
+                <label>
+                    <input type="checkbox" class="m-2 sub-checkbox" data-subinput="subinput3-2"> Account Setting 2
+                </label>
+                <input type="text" id="subinput3-2" class="sub-input" style="display: none;" placeholder="Input for Setting 2">
+            </div>
+        </div>
+    </div> -->
+</div>
+
+<script>
+    // Toggle the main grid visibility
+    document.getElementById('toggle-button').addEventListener('click', function() {
+        var gridContainer = document.getElementById('custom-grid-container');
+        var button = document.getElementById('toggle-button');
+
+        if (gridContainer.style.display === 'none' ) {
+            gridContainer.style.display = 'grid'; // Show the grid
+            button.textContent = 'Hide Items'; // Change button text
+            button.classList.remove('showing'); // Change button style
+        } else {
+            gridContainer.style.display = 'none'; // Hide the grid
+            button.textContent = 'Show Items'; // Change button text
+            button.classList.add('showing'); // Reset button style
+        }
+    });
+
+    // Toggle sub-grid visibility based on the checkbox selection
+    var checkboxes = document.querySelectorAll('.custom-checkbox');
+
+    checkboxes.forEach(function(checkbox) {
+        checkbox.addEventListener('change', function() {
+            var subgridId = this.getAttribute('data-subgrid');
+            var subgrid = document.getElementById(subgridId);
+
+            if (this.checked) {
+                subgrid.style.display = 'block'; // Show the associated sub-grid
+            } else {
+                subgrid.style.display = 'none'; // Hide the associated sub-grid
+            }
+        });
+    });
+
+    // Toggle sub-input visibility based on the sub-checkbox selection
+    var subCheckboxes = document.querySelectorAll('.sub-checkbox');
+
+    subCheckboxes.forEach(function(subCheckbox) {
+        subCheckbox.addEventListener('change', function() {
+            var subInputId = this.getAttribute('data-subinput');
+            var subInput = document.getElementById(subInputId);
+
+            if (this.checked) {
+                subInput.style.display = 'block'; // Show the associated input field
+            } else {
+                subInput.style.display = 'none'; // Hide the associated input field
+            }
+        });
+    });
+</script>
+
+
+<!-- -->
+
+                <div class="form-row pt-2" style=" display: flex; justify-content: space-around">
+                    <button id="pauseButton" class="btn btn-warning outline-none mr-2"  style="background-color: grey;color: #fbfbfb" disabled>Pause Script</button>
+                    <button id="killButton" class="btn btn-warning outline-none mr-2" style="background-color: rgb(255, 0, 0); color: white;">Kill Drivers</button>
+                    <button id="resumeButton" class="btn btn-info outline-none mr-2"  style="background-color: grey;color: #fbfbfb" disabled>Resume Script</button>
+                    <button id="stopButton" class="btn btn-danger outline-none " style="background-color: grey;color: #fbfbfb"  disabled>Stop Script</button>
+<button id="openButton" type="submit" class="btn btn-success outline-none">
+    <span id="buttonText">Open Profiles</span>
+    <span id="loadingSpinner" class="loading-spinner hidden"></span>
+</button>
+                </div>
+
+                </div>
+
+            </form>
+
+            <style>
+                .loading-spinner {
+    border: 4px solid rgba(0, 0, 0, 0.1);
+    border-left-color: #ffffff;
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    animation: spin 1s linear infinite;
+    display: inline-block;
+    margin-left: 10px;
+    vertical-align: middle;
+}
+
+.hidden {
+    display: none;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+            </style>
+            
+            
+            
+<script>
+$(document).ready(function() {
+    let selections = [];
+
+    $('#session-checkboxes').on('click', '.session-label', function() {
+        let sessionName = $(this).text();
+        let sessionId = $(this).attr('data-session-id');
+        
+        let entityName = $('#entity-select option:selected').text();
+        let entityId =  $(this).attr('data-entity-id');
+
+        let rdpName = $('#rdp-select option:selected').text();
+        let rdpid =  $(this).attr('data-rdp-id');
+
+        // Check if this specific entity, rdp, and session combination has already been selected
+        if (selections.some(selection =>
+            selection.entity === entityName &&
+            selection.rdp === rdpName &&
+            selection.session === sessionName)) {
+
+            toastr.info('This session has already been selected for this RDP and Entity.');
+            return;
+        }
+
+        if (entityName && rdpName) {
+            $(this).addClass('selected');
+            selections.push({ entity: entityName, rdp: rdpName, session: sessionName , sessionId: sessionId , entityId:entityId ,rdpid:rdpid  });
+
+            // Disable the session label to prevent further clicks and apply disabled styling
+            $(this).addClass('disabled').css({
+                'pointer-events': 'none',
+                'color': 'gray'
+            });
+
+            document.getElementById("selectedsessionstableshiideninit").setAttribute('style', '');
+        } else {
+            toastr.error('Please select an Entity and RDP before selecting sessions.');
+        }
+
+        updateTable();
+    });
+
+    // Remove a row from the table and re-enable the session label
+    $('#infoTableBody').on('click', '.removeBtn', function() {
+        let index = $(this).data('index');
+        let removedSession = selections.splice(index, 1)[0];
+
+        // Re-enable the corresponding session label if it matches the removed session
+        $(`#session-checkboxes .session-label`).each(function() {
+            let sessionName = $(this).text();
+            let entityName = $('#entity-select option:selected').text();
+            let rdpName = $('#rdp-select option:selected').text();
+
+            if (removedSession.entity === entityName && removedSession.rdp === rdpName && removedSession.session === sessionName) {
+                $(this).removeClass('selected disabled').css({
+                    'pointer-events': 'auto',
+                    'color': ''
+                });
+            }
+        });
+
+        updateTable();
+    });
+
+
+
+
+  function updateTable() {
+    var $tableBody = $('#infoTableBody');
+    $tableBody.empty(); // Clear the table before adding new rows
+    selections.forEach(function(selection, index) {
+        //  dot color for pinging the backend if running
+var statusClass = Math.random() < 0.5 ? 'green' : 'red';
+
+        var rowHtml = `
+            <tr>
+                <td><span class="status-dot ${statusClass}"></span></td> <!-- Status column -->
+                <td>${selection.entityId}</td>
+                <td>${selection.entity}</td>
+                <td>${selection.rdpid}</td>
+                <td>${selection.rdp}</td>
+                <td>${selection.sessionId}</td>
+                <td>${selection.session}</td>
+                <td>
+                    <button type="button"
+                            class="btn btn-danger btn-sm removeBtn"
+                            data-index="${index}" >Remove</button>
+                </td>
+                <td></td> <!-- Retry column -->
+            </tr>
+        `;
+        $tableBody.append(rowHtml);
+    });
+}
+
+   
+    //
+});
+</script>
+
+            <div id="profilesList" class="mt-4 overflow-x-auto">
+                <h4 class="text-3xl text-left font-medium text-gray-700 uppercase tracking-wider mt-4 mb-3">latest actions</h4>
+                <table id="profilesTable" class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-700 uppercase leading-normal font-bold">
+                            <th class="py-4 px-6 text-left text-xl">UserID</th>
+                            <th class="py-4 px-6 text-left text-xl">Date of Import</th>
+                            <th class="py-4 px-6 text-left text-xl">Date of Last Action</th>
+                            <th class="py-4 px-6 text-left text-xl">Last Action</th>
+                            <th class="py-4 px-6 text-left text-xl">Proxy</th>
+                            <th class="py-4 px-6 text-left text-xl">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class=" text-gray-700">
+                    </tbody>
+                </table>
+                 <br>
+                <table id="scheduledProfilesTable" class="min-w-full bg-white shadow-md rounded-lg overflow-hidden" style="display: none;">
+                    <thead>
+                    <tr class=" bg-gray-100 text-gray-700 uppercase leading-normal font-bold">
+                            <th class="py-4 px-6 text-left text-xl">UserID</th>
+                            <th class="py-4 px-6 text-left text-xl">Date of Import</th>
+                            <th class="py-4 px-6 text-left text-xl">Date of Last Action</th>
+                            <th class="py-4 px-6 text-left text-xl">Last Action</th>
+                            <th class="py-4 px-6 text-left text-xl">Proxy</th>
+                            <th class="py-4 px-6 text-left text-xl">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                    </tbody>
+                </table>
+            </div>
+             <br><br>
+
+
+            <div id="scheduledTasksTablediv" class="hidden">
+            <h4 class=" text-3xl text-left font-medium text-gray-700 uppercase tracking-wider mt-4 mb-3">Scheduled Tasks</h4>
+            <table id="scheduledTasksTable" class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+                <thead>
+                    <tr class="bg-gray-100 text-gray-700 uppercase leading-normal font-bold">
+                        <th class="py-4 px-2 text-center text-xl">Start</th>
+                        <th class="py-4 px-2 text-center text-xl">End or profileIds</th>
+                        <th class="py-4 px-6 text-center text-xl">Scenario</th>
+                        <th class="py-4 px-6 text-center text-xl">Delay Profiles</th>
+                        <th class="py-4 px-6 text-left text-xl">Schedule Time</th>
+                        <th class="py-4 px-6 text-left text-xl">Status</th>
+                        <th class="py-4 px-6 text-left text-xl">Actions</th>
+                    </tr>
+                </thead>
+                <tbody id=" scheduledProfilesTableBody" class="text-gray-700">
+                </tbody>
+            </table>
+            </div>
+
+
+        </div>
+
+        <div class="modal fade " id="actionLogModal" tabindex="-1" role="dialog" aria-labelledby="actionLogModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg " role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="actionLogModalLabel" style="margin-left: 0;">Action Log</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="margin-right: 0; margin-left: auto;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Action</th>
+                                    <th>Details</th>
+                                    <th>Date & Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="actionLogTableBody">
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    document.getElementById('profileInputType').addEventListener('change', function() {
+        document.getElementById('rangeInput').style.display = 'none';
+        document.getElementById('idsInput').style.display = 'none';
+        document.getElementById('scheduledRangeInput').style.display = 'none';
+        document.getElementById('batchDelayStep').style.display = 'none';
+        document.getElementById('profilesTable').style.display = 'none';
+        document.getElementById('scheduledProfilesTable').style.display = 'none';
+        document.getElementById('scheduledTasksTablediv').classList.add('hidden');
+
+        if (this.value === 'range') {
+            document.getElementById('rangeInput').style.display = 'flex';
+            document.getElementById('scheduledRangeFields').style.display = 'none';
+            document.getElementById('scheduledIdsFields').style.display = 'none';
+            document.getElementById('batchDelayStep').style.display = 'flex';
+            document.getElementById('profilesTable').style.display = 'table';
+            document.getElementById('scheduledTasksTablediv').classList.add('hidden');
+
+        } else if (this.value === 'ids') {
+            document.getElementById('idsInput').style.display = 'flex';
+            document.getElementById('scheduledRangeFields').style.display = 'none';
+            document.getElementById('scheduledIdsFields').style.display = 'none';
+            document.getElementById('batchDelayStep').style.display = 'flex';
+            document.getElementById('profilesTable').style.display = 'table';
+            document.getElementById('scheduledTasksTablediv').classList.add('hidden');
+
+        } else if (this.value === 'scheduledRange') {
+            document.getElementById('rangeInput').style.display = 'none';
+            document.getElementById('scheduledRangeInput').style.display = 'flex';
+            document.getElementById('scheduledRangeFields').style.display = 'block';
+            document.getElementById('scheduledProfilesTable').style.display = 'table';
+            document.getElementById('scheduledTasksTablediv').classList.remove('hidden');
+            
+            document.getElementById('batchDelayStep').style.display = 'flex';
+
+            document.getElementById('delay_batches').style.display = 'flex';
+            document.getElementById('steptxtdiv').style.display = 'none';
+
+
+        }
+    });
+    
+    document.getElementById('scheduledProfileInputType').addEventListener('change', function() {
+        document.getElementById('scheduledRangeFields').style.display = 'none';
+        document.getElementById('scheduledIdsFields').style.display = 'none';
+    
+        if (this.value === 'scheduledRange') {
+            document.getElementById('scheduledRangeFields').style.display = 'block';
+        } else if (this.value === 'scheduledIds') {
+            document.getElementById('scheduledIdsFields').style.display = 'flex';
+        }
+    });
+
+    function getSelectedSubScenarios() {
+    const subScenarioCheckboxes = document.getElementById('subScenarioCheckboxes');
+    const selectedSubScenarios = [];
+
+    // Loop through each input checkbox inside subScenarioCheckboxes div
+    const checkboxes = subScenarioCheckboxes.querySelectorAll('input[data-subScenario="subScenario"]:checked'); //        input[name="subScenario"]:checked
+    checkboxes.forEach(checkbox => {
+        selectedSubScenarios.push(checkbox.value);
+    });
+
+    return selectedSubScenarios;  // Array of selected sub-scenarios
+}
+
+
+function updateTable4RemoveBTN(startstop) {
+    $('#infoTableBody').find('tr').each(function() {
+        // Find the remove button in the current row
+        var $removeBtn = $(this).find('.removeBtn');
+        var $retryBtn = $(this).find('.retryBtn');
+        var $OKBTN = $(this).find('.OKBTN');
+
+        // Toggle the disabled attribute
+        if (startstop === "STOP") {
+            $removeBtn.prop('disabled', false); // Enable the button
+            $removeBtn.removeClass('btn-secondary').addClass('btn-danger'); // Change color to red
+            $retryBtn.remove(); // Remove the retry button if it exists
+            $OKBTN.remove();
+        }
+
+        if (startstop === "START") {
+            $removeBtn.prop('disabled', true); // Disable the button
+            $removeBtn.removeClass('btn-danger').addClass('btn-secondary'); // Change color to gray
+
+            // Randomly add the retry button to 50% of the rows
+            if (!$retryBtn.length && Math.random() < 0.5) {
+                var retryButton = `<button type="button" class="btn btn-warning btn-sm retryBtn">Retry</button>`;
+                $(this).find('td:last').append(retryButton); // Append the retry button to the last cell of the row
+            }else {
+                 var okButton = `<button type="button" class="btn btn-outline-success disabled btn-sm OKBTN">OK</button>`;
+                $(this).find('td:last').append(okButton); // Append the retry button to the last cell of the row
+            }
+        }
+    });
+}
+
+
+
+document.getElementById('openProfilesForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    //fetchScenarios();
+    toastr.success("Script started");
+    var profileInputType = document.getElementById('profileInputType').value;
+    var delay_profiles = document.getElementById('delay_profiles').value;
+    var scenarioCategory = document.getElementById('scenarioCategory').value;
+    var subScenarios = getSelectedSubScenarios();
+    var scenario = document.getElementById('scenario').value;
+
+    // Open profiles button and loading spinner
+    const openButton = document.getElementById('openButton');
+    const buttonText = document.getElementById('buttonText');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+    const stopButton = document.getElementById('stopButton');
+    const pauseButton = document.getElementById('pauseButton');
+    const resumeButton = document.getElementById('resumeButton');
+
+
+    var formData = new FormData(this);
+    formData.append('profileInputType', profileInputType);
+
+    if (profileInputType === 'range') {
+        var startProfileInput = document.getElementById('start').value;
+        var endProfileInput = document.getElementById('end').value;
+        var stepProfileInput = document.getElementById('step').value;
+        // var subScenarios = getSelectedSubScenarios();
+
+        if (startProfileInput.trim() === '' || endProfileInput.trim() === '' || stepProfileInput.trim() === '') {
+            document.getElementById('status').innerHTML = 'All fields are required.';
+            return;
+        }
+        formData.append('start', startProfileInput);
+        formData.append('end', endProfileInput);
+        formData.append('step', stepProfileInput);
+        formData.append('subScenarioCheckboxes', subScenarios);
+        // formData.append('subScenarioCheckboxes', JSON.stringify(selectedSubScenarios));
+/************************************************************************************************************/
+        if (scenarioCategory === 'Email Actions') {
+
+            var delay_batches = document.getElementById('delay_batches').value;
+            if (delay_batches.trim() === '') {
+                document.getElementById('status').innerHTML = 'All fields are required.';
+                return;
+            }
+            formData.append('delay_batches', delay_batches);
+
+            if (scenario === 'notspamaction'){ //* not spam scenario  *//
+
+                var subScenarioProfileLifeSpan = document.getElementById("subScenarioProfileLifeSpan").checked;
+                var subScenarioSpecificnumberRandomRange = document.getElementById("subScenarioSpecificnumberRandomRange").checked;
+
+                if(subScenarioProfileLifeSpan){
+                    formData.append('subScenarioProfileLifeSpan', delay_batches);
+
+                }else if (subScenarioSpecificnumberRandomRange){
+                    let subScenarioSpecificnumberRandomRangeInputValue = document.getElementById("subScenarioSpecificnumberRandomRangeInput").value;
+                    let sleepBetweenreportnotspamInputValue = document.getElementById("sleepBetweenreportnotspamInput").value;                      
+
+                    formData.append('subScenarioSpecificnumberRandomRangeInput', subScenarioSpecificnumberRandomRangeInputValue);
+                    formData.append('sleepBetweenreportnotspamInput', sleepBetweenreportnotspamInputValue);
+                    formData.append('delay_batches', delay_batches)
+                }
+            } /* end if notspamaction*/
+            else if (scenario == 'inbox'){
+                let import_contact = document.getElementById('subScenarioImportContact').checked;
+                let create_new_label = document.getElementById('subScenarioCreateNewLabel').checked;
+                let scroll = document.getElementById("subScenarioscroll").checked;
+                let click_link = document.getElementById('subScenarioClickLinks').checked;
+                let mark_as_starred = document.getElementById('subScenariomarkasStarred').checked;
+                let mark_as_important = document.getElementById('subScenariomarkasimportant').checked;
+                let move_to = document.getElementById('subScenarioMoveTo').checked;
+                let label_as = document.getElementById('subScenarioLabelAs').checked;
+                let forward = document.getElementById('subScenarioForward').checked;
+                let reply_checkbox = document.getElementById('subScenarioReply').checked;
+                let add_to_contact = document.getElementById('subScenarioAddToContact').checked;
+                let archive_checkbox = document.getElementById('subScenarioarchive').checked;
+                let random = document.getElementById('subScenariorandom').checked;
+
+
+                let inboxScenarioChoices = {
+                    'import_contact': import_contact ? document.getElementById('inputForImportContact').value : 0,
+                    'create_new_label': create_new_label ? document.getElementById('inputForCreateNewLabel').value : 0,
+                    'scroll': scroll ? document.getElementById('inputForscroll').value : 0,
+                    'click link': click_link ? document.getElementById('inputForClickLinks').value : 0,
+                    'mark_as_starred': mark_as_starred ? document.getElementById('inputFormarkasStarred').value : 0,
+                    'mark_as_important': mark_as_important ? document.getElementById('inputFormarkasimportant').value : 0,
+                    'move_to': move_to ? document.getElementById('inputForMoveTo').value : 0,
+                    'label_as': label_as ? document.getElementById('inputForLabelAs').value : 0,
+                    'forward': forward ? document.getElementById('inputForForward').value : 0,
+                    'reply': reply_checkbox ? document.getElementById('inputForReply').value : 0,
+                    'add_to_contact': add_to_contact ? document.getElementById('inputForAddToContact').value : 0,
+                    'archive': archive_checkbox ? document.getElementById('inputForarchive').value : 0,
+                    'random': random ? document.getElementById('inputForrandom').value : 0,
+                    // 'delay_batches': delay_batches,
+
+                }
+
+
+                formData.append('inboxScenarioChoices',JSON.stringify(inboxScenarioChoices))
+
+            }/* end if inbox */
+            else if (scenario == 'inbox and not spam'){
+    
+                let delay_life_spam = document.getElementById('subScenarioDelayLifeSpam').checked;
+                let delay_inbox = document.getElementById('subScenarioDelayInbox').checked;
+
+                let inboxScenarioChoices = {
+                    'delay_life_spam': delay_life_spam ? document.getElementById('inputForDelayLifeSpam').value : 0,
+                    'delay_inbox': delay_inbox ? document.getElementById('inputForDelayInbox').value : 0,
+
+                }
+
+
+        formData.append('inboxScenarioChoices',JSON.stringify(inboxScenarioChoices))
+
+    }
+
+
+        } /** end if email actions **/
+
+
+
+        }
+         else if (profileInputType === 'ids') {
+        
+        var profileIds = document.getElementById('profileIds').value;
+        
+        if (profileIds.trim() === '') {
+            document.getElementById('status').innerHTML = 'All fields are required.';
+            return;
+        }
+        
+        formData.append('profileIds', profileIds);
+        formData.append('subScenarioCheckboxes', subScenarios);
+
+
+
+/************************************************************************************************************/
+if (scenarioCategory === 'Email Actions') {
+
+var delay_batches = document.getElementById('delay_batches').value;
+if (delay_batches.trim() === '') {
+    document.getElementById('status').innerHTML = 'All fields are required.';
+    return;
+}
+formData.append('delay_batches', delay_batches);
+
+if (scenario === 'notspamaction'){ //* not spam scenario  *//
+
+    var subScenarioProfileLifeSpan = document.getElementById("subScenarioProfileLifeSpan").checked;
+    var subScenarioSpecificnumberRandomRange = document.getElementById("subScenarioSpecificnumberRandomRange").checked;
+
+    if(subScenarioProfileLifeSpan){
+        formData.append('subScenarioProfileLifeSpan', delay_batches);
+
+    }else if (subScenarioSpecificnumberRandomRange){
+        let subScenarioSpecificnumberRandomRangeInputValue = document.getElementById("subScenarioSpecificnumberRandomRangeInput").value;
+        let sleepBetweenreportnotspamInputValue = document.getElementById("sleepBetweenreportnotspamInput").value;
+
+        formData.append('subScenarioSpecificnumberRandomRangeInput', subScenarioSpecificnumberRandomRangeInputValue);
+        formData.append('sleepBetweenreportnotspamInput', sleepBetweenreportnotspamInputValue);
+    }
+} /* end if notspamaction*/
+else if (scenario == 'inbox'){
+    let import_contact = document.getElementById('subScenarioImportContact').checked;
+    let create_new_label = document.getElementById('subScenarioCreateNewLabel').checked;
+    let scroll = document.getElementById("subScenarioscroll").checked;
+    let click_link = document.getElementById('subScenarioClickLinks').checked;
+    let mark_as_starred = document.getElementById('subScenariomarkasStarred').checked;
+    let mark_as_important = document.getElementById('subScenariomarkasimportant').checked;
+    let move_to = document.getElementById('subScenarioMoveTo').checked;
+    let label_as = document.getElementById('subScenarioLabelAs').checked;
+    let forward = document.getElementById('subScenarioForward').checked;
+    let reply_checkbox = document.getElementById('subScenarioReply').checked;
+    let add_to_contact = document.getElementById('subScenarioAddToContact').checked;
+    let archive_checkbox = document.getElementById('subScenarioarchive').checked;
+    let random = document.getElementById('subScenariorandom').checked;
+
+
+    let inboxScenarioChoices = {
+        'import_contact': import_contact ? document.getElementById('inputForImportContact').value : 0,
+        'create_new_label': create_new_label ? document.getElementById('inputForCreateNewLabel').value : 0,
+        'scroll': scroll ? document.getElementById('inputForscroll').value : 0,
+        'click link': click_link ? document.getElementById('inputForClickLinks').value : 0,
+        'mark_as_starred': mark_as_starred ? document.getElementById('inputFormarkasStarred').value : 0,
+        'mark_as_important': mark_as_important ? document.getElementById('inputFormarkasimportant').value : 0,
+        'move_to': move_to ? document.getElementById('inputForMoveTo').value : 0,
+        'label_as': label_as ? document.getElementById('inputForLabelAs').value : 0,
+        'forward': forward ? document.getElementById('inputForForward').value : 0,
+        'reply': reply_checkbox ? document.getElementById('inputForReply').value : 0,
+        'add_to_contact': add_to_contact ? document.getElementById('inputForAddToContact').value : 0,
+        'archive': archive_checkbox ? document.getElementById('inputForarchive').value : 0,
+        'random': random ? document.getElementById('inputForrandom').value : 0,
+
+    }
+
+
+    formData.append('inboxScenarioChoices',JSON.stringify(inboxScenarioChoices))
+
+}/* end if inbox in ids*/
+
+else if (scenario == 'inbox and not spam'){
+    
+    let delay_life_spam = document.getElementById('subScenarioDelayLifeSpam').checked;
+    let delay_inbox = document.getElementById('subScenarioDelayInbox').checked;
+
+    let inboxScenarioChoices = {
+        'delay_life_spam': delay_life_spam ? document.getElementById('inputForDelayLifeSpam').value : 0,
+        'delay_inbox': delay_inbox ? document.getElementById('inputForDelayInbox').value : 0,
+
+    }
+
+
+formData.append('inboxScenarioChoices',JSON.stringify(inboxScenarioChoices))
+
+}
+
+
+} /** end if email actions in ids **/
+
+/***************************************************************/
+
+    }
+        else if (profileInputType === 'scheduledRange') {
+            
+        var scheduledProfileInputType = document.getElementById('scheduledProfileInputType').value;
+
+            /************************************************************************************************************/
+            if (scenarioCategory === 'Email Actions') {
+            
+            var delay_batches = document.getElementById('delay_batches').value;
+            if (delay_batches.trim() === '') {
+                document.getElementById('status').innerHTML = 'All fields are required.';
+                return;
+            }
+            formData.append('delay_batches', delay_batches);
+            
+            if (scenario === 'notspamaction'){ //* not spam scenario  *//
+            
+                var subScenarioProfileLifeSpan = document.getElementById("subScenarioProfileLifeSpan").checked;
+                var subScenarioSpecificnumberRandomRange = document.getElementById("subScenarioSpecificnumberRandomRange").checked;
+            
+                if(subScenarioProfileLifeSpan){
+                    formData.append('subScenarioProfileLifeSpan', delay_batches);
+            
+                }else if (subScenarioSpecificnumberRandomRange){
+                    let subScenarioSpecificnumberRandomRangeInputValue = document.getElementById("subScenarioSpecificnumberRandomRangeInput").value;
+                    let sleepBetweenreportnotspamInputValue = document.getElementById("sleepBetweenreportnotspamInput").value;
+            
+                    formData.append('subScenarioSpecificnumberRandomRangeInput', subScenarioSpecificnumberRandomRangeInputValue);
+                    formData.append('sleepBetweenreportnotspamInput', sleepBetweenreportnotspamInputValue);
+                }
+            } /* end if notspamaction*/
+            else if (scenario == 'inbox'){
+                let import_contact = document.getElementById('subScenarioImportContact').checked;
+                let create_new_label = document.getElementById('subScenarioCreateNewLabel').checked;
+                let scroll = document.getElementById("subScenarioscroll").checked;
+                let click_link = document.getElementById('subScenarioClickLinks').checked;
+                let mark_as_starred = document.getElementById('subScenariomarkasStarred').checked;
+                let mark_as_important = document.getElementById('subScenariomarkasimportant').checked;
+                let move_to = document.getElementById('subScenarioMoveTo').checked;
+                let label_as = document.getElementById('subScenarioLabelAs').checked;
+                let forward = document.getElementById('subScenarioForward').checked;
+                let reply_checkbox = document.getElementById('subScenarioReply').checked;
+                let add_to_contact = document.getElementById('subScenarioAddToContact').checked;
+                let archive_checkbox = document.getElementById('subScenarioarchive').checked;
+                let random = document.getElementById('subScenariorandom').checked;
+            
+            
+                let inboxScenarioChoices = {
+                    'import_contact': import_contact ? document.getElementById('inputForImportContact').value : 0,
+                    'create_new_label': create_new_label ? document.getElementById('inputForCreateNewLabel').value : 0,
+                    'scroll': scroll ? document.getElementById('inputForscroll').value : 0,
+                    'click link': click_link ? document.getElementById('inputForClickLinks').value : 0,
+                    'mark_as_starred': mark_as_starred ? document.getElementById('inputFormarkasStarred').value : 0,
+                    'mark_as_important': mark_as_important ? document.getElementById('inputFormarkasimportant').value : 0,
+                    'move_to': move_to ? document.getElementById('inputForMoveTo').value : 0,
+                    'label_as': label_as ? document.getElementById('inputForLabelAs').value : 0,
+                    'forward': forward ? document.getElementById('inputForForward').value : 0,
+                    'reply': reply_checkbox ? document.getElementById('inputForReply').value : 0,
+                    'add_to_contact': add_to_contact ? document.getElementById('inputForAddToContact').value : 0,
+                    'archive': archive_checkbox ? document.getElementById('inputForarchive').value : 0,
+                    'random': random ? document.getElementById('inputForrandom').value : 0,
+            
+                }
+            
+            
+                formData.append('inboxScenarioChoices',JSON.stringify(inboxScenarioChoices))
+            
+            }/* end if inbox in ids*/
+            
+            else if (scenario == 'inbox and not spam'){
+    
+    let delay_life_spam = document.getElementById('subScenarioDelayLifeSpam').checked;
+    let delay_inbox = document.getElementById('subScenarioDelayInbox').checked;
+
+    let inboxScenarioChoices = {
+        'delay_life_spam': delay_life_spam ? document.getElementById('inputForDelayLifeSpam').value : 0,
+        'delay_inbox': delay_inbox ? document.getElementById('inputForDelayInbox').value : 0,
+
+    }
+
+
+formData.append('inboxScenarioChoices',JSON.stringify(inboxScenarioChoices))
+
+}
+
+
+            } /** end if email actions in schedule both range and ids **/
+            
+            /***************************************************************/
+        
+        
+        if (scheduledProfileInputType === 'scheduledRange') {
+            
+            var scheduledStart = document.getElementById('scheduledStart').value;
+            var scheduledEnd = document.getElementById('scheduledEnd').value;
+            var scheduledDateTime = document.getElementById('scheduledDateTime').value;
+            
+
+            if (scheduledStart.trim() === '' || scheduledEnd.trim() === '' || scheduledDateTime.trim() === '') {
+                document.getElementById('status').innerHTML = 'All fields are required.';
+                return;
+            }
+
+            // Convert the scheduledDateTime to the required format
+            var formattedDateTime = new Date(scheduledDateTime).toLocaleString('en-GB', { hour12: false }).replace(',', '');
+            formData.append('scheduledStart', scheduledStart);
+            formData.append('scheduledEnd', scheduledEnd);
+            formData.append('scheduledDateTime', formattedDateTime);
+            formData.append('subScenarioCheckboxes', subScenarios);
+
+           const fileInput = document.getElementById('file_input');
+
+                const file = fileInput.files[0];
+
+                if (file) {
+                    formData.append('file', file);
+                }
+
+
+        }
+        
+        else if (scheduledProfileInputType === 'scheduledIds') {
+            
+            var scheduledProfileIds = document.getElementById('scheduledProfileIds').value;
+            var scheduledDateTimeIds = document.getElementById('scheduledDateTimeIds').value;
+
+            if (scheduledProfileIds.trim() === '' || scheduledDateTimeIds.trim() === '') {
+                document.getElementById('status').innerHTML = 'All fields are required.';
+                return;
+            }
+
+            // Convert the scheduledDateTimeIds to the required format
+            var formattedDateTimeIds = new Date(scheduledDateTimeIds).toLocaleString('en-GB', { hour12: false }).replace(',', '');
+            formData.append('scheduledProfileIds', scheduledProfileIds);
+            formData.append('scheduledDateTime', formattedDateTimeIds);
+            formData.append('subScenarioCheckboxes', subScenarios);
+
+              const fileInput = document.getElementById('file_input');
+                    const file = fileInput.files[0];
+
+                    if (file) {
+                        formData.append('file', file);
+                    }
+
+        }
+    }
+    
+
+        fetch("{% url 'connect_profiles' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            // toastr.success("Script started");
+
+            document.getElementById('status').innerHTML = data.message;
+            if (data.created_profiles) {
+                populateProfilesTable(data.created_profiles);
+                // updateScheduledTasksTable(data.scheduled_tasks);
+            }
+
+            // if (data.scheduled_profiles) {
+            //     populateProfilesTable(data.scheduled_profiles);
+            // }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('status').innerHTML = 'An error occurred.';
+        }).finally(() => {
+        //  restore the original text on openbtn
+        buttonText.textContent = 'Open Profiles';
+        openButton.disabled = false;
+        openButton.style.backgroundColor = '#28A745';
+        
+        resumeButton.disabled = true;
+        resumeButton.style.backgroundColor = "grey";
+        resumeButton.style.color = "#fbfbfb";
+
+        pauseButton.disabled = true;
+        pauseButton.style.backgroundColor = "grey";
+        pauseButton.style.color = "#fbfbfb";
+
+        stopButton.disabled = true;
+        stopButton.style.backgroundColor = "grey";
+        stopButton.style.color = "#fbfbfb";
+    });
+    });
+    
+        function fetchLatestProfiles() {
+        fetch("{% url 'get_latest_profiles' %}")
+            .then(response => response.json())
+            .then(data => {
+                if (data.scheduled_profiles) {
+                    populateScheduledProfilesTable(data.scheduled_profiles);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+            });
+    }
+    
+    setInterval(fetchLatestProfiles, 5000);
+    
+        function fetchScheduledProfiles() {
+        fetch('/get_scheduled_profiles/')
+            .then(response => response.json())
+            .then(data => {
+                const scheduledProfiles = data.scheduled_profiles;
+                const table = document.getElementById('scheduledTasksTablediv').getElementsByTagName('tbody')[0];
+                table.innerHTML = '';
+    
+                scheduledProfiles.forEach(profile => {
+                    const row = document.createElement('tr');
+    
+                    const scheduleTime = new Date(profile.schedule_time.replace(/(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2}):(\d{2})/, '$2/$1/$3 $4:$5:$6'));
+                    const now = new Date();
+                    let statusText = '';
+    
+                    if (scheduleTime > now) {
+                        const diffInSeconds = Math.floor((scheduleTime - now) / 1000);
+                        statusText = `${diffInSeconds} seconds remaining`;
+                        setInterval(() => {
+                            const currentTime = new Date();
+                            const newDiffInSeconds = Math.floor((scheduleTime - currentTime) / 1000);
+                            if (newDiffInSeconds > 0) {
+                                statusText = `${newDiffInSeconds} seconds remaining`;
+                            } else {
+                                statusText = 'profiles opened';
+                            }
+                            row.cells[5].textContent = statusText;
+                        }, 1000);
+                    } else {
+                        statusText = 'profiles opened';
+                    }
+    
+                    row.innerHTML = `
+                        <td class="py-4 text-center">${profile.start}</td>
+                        <td class="py-4 text-center">${profile.end}</td>
+                        <td class="py-4 text-center">${profile.scenario}</td>
+                        <td class="py-4 text-center">${profile.delay_profiles} seconds</td>
+                        <td class="py-4">${profile.schedule_time}</td>
+                        <td class="py-4">${statusText}</td>
+                        <td class="py-4 text-center">
+                            <button style="
+                                background-color: #ff4d4f;
+                                color: white;
+                                padding: 8px 16px;
+                                border: none;
+                                border-radius: 4px;
+                                cursor: pointer;
+                                font-weight: bold;
+                                transition: background-color 0.3s ease;
+                            " 
+                            onmouseover="this.style.backgroundColor='#d9363e'" 
+                            onmouseout="this.style.backgroundColor='#ff4d4f'"
+                            onclick="deleteScheduledTask('${profile.taskID}')">
+                                Delete Task
+                            </button>
+                        </td>
+                    `;
+                    table.appendChild(row);
+                });
+            })
+            .catch(error => console.error('Error fetching scheduled profiles:', error));
+    }
+    
+    
+    setInterval(fetchScheduledProfiles, 2000); // Fetch every 2 seconds
+
+    function deleteScheduledTask(taskID) {
+    fetch('/delete_scheduled_task/', {
+        method: 'POST',
+        body: JSON.stringify({ task_id: taskID }),
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'same-origin'
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            alert('Scheduled task deleted successfully.');
+            // Update the frontend by removing the deleted task
+            // removeTaskFromUI(taskId);
+        } else {
+            alert('Error deleting task: ' + data.message);
+        }
+    })
+    .catch(error => console.error('Error:', error));
+}
+    
+    function populateProfilesTable(profiles) {
+        const profilesTableBody = document.getElementById('profilesTable').getElementsByTagName('tbody')[0];
+        profilesTableBody.innerHTML = '';
+        profiles.forEach(profile => {
+            const row = profilesTableBody.insertRow();
+    
+            // Creating cells and adding text-center and padding-vertical classes
+            const cellId = row.insertCell(0);
+            cellId.textContent = profile.id;
+            cellId.classList.add('text-center', 'py-4');
+    
+            const cellDateOfImport = row.insertCell(1);
+            cellDateOfImport.textContent = profile.date_of_import;
+            cellDateOfImport.classList.add( 'py-4');
+    
+            const cellDateOfLastAction = row.insertCell(2);
+            cellDateOfLastAction.textContent = profile.date_of_last_action;
+            cellDateOfLastAction.classList.add( 'py-4');
+    
+            const cellLastAction = row.insertCell(3);
+            cellLastAction.textContent = profile.last_action;
+            cellLastAction.classList.add( 'py-4');
+    
+            const cellProxy = row.insertCell(4);
+            cellProxy.textContent = profile.proxy;
+            cellProxy.classList.add( 'py-4');
+    
+            const cellStatus = row.insertCell(5);
+            cellStatus.textContent = profile.status;
+            cellStatus.classList.add( 'py-4');
+        });
+    }
+    
+    
+    
+    function populateScheduledProfilesTable(profiles) {
+        const table = document.getElementById('scheduledProfilesTable').getElementsByTagName('tbody')[0];
+        table.innerHTML = '';
+        profiles.forEach(profile => {
+            const row = table.insertRow();
+    
+            // Creating cells and adding text-center and py-4 classes
+            const cellId = row.insertCell(0);
+            cellId.innerText = profile.id;
+            cellId.classList.add('text-center', 'py-4');
+    
+            const cellDateOfImport = row.insertCell(1);
+            cellDateOfImport.innerText = profile.date_of_import;
+            cellDateOfImport.classList.add('text-center', 'py-4');
+    
+            const cellDateOfLastAction = row.insertCell(2);
+            cellDateOfLastAction.innerText = profile.date_of_last_action;
+            cellDateOfLastAction.classList.add('text-center', 'py-4');
+    
+            const cellLastAction = row.insertCell(3);
+            cellLastAction.innerText = profile.last_action;
+            cellLastAction.classList.add('text-center', 'py-4');
+    
+            const cellProxy = row.insertCell(4);
+            cellProxy.innerText = profile.proxy;
+            cellProxy.classList.add( 'py-4');
+    
+            const cellStatus = row.insertCell(5);
+            cellStatus.innerText = profile.status;
+            cellStatus.classList.add( 'py-4');
+        });
+    }
+    
+    
+document.getElementById('pauseButton').addEventListener('click', function(event) {
+    
+    event.preventDefault();
+
+        document.getElementById('stopButton').disabled = false;
+        document.getElementById('stopButton').removeAttribute('style');
+
+
+        document.getElementById('openButton').disabled = true;
+        document.getElementById('openButton').style.backgroundColor = "grey";
+        document.getElementById('openButton').style.color = "#fbfbfb";
+
+        document.getElementById('pauseButton').disabled = true;
+        document.getElementById('pauseButton').style.backgroundColor = "grey";
+        document.getElementById('pauseButton').style.color = "#fbfbfb";
+
+        document.getElementById('resumeButton').disabled = false;
+        document.getElementById('resumeButton').removeAttribute('style');
+
+
+    let selections = [];
+    $('#infoTableBody tr').each(function() {
+        let entity = $(this).find('td').eq(1).text().trim();
+        let rdp = $(this).find('td').eq(3).text().trim();
+        let session = $(this).find('td').eq(5).text().trim();
+        selections.push({ entity: entity, rdp: rdp, session: session });
+    });
+
+    const data = {
+        selections: selections
+    };
+
+    fetch("{% url 'pause' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('status').innerHTML = data.message;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('status').innerHTML = 'An error occurred.';
+    });
+});
+
+document.getElementById('killButton').addEventListener('click', function(event) {
+    toastr.error("Chrome profiles killed successfully");
+    event.preventDefault();
+
+    // Optionnel : Désactiver le bouton et changer son style
+    // document.getElementById('closButton').disabled = true;
+    // document.getElementById('closButton').style.backgroundColor = "grey";
+    // document.getElementById('closButton').style.color = "#fbfbfb";
+
+    fetch("{% url 'kill_chrome_profiles' %}", {  // Assurez-vous que l'URL correspond au nom de l'URL Django
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('status').innerHTML = data.message;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('status').innerHTML = 'An error occurred.';
+    });
+});
+
+
+
+document.getElementById('resumeButton').addEventListener('click', function(event) {
+    
+    event.preventDefault();
+
+        document.getElementById('stopButton').disabled = false;
+        document.getElementById('stopButton').removeAttribute('style');
+
+
+        document.getElementById('openButton').disabled = true;
+        document.getElementById('openButton').style.backgroundColor = "grey";
+        document.getElementById('openButton').style.color = "#fbfbfb";
+
+        document.getElementById('pauseButton').disabled = false;
+        document.getElementById('pauseButton').removeAttribute('style');
+
+
+        document.getElementById('resumeButton').disabled = true;
+        document.getElementById('resumeButton').style.backgroundColor = "grey";
+        document.getElementById('resumeButton').style.color = "#fbfbfb";
+
+
+    let selections = [];
+    $('#infoTableBody tr').each(function() {
+        let entity = $(this).find('td').eq(1).text().trim();
+        let rdp = $(this).find('td').eq(3).text().trim();
+        let session = $(this).find('td').eq(5).text().trim();
+        selections.push({ entity: entity, rdp: rdp, session: session });
+    });
+
+    const data = {
+        selections: selections
+    };
+
+    fetch("{% url 'resume' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('status').innerHTML = data.message;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('status').innerHTML = 'An error occurred.';
+    });
+});
+
+    
+document.getElementById('stopButton').addEventListener('click', function(event) {
+  
+    event.preventDefault();
+
+
+        document.getElementById('stopButton').disabled = true;
+        document.getElementById('stopButton').style.backgroundColor = "grey";
+        document.getElementById('stopButton').style.color = "#fbfbfb";
+
+        document.getElementById('openButton').disabled = false;
+        document.getElementById('openButton').removeAttribute('style');
+
+
+        document.getElementById('pauseButton').disabled = true;
+        document.getElementById('pauseButton').style.backgroundColor = "grey";
+        document.getElementById('pauseButton').style.color = "#fbfbfb";
+
+        document.getElementById('resumeButton').disabled = true;
+        document.getElementById('resumeButton').style.backgroundColor = "grey";
+        document.getElementById('resumeButton').style.color = "#fbfbfb";
+
+    // Récupère toutes les sélections depuis le tableau
+    let selections = [];
+    $('#infoTableBody tr').each(function() {
+        let entity = $(this).find('td').eq(1).text().trim();
+        let rdp = $(this).find('td').eq(3).text().trim();
+        let session = $(this).find('td').eq(5).text().trim();
+        selections.push({ entity: entity, rdp: rdp, session: session });
+    });
+
+    // Crée un objet avec les données
+    const data = {
+        selections: selections
+    };
+
+    fetch("{% url 'stop' %}", {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify(data)
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('status').innerHTML = data.message;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('status').innerHTML = 'An error occurred.';
+    });
+});
+
+function fetchScenarios() {
+    fetch("{% url 'scenario_categories' %}")
+        .then(response => response.json())
+        .then(data => {
+            var selectCategory = document.getElementById('scenarioCategory');
+            var selectScenario = document.getElementById('scenario');
+            var subScenarioDiv = document.getElementById('subScenarioDiv');
+            var subScenarioCheckboxes = document.getElementById('subScenarioCheckboxes');
+
+            selectCategory.innerHTML = '';
+            selectScenario.innerHTML = '';
+            subScenarioCheckboxes.innerHTML = '';
+            subScenarioDiv.style.display = 'none';  // Hide sub-scenario by default
+
+            data["scenarios_by_categories"].forEach(category => {
+                var optionCategory = document.createElement('option');
+                optionCategory.value = category["category"];
+                optionCategory.textContent = category["category"];
+                selectCategory.appendChild(optionCategory);
+            });
+
+            selectCategory.addEventListener('change', function() {
+                var selectedCategory = this.value;
+
+                console.log('data'+JSON.stringify(data["scenarios_by_categories"]))
+                var selectedCategoryData = data["scenarios_by_categories"].find(category => category["category"] === selectedCategory);
+
+                selectScenario.innerHTML = '';
+                subScenarioCheckboxes.innerHTML = '';
+                subScenarioDiv.style.display = 'none';  // Hide sub-scenario initially
+
+                selectedCategoryData["scenarios"].forEach(scenario => {
+                    var optionScenario = document.createElement('option');
+                    optionScenario.value = scenario.value;
+                    optionScenario.textContent = scenario.label;
+                    selectScenario.appendChild(optionScenario);
+                });
+
+
+
+
+                /****/
+                selectScenario.addEventListener('change', function() {
+                    var selectedScenario = this.value;
+                    console.log('Selected Scenario:', selectedScenario);  // Log the selected value
+
+                    var selectedScenarioData = selectedCategoryData["scenarios"].find(scenario => scenario.value === selectedScenario);
+                    console.log('Available Scenarios:', selectedCategoryData["scenarios"]);  // Log the array of scenarios
+
+                    function formatString(input) {
+                        return input.replace(/\W/g, '');  // \W matches any non-word character (equivalent to [^a-zA-Z0-9_])
+                    }
+        if (selectedScenarioData.sub_scenarios && selectedScenarioData.sub_scenarios.length > 0) {
+
+                        subScenarioCheckboxes.innerHTML = ''; // Clear previous checkboxes
+                        let checkbox1, checkbox2;
+                        let inputContainer;
+
+                        selectedScenarioData["sub_scenarios"].forEach(subScenario => {
+                            const checkboxWrapper = document.createElement('div');
+                            checkboxWrapper.className = 'form-check';
+
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.className = 'form-check-input';
+                            checkbox.setAttribute('data-subScenario', 'subScenario');
+                            checkbox.name = formatString(`subScenario${subScenario.value}`);
+                            checkbox.value = subScenario.value;
+                            checkbox.id = formatString(`subScenario${subScenario.value}`);
+
+                            const label = document.createElement('label');
+                            label.className = 'form-check-label';
+                            label.htmlFor = formatString(`subScenario${subScenario.value}`);
+                            label.textContent = subScenario.label;
+                            checkboxWrapper.appendChild(checkbox);
+                            checkboxWrapper.appendChild(label);
+                            subScenarioCheckboxes.appendChild(checkboxWrapper);
+
+                            // Store references to the specific checkboxes you want to target
+                            if (checkbox.id === 'subScenarioProfileLifeSpan') {
+                                checkbox1 = checkbox;
+                            } else if (checkbox.id === 'subScenarioSpecificnumberRandomRange') {
+                                checkbox2 = checkbox;
+                            }
+                        });
+                        // Function to create the input fields dynamically with a tooltip for each
+                       function createInputFields() {
+                                const container = document.createElement('div');
+                                container.className = 'input-container';
+                                container.style.display = 'flex';
+                                container.style.gap = '10px';
+
+                                // First input field for "Specific Number or Range"
+                                const input1Wrapper = document.createElement('div');
+                                input1Wrapper.style.display = 'flex';
+                                input1Wrapper.style.alignItems = 'center';
+                                input1Wrapper.style.gap = '5px';
+
+                                // Add the Font Awesome question mark icon with a hover tooltip
+                                const questionMark1 = document.createElement('i');
+                                questionMark1.className = 'fas fa-question-circle mx-2';
+                                questionMark1.style.cursor = 'pointer';
+                                questionMark1.title = 'Enter a specific number or a range (e.g., 30 or 50,90).';
+
+                                const input1 = document.createElement('input');
+                                input1.type = 'text';
+                                input1.id = 'subScenarioSpecificnumberRandomRangeInput';
+                                input1.name = 'subScenarioSpecificnumberRandomRangeInput';
+                                input1.required = true
+                                input1.value = '50,80'
+                                input1.className = 'form-control mt-2 mb-2';
+                                input1.placeholder = 'eg. 30 or 50,90';
+                                input1.style.minWidth = '250px';
+                                input1.style.maxWidth = '250px';
+                                input1Wrapper.appendChild(input1);
+
+                                // Second input field for "Sleep Between"
+                                const input2Wrapper = document.createElement('div');
+                                input2Wrapper.style.display = 'flex';
+                                input2Wrapper.style.alignItems = 'center';
+                                input2Wrapper.style.gap = '5px';
+
+                                const label2 = document.createElement('label');
+                                label2.textContent = 'Sleep Between ';
+
+                                const questionMark2 = document.createElement('i');
+                                questionMark2.className = 'fas fa-question-circle mx-2';
+                                questionMark2.style.cursor = 'pointer';
+                                questionMark2.title = 'Enter the sleep time between each not spam report (e.g. 3 or rand between range 3,7 seconds).';
+
+                                const input2 = document.createElement('input');
+                                input2.type = 'text';
+                                input2.id = 'sleepBetweenreportnotspamInput';
+                                input2.name = 'sleepBetweenreportnotspamInput';
+                                input2.required = true
+                                input2.value = '3'
+                                input2.className = 'form-control mt-2 mb-2';
+                                input2.placeholder = 'eg. 3 or 3,8';
+                                input2.style.minWidth = '150px';
+                                input2.style.maxWidth = '150px';
+
+                                // Append label, question mark icon, and input2 to wrapper
+                                label2.appendChild(questionMark2);
+                                input2Wrapper.appendChild(label2);
+                                input2Wrapper.appendChild(input2);
+
+                                // Add both input wrappers to the container
+                                container.appendChild(input1Wrapper);
+                                container.appendChild(input2Wrapper);
+                                inputContainer = container;
+                                return inputContainer;
+                       }
+                        // Apply the mutual exclusion behavior only to the two checkboxes
+                        if (checkbox1 && checkbox2) {
+                            checkbox1.addEventListener('change', function() {
+                                if (checkbox1.checked) {
+                                    checkbox2.checked = false;
+                                    if (inputContainer && inputContainer.parentNode) {
+                                        checkbox2.parentNode.removeChild(inputContainer);  // Remove the input fields from DOM if they exist
+                                    }
+                                }
+                            });
+                            checkbox2.addEventListener('change', function() {
+                                if (checkbox2.checked) {
+                                    checkbox1.checked = false;
+                                    if (!inputContainer || !inputContainer.parentNode) {
+                                        checkbox2.parentNode.appendChild(createInputFields());  // Add the input fields to the DOM
+                                    }
+                                } else if (inputContainer && inputContainer.parentNode) {
+                                    checkbox2.parentNode.removeChild(inputContainer);  // Remove the input fields from DOM when unchecked
+                                }
+                            });
+                        }
+                     
+                     
+                        if (selectedScenario === 'inbox') {
+                            // Function to count how many checkboxes (excluding 'random') are selected
+
+                console.log("selectedCategoryData[scenarios] =  "+JSON.stringify(selectedCategoryData["scenarios"]));
+                console.log("selectedScenario  =  "+JSON.stringify(selectedScenario));  // Check what value is being selected
+
+
+                            function countSelectedCheckboxes(excludeCheckboxId) {
+                                const checkboxes = subScenarioCheckboxes.querySelectorAll('input[type="checkbox"]');
+                                let count = 0;
+                                checkboxes.forEach(checkbox => {
+                                    if (checkbox.checked && checkbox.id !== excludeCheckboxId) {
+                                        count++;
+                                    }
+                                });
+                                return count;
+                            }
+                            // Function to enable/disable the random checkbox
+                            function updateRandomCheckbox() {
+                                const randomCheckbox = document.getElementById('subScenariorandom');
+                                const selectedCount = countSelectedCheckboxes('subScenariorandom');
+                                 if (selectedCount > 0) {
+                                   document.getElementById('inputForrandom').value = selectedCount;
+                                } else {
+                                    randomCheckbox.checked = false;
+                                    document.getElementById('inputForrandom').value = '';
+                                }
+                            }
+                            // Add input fields only when checkboxes are checked for sub-scenarios in 'inbox'
+                            selectedScenarioData.sub_scenarios.forEach(subScenario => {
+                                // Find the corresponding checkbox based on subScenario value
+                                const checkbox = document.getElementById(formatString(`subScenario${subScenario.value}`));
+
+                                // Function to create the input field with conditional logic for 'random'
+                                function createInputField() {
+                                        const inputField = document.createElement('input');
+                                        inputField.className = 'form-control mt-2 mb-2'; // Add any classes for styling
+                                        inputField.style.minWidth = '250px';
+                                        inputField.style.maxWidth = '250px';
+                                        inputField.id = formatString(`inputFor${subScenario.value}`);
+                                        inputField.type = 'number'; // All inputs are of type 'number'
+                                        inputField.min = 1; // Prevent negative values
+                                        inputField.value = 1;
+
+                                        let maxValue = countSelectedCheckboxes(checkbox.id); // Dynamically get the max value based on selected checkboxes
+                                        inputField.placeholder = subScenario.value === 'random'
+                                            ? 'Enter an integer value'
+                                            : `Input for ${subScenario.label}`;
+
+                                        // Add input validation, but don't enforce it until after the user is done typing
+                                        inputField.addEventListener('input', function() {
+                                            // Allow the user to type any value but ensure it's >= min
+                                            if (inputField.value < inputField.min) {
+                                                inputField.value = inputField.min;
+                                            }
+                                        });
+
+                                     return inputField;
+                                    }
+
+
+                                // Add event listener to show/hide input field when checkbox is checked/unchecked
+                                checkbox.addEventListener('change', function() {
+                                    const existingInput = document.getElementById(formatString(`inputFor${subScenario.value}`));
+
+                                    if (checkbox.checked) {
+                                        // If checkbox is checked and input field doesn't exist, create and append it
+                                        if (!existingInput) {
+                                            const inputField = createInputField();
+                                            checkbox.parentNode.appendChild(inputField);
+                                        }
+                                    } else {
+                                        // If checkbox is unchecked, remove the input field if it exists
+                                        if (existingInput) {
+                                            existingInput.remove();
+                                        }
+                                    }
+
+                                    // Update the random checkbox state based on selected checkboxes
+                                    updateRandomCheckbox();
+                                });
+                            });
+
+                            // Initial state of the random checkbox
+                            updateRandomCheckbox(); // Ensure random checkbox starts disabled if no checkboxes are selected
+                        }
+
+
+                        if (selectedScenario === 'inbox and not spam'){
+
+                    //         /* 3.34 **/
+                  
+
+                    selectedScenarioData.sub_scenarios.forEach(subScenario => {
+                                // Find the corresponding checkbox based on subScenario value
+                                const checkbox = document.getElementById(formatString(`subScenario${subScenario.value}`));
+
+                                // Function to create the input field with conditional logic for 'random'
+                                function createInputField() {
+                                        const inputField = document.createElement('input');
+                                        inputField.className = 'form-control mt-2 mb-2'; // Add any classes for styling
+                                        inputField.style.minWidth = '250px';
+                                        inputField.style.maxWidth = '250px';
+                                        inputField.id = formatString(`inputFor${subScenario.value}`);
+                                        inputField.type = 'number'; // All inputs are of type 'number'
+                                        inputField.min = 1; // Prevent negative values
+                                        inputField.value = 10;
+
+                                        // let maxValue = countSelectedCheckboxes(checkbox.id); // Dynamically get the max value based on selected checkboxes
+                                        inputField.placeholder = `Input for ${subScenario.label}`;
+
+                                        // Add input validation, but don't enforce it until after the user is done typing
+                                        inputField.addEventListener('input', function() {
+                                            // Allow the user to type any value but ensure it's >= min
+                                            if (inputField.value < inputField.min) {
+                                                inputField.value = inputField.min;
+                                            }
+                                        });
+
+                                     return inputField;
+                                    }
+
+
+                                // Add event listener to show/hide input field when checkbox is checked/unchecked
+                                checkbox.addEventListener('change', function() {
+                                    const existingInput = document.getElementById(formatString(`inputFor${subScenario.value}`));
+
+                                    if (checkbox.checked) {
+                                        // If checkbox is checked and input field doesn't exist, create and append it
+                                        if (!existingInput) {
+                                            const inputField = createInputField();
+                                            checkbox.parentNode.appendChild(inputField);
+                                        }
+                                    } else {
+                                        // If checkbox is unchecked, remove the input field if it exists
+                                        if (existingInput) {
+                                            existingInput.remove();
+                                        }
+                                    }
+
+                                });
+                            });
+
+                            
+
+
+                                    /* END 3.34 */
+
+                        }
+
+
+                        subScenarioDiv.style.display = 'block';  // Show sub-scenario checkboxes
+                    }
+                        else {
+                        subScenarioDiv.style.display = 'none';  // Hide sub-scenario checkboxes if none
+                    }
+
+
+
+                    /* end of selectScenario event listener ******/
+                });
+
+                // Trigger change event for the initial population of scenarios
+                selectScenario.dispatchEvent(new Event('change'));
+
+                // Show batchDelayStep only if selectedCategory is "Email Actions"
+                if (selectedCategory === "Email Actions") {
+                    document.getElementById('batchDelayStepDiv').style.display = 'block';
+                } else {
+                    document.getElementById('batchDelayStepDiv').style.display = 'none';
+                }
+            });     /* end of selectCategory event listener */
+
+
+            selectCategory.dispatchEvent(new Event('change'));
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('status').innerHTML = 'Failed to fetch scenarios.';
+        });
+}
+
+
+        document.addEventListener('DOMContentLoaded', function() {
+            fetchScenarios();
+        });
+    
+        $(document).ready(function() {
+        const actionLogTableBody = $('#actionLogTableBody');
+    
+        function addActionToLog(action, details) {
+            const now = new Date();
+            const formattedDateTime = now.toLocaleString();
+            const newRow = `
+                <tr>
+                    <td>${action}</td>
+                    <td>${details}</td>
+                    <td>${formattedDateTime}</td>
+                </tr>
+            `;
+            actionLogTableBody.append(newRow);
+        }
+    
+        // Handling Open Profiles action
+        $('#openProfilesForm').submit(function(event) {
+            event.preventDefault();
+            
+            const profileInputType = $('#profileInputType').val();
+            let details = `Profile Input Type: ${profileInputType}, `;
+    
+            if (profileInputType === 'range') {
+                const start = $('#start').val();
+                const end = $('#end').val();
+                details += `Start: ${start}, End: ${end}`;
+            } else if (profileInputType === 'ids') {
+                const profileIds = $('#profileIds').val();
+                details += `Profile IDs: ${profileIds}`;
+            } else if (profileInputType === 'scheduledRange') {
+                const scheduledProfileInputType = $('#scheduledProfileInputType').val();
+                if (scheduledProfileInputType === 'scheduledRange') {
+                    const scheduledStart = $('#scheduledStart').val();
+                    const scheduledEnd = $('#scheduledEnd').val();
+                    const scheduledDateTime = $('#scheduledDateTime').val();
+                    details += `Scheduled Start: ${scheduledStart}, Scheduled End: ${scheduledEnd}, Scheduled DateTime: ${scheduledDateTime}`;
+                } else if (scheduledProfileInputType === 'scheduledIds') {
+                    const scheduledProfileIds = $('#scheduledProfileIds').val();
+                    const scheduledDateTimeIds = $('#scheduledDateTimeIds').val();
+                    details += `Scheduled Profile IDs: ${scheduledProfileIds}, Scheduled DateTime: ${scheduledDateTimeIds}`;
+                }
+            }
+    
+            addActionToLog('Open Profiles', details);
+    
+    
+        });
+    
+        $('#pauseButton').click(function() {
+            addActionToLog('Pause Script', 'The script has been paused.');
+        });
+    
+        $('#resumeButton').click(function() {
+            addActionToLog('Resume Script', 'The script has been resumed.');
+        });
+    
+        $('#stopButton').click(function() {
+            updateTable4RemoveBTN("STOP")
+            addActionToLog('Stop Script', 'The script has been stopped.');
+        });
+
+        $('#killButton').click(function() {           
+            addActionToLog('Kill Drivers', 'Chrome drivers have been killed.');
+        });
+    
+    });
+
+
+
+
+
+    </script>
+
+<!-- get data from forms  -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        function updateFormVisibility() {
+            var profileInputType = document.getElementById('profileInputType').value;
+            var scheduledProfileInputType = document.getElementById('scheduledProfileInputType').value;
+                const fileInputContainer = document.getElementById('file_input_container');
+
+            // Hide all fields initially
+            document.getElementById('rangeInput').style.display = 'none';
+            document.getElementById('idsInput').style.display = 'none';
+            document.getElementById('scheduledRangeInput').style.display = 'none';
+            document.getElementById('scheduledRangeFields').style.display = 'none';
+            document.getElementById('scheduledIdsFields').style.display = 'none';
+
+            // Show relevant fields based on selected options
+            if (profileInputType === 'range') {
+                document.getElementById('rangeInput').style.display = 'flex';
+                fileInputContainer.style.display = 'none'; // Show the file input and button
+
+            } else if (profileInputType === 'ids') {
+                document.getElementById('idsInput').style.display = 'flex';
+                fileInputContainer.style.display = 'none'; // Show the file input and button
+
+            } else if (profileInputType === 'scheduledRange') {
+
+                document.getElementById('scheduledRangeInput').style.display = 'flex';
+                fileInputContainer.style.display = 'block'; // Show the file input and button
+
+                if (scheduledProfileInputType === 'scheduledRange') {
+                    document.getElementById('scheduledRangeFields').style.display = 'block';
+                } else if (scheduledProfileInputType === 'scheduledIds') {
+                    document.getElementById('scheduledIdsFields').style.display = 'flex';
+                }
+
+            }
+        }
+
+function validateForm() {
+    let valid = true;
+
+    // Exclude specific select fields and check the visibility and value of other fields
+    let visibleFields = document.querySelectorAll('input, textarea, select:not(#rdp-select):not(#entity-select)');
+    visibleFields.forEach(field => {
+        if (field.offsetParent !== null && !field.value.trim()) {
+            valid = false;
+            field.classList.add('border-red-500'); // Highlight empty fields
+        } else {
+            field.classList.remove('border-red-500'); // Remove highlight from filled fields
+        }
+    });
+
+    // Validate the table has at least one row
+    // let $tableBody = $('#infoTableBody');
+    // if ($tableBody.find('tr').length === 0) {
+    //     valid = false;
+    //     // toastr.error('The table must have at least one row.');
+    // }
+
+    return valid;
+}
+
+        function showToast(message) {
+           toastr.error(message);
+        }
+
+        document.getElementById('scenarioCategory').addEventListener('change', updateFormVisibility);
+        document.getElementById('profileInputType').addEventListener('change', updateFormVisibility);
+        document.getElementById('scheduledProfileInputType').addEventListener('change', updateFormVisibility);
+
+        updateFormVisibility();
+
+        document.getElementById('openProfilesForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            if (!validateForm()) {
+                showToast('Please fill in all required fields.');
+                return; // Prevent form submission
+            }
+        
+        if (document.getElementById('profileInputType').value === 'range') {
+            document.getElementById('openButton').disabled = true;
+            document.getElementById('openButton').style.backgroundColor = "grey";
+            document.getElementById('openButton').style.color = "#fbfbfb";
+        } else if (document.getElementById('profileInputType').value === 'ids') {
+            document.getElementById('openButton').disabled = true;
+            document.getElementById('openButton').style.backgroundColor = "grey";
+            document.getElementById('openButton').style.color = "#fbfbfb";
+        } else if (document.getElementById('profileInputType').value === 'scheduledRange') {
+            document.getElementById('openButton').disabled = false;
+        }
+
+
+
+
+        document.getElementById('stopButton').disabled = false;
+        document.getElementById('stopButton').removeAttribute('style');
+
+        document.getElementById('pauseButton').disabled = false;
+        document.getElementById('pauseButton').removeAttribute('style');
+
+        document.getElementById('resumeButton').disabled = true;
+        document.getElementById('resumeButton').style.backgroundColor = "grey";
+        document.getElementById('resumeButton').style.color = "#fbfbfb";
+
+
+    
+
+
+
+         // Update the table after form submission
+        updateTable4RemoveBTN("START");
+
+
+    const openButton = document.getElementById('openButton');
+    const buttonText = document.getElementById('buttonText');
+    const loadingSpinner = document.getElementById('loadingSpinner');
+
+     // Disable the button and show the loading spinner
+    // openButton.disabled = true;
+    // buttonText.textContent = 'Processing...';
+    // loadingSpinner.classList.remove('hidden');
+
+
+            // Proceed with form submission
+            let selections = [];
+            $('#infoTableBody tr').each(function() {
+                let entity = $(this).find('td').eq(1).text().trim();
+                let rdp = $(this).find('td').eq(3).text().trim();
+                let session = $(this).find('td').eq(5).text().trim();
+                selections.push({ entity: entity, rdp: rdp, session: session });
+            });
+
+            var formData = {
+                selections: selections,
+                scenarioCategory: document.getElementById('scenarioCategory').value,
+                scenario: document.getElementById('scenario').value,
+                profileInputType: document.getElementById('profileInputType').value,
+                delay_profiles: document.getElementById('delay_profiles').value
+            };
+
+            if (formData.scenarioCategory === 'Search Engines' || formData.scenarioCategory === 'Email Actions' || formData.scenarioCategory === 'Check' || formData.scenarioCategory === 'Login') {
+                if (formData.profileInputType === 'range') {
+                    formData.start = document.getElementById('start').value;
+                    formData.end = document.getElementById('end').value;
+                    formData.step = document.getElementById('step').value;
+                } else if (formData.profileInputType === 'ids') {
+                    formData.profileIds = document.getElementById('profileIds').value;
+                    formData.step = document.getElementById('step').value;
+                } else if (formData.profileInputType === 'scheduledRange') {
+                    var scheduledProfileInputType = document.getElementById('scheduledProfileInputType').value;
+                    formData.scheduledDateTime = document.getElementById('scheduledDateTime').value;
+
+                    if (scheduledProfileInputType === 'scheduledRange') {
+                        formData.scheduledStart = document.getElementById('scheduledStart').value;
+                        formData.scheduledEnd = document.getElementById('scheduledEnd').value;
+                        formData.scheduledProfileInputType = document.getElementById('scheduledProfileInputType').value;
+                    } else if (scheduledProfileInputType === 'scheduledIds') {
+                        formData.scheduledProfileIds = document.getElementById('scheduledProfileIds').value;
+                        formData.scheduledDateTimeIds = document.getElementById('scheduledDateTimeIds').value;
+                    }
+                }
+            }
+
+            if (formData.scenarioCategory === 'Email Actions') {
+                formData.delay_batches = document.getElementById('delay_batches').value;
+            }
+
+            // {#console.log('****retrieve data from the form ====> \n'+JSON.stringify(formData, null, 2));#}
+    //         fetch('/handle_form_data/', {
+    //             method: 'POST',
+    //             headers: {
+    //                 'Content-Type': 'application/json',
+    //                 'X-CSRFToken': getCookie('csrftoken')
+    //             },
+    //             body: JSON.stringify(formData)
+    //         })
+    //         .then(response => response.json())
+    //         .then(data => {
+    //             toastr.success("Script started");
+    //         openButton.disabled = true;
+
+    //             console.log('Réponse du serveur:', data);
+    //         })
+    //         .catch(error => {
+    //             toastr.error(error);
+    //         openButton.disabled = false;
+
+    //             console.error('Erreur:', error);
+    //         }) .finally(() => {
+    //     //  restore the original text on openbtn
+    //     buttonText.textContent = 'Open Profiles';
+    //     loadingSpinner.classList.add('hidden');
+    // });
+        });
+
+        function getCookie(name) {
+            var cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                var cookies = document.cookie.split(';');
+                for (var i = 0; i < cookies.length; i++) {
+                    var cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+    });
+</script>
+
+
+<!-- fetch rdps, session ,entities -->
+
+    
+<script>
+    // Afficher un message de mise en pause
+    document.getElementById("pauseButton").addEventListener("click", function() {
+        toastr.warning("Paused successfully");
+    });
+
+     document.getElementById("resumeButton").addEventListener("click", function() {
+        toastr.success("Resumed successfully");
+    });
+
+     document.getElementById("stopButton").addEventListener("click", function() {
+        toastr.error("Stopped successfully");
+    });
+</script>
+
+{% block javascripts %}{% endblock javascripts %}
+{% endblock content %}

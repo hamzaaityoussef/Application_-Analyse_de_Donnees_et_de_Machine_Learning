@@ -1,0 +1,842 @@
+{% extends 'app/base.html' %}
+
+{% block title %}Profile{% endblock %}
+
+{% block stylesheets %}
+<link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+{% endblock stylesheets %}
+
+{% block content %}
+
+<h1 class="mb-7 text-5xl" >Connect</b></h1>
+<div class="border-t-4 border-t-indigo-500 border-transparent ...">
+    <br>
+</div>
+
+
+
+
+
+<div class="container my-5">
+    <div class="card shadow-sm">
+        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Profile Management</h4>
+            <button type="button" class="btn btn-info" data-toggle="modal" data-target="#actionLogModal">
+                View Action Log
+            </button>
+        </div>
+        <div class="card-body">
+            <form id="openProfilesForm" method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                <div class="form-row">
+                    <div class="col-md-4 mb-3">
+                        <label for="scenarioCategory" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider form-label">Scenario Category:</label>
+                        <select id="scenarioCategory" name="scenarioCategory" class="form-control" required>
+                            <!-- Options will be populated dynamically from backend -->
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="scenario" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider form-label">Scenario:</label>
+                        <select id="scenario" name="scenario" class="form-control" required>
+                            <!-- Options will be populated dynamically based on selected category -->
+                        </select>
+                    </div>
+                    <div id="subScenarioDiv" class="col-md-4 mb-3" style="display:none;">
+                        <label class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider form-label">Sub-Scenarios:</label>
+                        <div id="subScenarioCheckboxes">
+                            <!-- Checkboxes will be populated dynamically based on selected scenario -->
+                        </div>
+                    </div>
+                </div>
+                
+                
+
+                <div class="form-row">
+                    <div class="col-md-6 mb-3">
+                        <label for="profileInputType" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Profile Input Type:</label>
+                        <select id="profileInputType" name="profileInputType" class="form-control" required>
+                            <option value="range">Range</option>
+                            <option value="ids">Specific IDs</option>
+                            <option value="scheduledRange">Scheduled Range</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="rangeInput" class="form-row">
+                    <div class="col-md-3 mb-3">
+                        <label for="start" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Start:</label>
+                        <input type="number" class="form-control" min="0" id="start" name="start">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="end" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">End:</label>
+                        <input type="number" class="form-control" min="0" id="end" name="end">
+                    </div>
+                </div>
+
+                <div id="idsInput" class="form-row" style="display: none;">
+                    <div class="col-md-12 mb-3">
+                        <label for="profileIds" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Profile IDs:</label>
+                        <textarea class="form-control" id="profileIds" name="profileIds" rows="9"></textarea>
+                    </div>
+                </div>
+
+                <div id="scheduledRangeInput" class="form-row" style="display: none;">
+                    <div class="col-md-6 mb-3">
+                        <label for="scheduledProfileInputType" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Scheduled Profile Input Type:</label>
+                        <select id="scheduledProfileInputType" name="scheduledProfileInputType" class="form-control" required>
+                            <option value="scheduledRange">Range</option>
+                            <!-- <option value="scheduledRange">Range</option> -->
+                            <option value="scheduledIds">Specific IDs</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="scheduledRangeFields" class="form-row" style="display: none;">
+                    <div class="col-md-3 mb-3">
+                        <label for="scheduledStart" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Start:</label>
+                        <input type="number" class="form-control" id="scheduledStart" min="0" name="scheduledStart">
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <label for="scheduledEnd" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">End:</label>
+                        <input type="number" class="form-control" id="scheduledEnd" min="0" name="scheduledEnd">
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="scheduledDateTime" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Scheduled Date and Time:</label>
+                        <input type="datetime-local" class="form-control" id="scheduledDateTime" name="scheduledDateTime">
+                    </div>
+                </div>
+
+                <div id="scheduledIdsFields" class="form-row" style="display: none;">
+                    <div class="col-md-12 mb-3">
+                        <label for="scheduledProfileIds" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Scheduled Profile IDs:</label>
+                        <textarea class="form-control" id="scheduledProfileIds" name="scheduledProfileIds" rows="9"></textarea>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label for="scheduledDateTimeIds" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Scheduled Date and Time:</label>
+                        <input type="datetime-local" class="form-control" id="scheduledDateTimeIds" name="scheduledDateTimeIds">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="col-md-3 mb-3">
+                        <label for="delay_profiles" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Delay profiles (seconds):</label>
+                        <input type="number" class="form-control" id="delay_profiles" name="delay_profiles" min="0" required>
+                    </div>
+                    <div id="batchDelayStep" class="form-row col-md-9 mb-3">
+                        <div class="col-md-6 mb-3" id="batchDelayStepDiv">
+                            <label for="delay_batches" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Delay batches (seconds):</label>
+                            <input type="number" class="form-control" id="delay_batches" name="delay_batches" min="0" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="step" class="text-xl text-left font-bold text-gray-700 uppercase tracking-wider  form-label ">Step:</label>
+                            <input type="number" class="form-control" id="step" name="step" min="0" required>
+                        </div>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-success">Open Profiles</button>
+
+            </form>
+            <div id="status" class="mt-3 text-danger"></div>
+            <div class="mt-4">
+                <button id="pauseButton" class="btn btn-warning mr-2">Pause Script</button>
+                <button id="resumeButton" class="btn btn-info mr-2">Resume Script</button>
+                <button id="stopButton" class="btn btn-danger">Stop Script</button>
+                <button id="restartButton" class="btn btn-primary mr-2">Restart Script</button>
+                <button id="checkStatusButton" class="btn btn-secondary mr-2">Check Status</button>
+                <button id="checkProfileStatusButton" class="btn btn-secondary mr-2">Check Profile Status</button>
+                <button id="forceStopButton" class="btn btn-danger">Force Stop Script</button>
+            </div>
+
+            <div id="profilesList" class="mt-4 overflow-x-auto">
+                <h4 class="text-3xl text-left font-medium text-gray-700 uppercase tracking-wider mt-4 mb-3">latest actions</h4>
+                <table id="profilesTable" class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+                    <thead>
+                        <tr class="bg-gray-100 text-gray-700 uppercase leading-normal font-bold">
+                            <th class="py-4 px-6 text-left text-xl">UserID</th>
+                            <th class="py-4 px-6 text-left text-xl">Date of Import</th>
+                            <th class="py-4 px-6 text-left text-xl">Date of Last Action</th>
+                            <th class="py-4 px-6 text-left text-xl">Last Action</th>
+                            <th class="py-4 px-6 text-left text-xl">Proxy</th>
+                            <th class="py-4 px-6 text-left text-xl">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <!-- Table rows will be populated dynamically -->
+                    </tbody>
+                </table>
+                <!-- ================================= -->
+                 <br>
+                <table id="scheduledProfilesTable" class="min-w-full bg-white shadow-md rounded-lg overflow-hidden" style="display: none;">
+                    <thead>
+                    <tr class="bg-gray-100 text-gray-700 uppercase leading-normal font-bold">
+                            <th class="py-4 px-6 text-left text-xl">UserID</th>
+                            <th class="py-4 px-6 text-left text-xl">Date of Import</th>
+                            <th class="py-4 px-6 text-left text-xl">Date of Last Action</th>
+                            <th class="py-4 px-6 text-left text-xl">Last Action</th>
+                            <th class="py-4 px-6 text-left text-xl">Proxy</th>
+                            <th class="py-4 px-6 text-left text-xl">STATUS</th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-gray-700">
+                        <!-- Table rows will be populated dynamically -->
+                    </tbody>
+                </table>
+            </div>
+            <!-- ========== -->
+             <br><br>
+            <h4 class="text-3xl text-left font-medium text-gray-700 uppercase tracking-wider mt-4 mb-3">Scheduled Tasks</h4>
+            <table id="scheduledTasksTable" class="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+                <thead>
+                    <tr class="bg-gray-100 text-gray-700 uppercase leading-normal font-bold">
+                        <th class="py-4 px-2 text-center text-xl">Start</th>
+                        <th class="py-4 px-2 text-center text-xl">End or profileIds</th>
+                        <th class="py-4 px-6 text-center text-xl">Scenario</th>
+                        <th class="py-4 px-6 text-center text-xl">Delay Profiles</th>
+                        <th class="py-4 px-6 text-left text-xl">Schedule Time</th>
+                        <th class="py-4 px-6 text-left text-xl">Status</th>
+                    </tr>
+                </thead>
+                <tbody id="scheduledProfilesTableBody" class="text-gray-700">
+                    <!-- Scheduled tasks will be populated dynamically here -->
+                </tbody>
+            </table>
+        </div>
+
+            <!-- Action Log Modal -->
+        <div class="modal fade" id="actionLogModal" tabindex="-1" role="dialog" aria-labelledby="actionLogModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="actionLogModalLabel" style="margin-left: 0;">Action Log</h5>
+                        <button type="button" class="close text-white" data-dismiss="modal" aria-label="Close" style="margin-right: 0; margin-left: auto;">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    
+                    <div class="modal-body">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Action</th>
+                                    <th>Details</th>
+                                    <th>Date & Time</th>
+                                </tr>
+                            </thead>
+                            <tbody id="actionLogTableBody">
+                                <!-- Action logs will be populated here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+<script>
+document.getElementById('profileInputType').addEventListener('change', function() {
+    // Hide all input sections and tables initially
+    document.getElementById('rangeInput').style.display = 'none';
+    document.getElementById('idsInput').style.display = 'none';
+    document.getElementById('scheduledRangeInput').style.display = 'none';
+    document.getElementById('batchDelayStep').style.display = 'none';
+    document.getElementById('profilesTable').style.display = 'none';
+    document.getElementById('scheduledProfilesTable').style.display = 'none';
+
+    if (this.value === 'range') {
+        document.getElementById('rangeInput').style.display = 'block';
+        document.getElementById('scheduledRangeFields').style.display = 'none';
+        document.getElementById('scheduledIdsFields').style.display = 'none';
+        document.getElementById('batchDelayStep').style.display = 'flex';
+        document.getElementById('profilesTable').style.display = 'table';
+    } else if (this.value === 'ids') {
+        document.getElementById('idsInput').style.display = 'block';
+        document.getElementById('scheduledRangeFields').style.display = 'none';
+        document.getElementById('scheduledIdsFields').style.display = 'none';
+        document.getElementById('batchDelayStep').style.display = 'flex';
+        document.getElementById('profilesTable').style.display = 'table';
+    } else if (this.value === 'scheduledRange') {
+        document.getElementById('scheduledRangeInput').style.display = 'block';
+        document.getElementById('scheduledRangeFields').style.display = 'block';
+        document.getElementById('scheduledProfilesTable').style.display = 'table';
+    }
+});
+
+document.getElementById('scheduledProfileInputType').addEventListener('change', function() {
+    // Hide all scheduled input sections initially
+    document.getElementById('scheduledRangeFields').style.display = 'none';
+    document.getElementById('scheduledIdsFields').style.display = 'none';
+
+    if (this.value === 'scheduledRange') {
+        document.getElementById('scheduledRangeFields').style.display = 'block';
+    } else if (this.value === 'scheduledIds') {
+        document.getElementById('scheduledIdsFields').style.display = 'block';
+    }
+});
+
+document.getElementById('openProfilesForm').addEventListener('submit', function(event) {
+    event.preventDefault();
+    fetchScenarios();
+    toastr.success("Script started");
+    var profileInputType = document.getElementById('profileInputType').value;
+    var delay_profiles = document.getElementById('delay_profiles').value;
+    var subScenarios = getSelectedSubScenarios();
+
+    var formData = new FormData(this);
+    formData.append('profileInputType', profileInputType);
+
+    if (profileInputType === 'range') {
+        var startProfileInput = document.getElementById('start').value;
+        var endProfileInput = document.getElementById('end').value;
+        var stepProfileInput = document.getElementById('step').value;
+        // var subScenarios = getSelectedSubScenarios();
+
+        if (startProfileInput.trim() === '' || endProfileInput.trim() === '' || stepProfileInput.trim() === '') {
+            document.getElementById('status').innerHTML = 'All fields are required.';
+            return;
+        }
+        formData.append('start', startProfileInput);
+        formData.append('end', endProfileInput);
+        formData.append('step', stepProfileInput);
+        formData.append('subScenarioCheckboxes', subScenarios);
+        // formData.append('subScenarioCheckboxes', JSON.stringify(selectedSubScenarios));
+
+        if (scenarioCategory === 'Email Actions') {
+            var delay_batches = document.getElementById('delay_batches').value;
+            if (delay_batches.trim() === '') {
+                document.getElementById('status').innerHTML = 'All fields are required.';
+                return;
+            }
+            formData.append('delay_batches', delay_batches);
+        }
+    } else if (profileInputType === 'ids') {
+        var profileIds = document.getElementById('profileIds').value;
+        if (profileIds.trim() === '') {
+            document.getElementById('status').innerHTML = 'All fields are required.';
+            return;
+        }
+        formData.append('profileIds', profileIds);
+        formData.append('subScenarioCheckboxes', subScenarios);
+    } else if (profileInputType === 'scheduledRange') {
+        var scheduledProfileInputType = document.getElementById('scheduledProfileInputType').value;
+
+        if (scheduledProfileInputType === 'scheduledRange') {
+            var scheduledStart = document.getElementById('scheduledStart').value;
+            var scheduledEnd = document.getElementById('scheduledEnd').value;
+            var scheduledDateTime = document.getElementById('scheduledDateTime').value;
+
+            if (scheduledStart.trim() === '' || scheduledEnd.trim() === '' || scheduledDateTime.trim() === '') {
+                document.getElementById('status').innerHTML = 'All fields are required.';
+                return;
+            }
+
+            // Convert the scheduledDateTime to the required format
+            var formattedDateTime = new Date(scheduledDateTime).toLocaleString('en-GB', { hour12: false }).replace(',', '');
+            formData.append('scheduledStart', scheduledStart);
+            formData.append('scheduledEnd', scheduledEnd);
+            formData.append('scheduledDateTime', formattedDateTime);
+            formData.append('subScenarioCheckboxes', subScenarios);
+
+        } else if (scheduledProfileInputType === 'scheduledIds') {
+            var scheduledProfileIds = document.getElementById('scheduledProfileIds').value;
+            var scheduledDateTimeIds = document.getElementById('scheduledDateTimeIds').value;
+
+            if (scheduledProfileIds.trim() === '' || scheduledDateTimeIds.trim() === '') {
+                document.getElementById('status').innerHTML = 'All fields are required.';
+                return;
+            }
+
+            // Convert the scheduledDateTimeIds to the required format
+            var formattedDateTimeIds = new Date(scheduledDateTimeIds).toLocaleString('en-GB', { hour12: false }).replace(',', '');
+            formData.append('scheduledProfileIds', scheduledProfileIds);
+            formData.append('scheduledDateTime', formattedDateTimeIds);
+            formData.append('subScenarioCheckboxes', subScenarios);
+        }
+    }
+    
+
+        fetch("{% url 'connect_profiles' %}", {
+            method: 'POST',
+            body: formData,
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('status').innerHTML = data.message;
+            if (data.created_profiles) {
+                populateProfilesTable(data.created_profiles);
+                // updateScheduledTasksTable(data.scheduled_tasks);
+            }
+
+            // if (data.scheduled_profiles) {
+            //     populateProfilesTable(data.scheduled_profiles);
+            // }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('status').innerHTML = 'An error occurred.';
+        });
+    });
+
+    function fetchLatestProfiles() {
+    fetch("{% url 'get_latest_profiles' %}")
+        .then(response => response.json())
+        .then(data => {
+            if (data.scheduled_profiles) {
+                populateScheduledProfilesTable(data.scheduled_profiles);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+}
+
+// Periodically fetch the latest profile data every 5 seconds
+setInterval(fetchLatestProfiles, 5000);
+
+    function fetchScheduledProfiles() {
+    fetch('/get_scheduled_profiles/')
+        .then(response => response.json())
+        .then(data => {
+            const scheduledProfiles = data.scheduled_profiles;
+            const table = document.getElementById('scheduledProfilesTableBody');
+            table.innerHTML = '';
+
+            scheduledProfiles.forEach(profile => {
+                const row = document.createElement('tr');
+
+                const scheduleTime = new Date(profile.schedule_time.replace(/(\d{2})\/(\d{2})\/(\d{4}) (\d{2}):(\d{2}):(\d{2})/, '$2/$1/$3 $4:$5:$6'));
+                const now = new Date();
+                let statusText = '';
+
+                if (scheduleTime > now) {
+                    const diffInSeconds = Math.floor((scheduleTime - now) / 1000);
+                    statusText = `${diffInSeconds} seconds remaining`;
+                    // Create a timer to update the status
+                    setInterval(() => {
+                        const currentTime = new Date();
+                        const newDiffInSeconds = Math.floor((scheduleTime - currentTime) / 1000);
+                        if (newDiffInSeconds > 0) {
+                            statusText = `${newDiffInSeconds} seconds remaining`;
+                        } else {
+                            statusText = 'profiles opened';
+                        }
+                        row.cells[5].textContent = statusText;
+                    }, 1000);
+                } else {
+                    statusText = 'profiles opened';
+                }
+
+                row.innerHTML = `
+                    <td class="py-4 text-center">${profile.start}</td>
+                    <td class="py-4 text-center">${profile.end}</td>
+                    <td class="py-4 text-center">${profile.scenario}</td>
+                    <td class="py-4 text-center">${profile.delay_profiles} seconds</td>
+                    <td class="py-4">${profile.schedule_time}</td>
+                    <td class="py-4">${statusText}</td> <!-- Add this line -->
+                `;
+                table.appendChild(row);
+            });
+        })
+        .catch(error => console.error('Error fetching scheduled profiles:', error));
+}
+
+
+setInterval(fetchScheduledProfiles, 2000); // Fetch every 2 seconds
+
+function populateProfilesTable(profiles) {
+    const profilesTableBody = document.getElementById('profilesTable').getElementsByTagName('tbody')[0];
+    profilesTableBody.innerHTML = '';
+    profiles.forEach(profile => {
+        const row = profilesTableBody.insertRow();
+
+        // Creating cells and adding text-center and padding-vertical classes
+        const cellId = row.insertCell(0);
+        cellId.textContent = profile.id;
+        cellId.classList.add('text-center', 'py-4');
+
+        const cellDateOfImport = row.insertCell(1);
+        cellDateOfImport.textContent = profile.date_of_import;
+        cellDateOfImport.classList.add( 'py-4');
+
+        const cellDateOfLastAction = row.insertCell(2);
+        cellDateOfLastAction.textContent = profile.date_of_last_action;
+        cellDateOfLastAction.classList.add( 'py-4');
+
+        const cellLastAction = row.insertCell(3);
+        cellLastAction.textContent = profile.last_action;
+        cellLastAction.classList.add( 'py-4');
+
+        const cellProxy = row.insertCell(4);
+        cellProxy.textContent = profile.proxy;
+        cellProxy.classList.add( 'py-4');
+
+        const cellStatus = row.insertCell(5);
+        cellStatus.textContent = profile.status;
+        cellStatus.classList.add( 'py-4');
+    });
+}
+
+
+
+function populateScheduledProfilesTable(profiles) {
+    const table = document.getElementById('scheduledProfilesTable').getElementsByTagName('tbody')[0];
+    table.innerHTML = '';
+    profiles.forEach(profile => {
+        const row = table.insertRow();
+
+        // Creating cells and adding text-center and py-4 classes
+        const cellId = row.insertCell(0);
+        cellId.innerText = profile.id;
+        cellId.classList.add('text-center', 'py-4');
+
+        const cellDateOfImport = row.insertCell(1);
+        cellDateOfImport.innerText = profile.date_of_import;
+        cellDateOfImport.classList.add('text-center', 'py-4');
+
+        const cellDateOfLastAction = row.insertCell(2);
+        cellDateOfLastAction.innerText = profile.date_of_last_action;
+        cellDateOfLastAction.classList.add('text-center', 'py-4');
+
+        const cellLastAction = row.insertCell(3);
+        cellLastAction.innerText = profile.last_action;
+        cellLastAction.classList.add('text-center', 'py-4');
+
+        const cellProxy = row.insertCell(4);
+        cellProxy.innerText = profile.proxy;
+        cellProxy.classList.add( 'py-4');
+
+        const cellStatus = row.insertCell(5);
+        cellStatus.innerText = profile.status;
+        cellStatus.classList.add( 'py-4');
+    });
+}
+
+
+    document.getElementById('pauseButton').addEventListener('click', function(event) {
+    fetch("{% url 'pause' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('status').innerHTML = data.message;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('status').innerHTML = 'An error occurred.';
+    });
+});
+
+document.getElementById('resumeButton').addEventListener('click', function(event) {
+    fetch("{% url 'resume' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('status').innerHTML = data.message;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('status').innerHTML = 'An error occurred.';
+    });
+});
+
+document.getElementById('stopButton').addEventListener('click', function(event) {
+    fetch("{% url 'stop' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('status').innerHTML = data.message;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        document.getElementById('status').innerHTML = 'An error occurred.';
+    });
+});
+document.getElementById('restartButton').addEventListener('click', function(event) {
+    fetch("{% url 'restart' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        toastr.info(data.message);
+        document.getElementById('status').innerHTML = data.message;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        toastr.error('An error occurred.');
+        document.getElementById('status').innerHTML = 'An error occurred.';
+    });
+});
+
+document.getElementById('checkStatusButton').addEventListener('click', function(event) {
+    fetch("{% url 'check_status' %}", {
+        method: 'GET',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        toastr.info(`Script Status: ${data.status}`);
+        document.getElementById('status').innerHTML = `Script Status: ${data.status}`;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        toastr.error('An error occurred.');
+        document.getElementById('status').innerHTML = 'An error occurred.';
+    });
+});
+// toastr.clear();
+
+document.getElementById('checkProfileStatusButton').addEventListener('click', function(event) {
+    // toastr.clear();
+    // Avoid multiple toastr messages for the same event
+    if (!document.querySelector('.toast-message')) { 
+        fetch("{% url 'check_status_profile' %}", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': '{{ csrf_token }}'
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Single toastr notification
+                toastr.info(`Script Status: Running: ${data.status.is_running}, Profiles Active: ${data.status.profiles_active}`);
+                document.getElementById('status').innerHTML = `Profiles Active: ${data.status.profiles_active}, Running: ${data.status.is_running}`;
+            } else {
+                toastr.error('Failed to check profile status.');
+                document.getElementById('status').innerHTML = 'Failed to check profile status.';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            toastr.error('An error occurred.');
+            document.getElementById('status').innerHTML = 'An error occurred.';
+        });
+    }
+});
+
+
+document.getElementById('forceStopButton').addEventListener('click', function(event) {
+    fetch("{% url 'force_stop' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        toastr.error(data.message);
+        document.getElementById('status').innerHTML = data.message;
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        toastr.error('An error occurred.');
+        document.getElementById('status').innerHTML = 'An error occurred.';
+    });
+});
+
+function fetchScenarios() {
+    fetch("{% url 'scenario_categories' %}")
+        .then(response => response.json())
+        .then(data => {
+            const selectCategory = document.getElementById('scenarioCategory');
+            const selectScenario = document.getElementById('scenario');
+            const subScenarioDiv = document.getElementById('subScenarioDiv');
+            const subScenarioCheckboxes = document.getElementById('subScenarioCheckboxes');
+
+            selectCategory.innerHTML = '';
+            selectScenario.innerHTML = '';
+            subScenarioCheckboxes.innerHTML = '';
+            subScenarioDiv.style.display = 'none';  // Hide sub-scenario by default
+
+            data.scenarios_by_categories.forEach(category => {
+                const optionCategory = document.createElement('option');
+                optionCategory.value = category.category;
+                optionCategory.textContent = category.category;
+                selectCategory.appendChild(optionCategory);
+            });
+
+            selectCategory.addEventListener('change', function() {
+                const selectedCategory = this.value;
+                const selectedCategoryData = data.scenarios_by_categories.find(category => category.category === selectedCategory);
+                selectScenario.innerHTML = '';
+                subScenarioCheckboxes.innerHTML = '';
+                subScenarioDiv.style.display = 'none';  // Hide sub-scenario initially
+
+                selectedCategoryData.scenarios.forEach(scenario => {
+                    const optionScenario = document.createElement('option');
+                    optionScenario.value = scenario.value;
+                    optionScenario.textContent = scenario.label;
+                    selectScenario.appendChild(optionScenario);
+                });
+
+                selectScenario.addEventListener('change', function() {
+                    const selectedScenario = this.value;
+                    const selectedScenarioData = selectedCategoryData.scenarios.find(scenario => scenario.value === selectedScenario);
+
+                    if (selectedScenarioData.sub_scenarios && selectedScenarioData.sub_scenarios.length > 0) {
+                        subScenarioCheckboxes.innerHTML = '';
+                        selectedScenarioData.sub_scenarios.forEach(subScenario => {
+                            const checkboxWrapper = document.createElement('div');
+                            checkboxWrapper.className = 'form-check';
+
+                            const checkbox = document.createElement('input');
+                            checkbox.type = 'checkbox';
+                            checkbox.className = 'form-check-input';
+                            checkbox.name = 'subScenario';
+                            checkbox.value = subScenario.value;
+                            checkbox.id = `subScenario_${subScenario.value}`;
+
+                            const label = document.createElement('label');
+                            label.className = 'form-check-label';
+                            label.htmlFor = `subScenario_${subScenario.value}`;
+                            label.textContent = subScenario.label;
+
+                            checkboxWrapper.appendChild(checkbox);
+                            checkboxWrapper.appendChild(label);
+                            subScenarioCheckboxes.appendChild(checkboxWrapper);
+                        });
+                        subScenarioDiv.style.display = 'block';  // Show sub-scenario checkboxes
+                    } else {
+                        subScenarioDiv.style.display = 'none';  // Hide sub-scenario checkboxes if none
+                    }
+                });
+
+                // Trigger change event for the initial population of scenarios
+                selectScenario.dispatchEvent(new Event('change'));
+
+                // Show batchDelayStep only if selectedCategory is "Email Actions"
+                if (selectedCategory === "Email Actions") {
+                    document.getElementById('batchDelayStepDiv').style.display = 'block';
+                } else {
+                    document.getElementById('batchDelayStepDiv').style.display = 'none';
+                }
+            });
+
+            selectCategory.dispatchEvent(new Event('change'));
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            document.getElementById('status').innerHTML = 'Failed to fetch scenarios.';
+        });
+}
+
+function getSelectedSubScenarios() {
+    const subScenarioCheckboxes = document.getElementById('subScenarioCheckboxes');
+    const selectedSubScenarios = [];
+
+    // Loop through each input checkbox inside subScenarioCheckboxes div
+    const checkboxes = subScenarioCheckboxes.querySelectorAll('input[name="subScenario"]:checked');
+    checkboxes.forEach(checkbox => {
+        selectedSubScenarios.push(checkbox.value);
+    });
+
+    return selectedSubScenarios;  // Array of selected sub-scenarios
+}
+
+
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchScenarios();
+    });
+
+    $(document).ready(function() {
+    const actionLogTableBody = $('#actionLogTableBody');
+
+    // Function to add an action to the log
+    function addActionToLog(action, details) {
+        const now = new Date();
+        const formattedDateTime = now.toLocaleString();
+        const newRow = `
+            <tr>
+                <td>${action}</td>
+                <td>${details}</td>
+                <td>${formattedDateTime}</td>
+            </tr>
+        `;
+        actionLogTableBody.append(newRow);
+    }
+
+    // Handling Open Profiles action
+    $('#openProfilesForm').submit(function(event) {
+        event.preventDefault();
+        
+        const profileInputType = $('#profileInputType').val();
+        let details = `Profile Input Type: ${profileInputType}, `;
+
+        if (profileInputType === 'range') {
+            const start = $('#start').val();
+            const end = $('#end').val();
+            details += `Start: ${start}, End: ${end}`;
+        } else if (profileInputType === 'ids') {
+            const profileIds = $('#profileIds').val();
+            details += `Profile IDs: ${profileIds}`;
+        } else if (profileInputType === 'scheduledRange') {
+            const scheduledProfileInputType = $('#scheduledProfileInputType').val();
+            if (scheduledProfileInputType === 'scheduledRange') {
+                const scheduledStart = $('#scheduledStart').val();
+                const scheduledEnd = $('#scheduledEnd').val();
+                const scheduledDateTime = $('#scheduledDateTime').val();
+                details += `Scheduled Start: ${scheduledStart}, Scheduled End: ${scheduledEnd}, Scheduled DateTime: ${scheduledDateTime}`;
+            } else if (scheduledProfileInputType === 'scheduledIds') {
+                const scheduledProfileIds = $('#scheduledProfileIds').val();
+                const scheduledDateTimeIds = $('#scheduledDateTimeIds').val();
+                details += `Scheduled Profile IDs: ${scheduledProfileIds}, Scheduled DateTime: ${scheduledDateTimeIds}`;
+            }
+        }
+
+        addActionToLog('Open Profiles', details);
+
+
+    });
+
+    // Handling Pause Script action
+    $('#pauseButton').click(function() {
+        addActionToLog('Pause Script', 'The script has been paused.');
+        // toastr.warning("Paused successfully");
+    });
+
+    // Handling Resume Script action
+    $('#resumeButton').click(function() {
+        addActionToLog('Resume Script', 'The script has been resumed.');
+        // toastr.success("Resumed successfully");
+    });
+
+    // Handling Stop Script action
+    $('#stopButton').click(function() {
+        addActionToLog('Stop Script', 'The script has been stopped.');
+        // toastr.error("Stopped successfully");
+    });
+
+    // Optional: Trigger the modal on certain actions
+    // $('#actionLogModal').modal('show');
+});
+</script>
+
+{% block javascripts %}{% endblock javascripts %}
+{% endblock content %}
