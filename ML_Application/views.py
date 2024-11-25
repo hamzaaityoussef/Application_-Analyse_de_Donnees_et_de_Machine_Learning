@@ -1,6 +1,9 @@
 from django.shortcuts import render
 from django.shortcuts import render, HttpResponse, redirect
 from .models import *
+import pandas as pd
+from django.shortcuts import render
+from django.http import JsonResponse
 
 def base(request):
     # Check if the user is authenticated
@@ -73,12 +76,45 @@ def home(request):
     return render(request, 'home.html')
 #end upload 
 
-
+import matplotlib.pyplot as plt
+import io
+import urllib, base64
 # upload 
 def visualisation(request):
     
-    print('bnjrjr')
-    return render(request, 'visualisation.html')
+        csv_path = r'C:\Users\Asus PC\Downloads\Startups.csv'  # Chemin absolu ou relatif du fichier CSV
+        df = pd.read_csv(csv_path)  # Charger le CSV dans un DataFrame
+
+
+        sections = {}
+        for i in range(1, 5):
+            selected_x = request.GET.get(f'x_axis_{i}', df.columns[0])  # Default to first column
+            selected_y = request.GET.get(f'y_axis_{i}', df.columns[1])  # Default to second column
+
+            # Generate the plot for this section
+            fig, ax = plt.subplots(figsize=(4, 2))
+            ax.scatter(df[selected_x], df[selected_y], color='blue', alpha=0.7)  # Scatter plot
+            ax.set_xlabel(selected_x)
+            ax.set_ylabel(selected_y)
+            ax.set_title(f'Section {i}: {selected_y} vs {selected_x}')
+
+            # Save the plot to a bytes buffer
+            buf = io.BytesIO()
+            plt.savefig(buf, format='png')
+            buf.seek(0)
+            string = base64.b64encode(buf.read())
+            uri = 'data:image/png;base64,' + urllib.parse.quote(string)
+            buf.close()
+
+            # Store dropdown values and graph for this section
+            sections[i] = {
+                'columns': df.columns,
+                'selected_x': selected_x,
+                'selected_y': selected_y,
+                'chart_uri': uri,
+            }
+
+        return render(request, 'visualisation.html', {'sections': sections})
 #end upload 
 
 
