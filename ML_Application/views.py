@@ -62,3 +62,43 @@ def upload(request):
     print('bnjrjr')
     return render(request, 'upload.html')
 #end upload 
+
+
+# upload 
+def home(request):
+    
+    print('bnjrjr')
+    return render(request, 'home.html')
+#end upload 
+
+
+# upload 
+def visualisation(request):
+    
+    print('bnjrjr')
+    return render(request, 'visualisation.html')
+#end upload 
+
+
+# upload 
+def modeles(request):
+    
+    print('bnjrjr')
+    return render(request, 'modeles.html')
+#end upload 
+
+
+# upload 
+def Predictions(request):
+    
+    print('bnjrjr')
+    return render(request, 'Predictions.html')
+#end upload 
+
+
+# upload 
+def documentation(request):
+    
+    print('bnjrjr')
+    return render(request, 'documentation.html')
+#end upload 
