@@ -17,6 +17,13 @@ urlpatterns = [
 
 #     upload
     path('upload/', views.upload, name='upload'),
+    path('home/', views.home, name='home'),
+    path('visualisation/', views.visualisation, name='visualisation'),
+    path('modeles/', views.modeles, name='modeles'),
+    path('Predictions/', views.Predictions, name='Predictions'),
+    path('documentation/', views.documentation, name='documentation'),
+    path('report/', views.report, name='report'),
+    
 
 
 ]

@@ -56,6 +56,8 @@ def logoutUser(request):
 # end login 
 
 
+
+
 # upload 
 def upload(request):
     
@@ -101,4 +103,11 @@ def documentation(request):
     
     print('bnjrjr')
     return render(request, 'documentation.html')
+#end upload 
+
+# upload 
+def report(request):
+    
+    print('bnjrjr')
+    return render(request, 'report.html')
 #end upload 
