@@ -25,8 +25,7 @@ class User(AbstractUser):
     password = models.CharField(max_length=255)
 
 
-    first_name = None
-    last_name = None
+   
     is_active = True
     is_superuser = None
     is_staff = None

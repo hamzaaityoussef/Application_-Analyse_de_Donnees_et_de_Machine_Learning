@@ -6,23 +6,10 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>WMN </title>
+  <title>ML Application </title>
   <meta content="" name="description">
   <meta content="" name="keywords">
    
-
-<!-- Include jQuery -->
-
-
-<!-- Include Bootstrap JS -->
-<!-- <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script> -->
-
-
-
-
-
-  <!-- Favicons -->
-    <!-- <link rel="icon" href="{% static 'app/assets/img/WMN.png' %} " type="image/x-icon"> -->
 
   <!-- Google Fonts -->
   <link href="https://fonts.gstatic.com" rel="preconnect">
@@ -72,7 +59,7 @@
   <script src="https://cdn.tailwindcss.com"></script>  -->
   
 
-  <link rel="stylesheet" href="{% static 'app/css/output.css' %}">
+  <!-- <link rel="stylesheet" href="{% static 'app/css/output.css' %}"> -->
   
   <!-- eye icon -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.8.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -87,237 +74,10 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 
 
-  <style>
-    .select2-container--default .select2-selection--single {
-   
-    padding-top: 3px;
-}
-      .btn-custom {
-          background: linear-gradient(60deg, #080a22, #043d7a);
-          border: none;
-          border-radius: 10px;
-          color: white;
-          font-weight: bold;
-          padding: 10px 20px;
-          text-transform: uppercase;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-      }
-      .btn-custom i {
-          margin-right: 5px;
-      }
-      .btn-custom:hover {
-          color: #fff; 
-      }
-      html, body {
-  height: 100%;
-  margin: 0;
-  padding: 0;
-}
-
-body {
-  display: flex;
-  flex-direction: column;
-}
-
-#main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.section {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-}
-
-.right-side {
-  flex: 1;
-}
-
-  </style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css"> 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script> 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
 
-<style> 
-  /* Ensure custom styles override Bootstrap styles */ 
-ul.custom-pagination li.custom-page-item { 
-font-size: 10px !important; /* Increase font size */ 
-} 
-
-ul.custom-pagination li.custom-page-item a.custom-page-link, 
-ul.custom-pagination li.custom-page-item span.custom-page-link { 
-padding: 8px 16px !important; /* Increase padding */ 
-font-size: 10px !important; /* Increase font size */ 
-} 
-
-ul.custom-pagination li.custom-page-item.active span.custom-page-link { 
-background-color: #007bff !important; /* Active item background */ 
-color: white !important; /* Active item text color */ 
-border-color: #007bff !important; /* Active item border color */ 
-} 
-.active.no-underline {
-    text-decoration: none;
-}
-</style>
-
-
-<style>.form-control1,
-  .form-control.form-select1 {
-      display: block;
-      width: 100%;
-      min-height: 35px; /* Adjusted height to accommodate select arrow */
-    /* min-width: 128px; */
-      font-size: 13px;
-      line-height: 1.42857143;
-      color: #555;
-      background-color: #fff;
-      background-image: none;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      
-      box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-      
-      -o-transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-      transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      padding-right: 30px;
-      background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='50px' height='50px'><polyline points='46.139,15.518 25.166,36.49 4.193,15.519'/></svg>") right no-repeat; 
-    
-  }
-  </style>
-
-<!-- CSS to style the select elements -->
-<style>
- 
-  .form-control1.form-select1 {
-      background-position: calc(100% - 10px) center;
-      background-repeat: no-repeat;
-      background-size: 12px 12px;
-      padding-right: 1.5em;
-  }
-  .form-control1.form-select1:focus {
-      border-color: #80bdff;
-      outline: 0;
-      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-  }
-</style>
-
-
-<style>
-  .form-control1,
-  .form-control.form-select1 {
-      display: block;
-      width: 100%;
-      min-height: 35px; /* Adjusted height to accommodate select arrow */
-      font-size: 13px;
-      line-height: 1.42857143;
-      color: #555;
-      background-color: #fff;
-      background-image: none;
-      border: 1px solid #ccc;
-      border-radius: 4px;
-      box-shadow: inset 0 1px 1px rgba(0, 0, 0, .075);
-      transition: border-color ease-in-out .15s, box-shadow ease-in-out .15s;
-      appearance: none;
-      -webkit-appearance: none;
-      -moz-appearance: none;
-      padding-right: 30px;
-      background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round' class='feather feather-chevron-down'><polyline points='6 9 12 15 18 9'/></svg>") no-repeat right center;
-  }
-  .form-control1.form-select1:focus {
-      border-color: #80bdff;
-      outline: 0;
-      box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
-  }
-  .form-group {
-      margin-bottom: 1rem;
-  }
-</style>
-
-
-
-<!-- old style  -->
-<style>
-   /* popup affectation proxies  */
-  .modal-content {
-  background-color: #fefefe;
-  margin: 5% auto;
-  padding: 20px;
-  border: none;
-  width: 100%;
-  max-width: 800px;
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.2);
-  border-radius: 5px;
-  position: relative;
-}
-</style> 
-
-<style>
-
-.modal-header .close {
-margin-top: -20px;
-}
-</style>
-
-<!-- for sticky table  -->
-<style>
-/* Container for the entire table, allowing horizontal scroll */
-.table-container {
-    overflow-x: auto; /* Enables horizontal scrolling */
-    max-height: 850px; /* Optional: sets a maximum height to allow vertical scrolling if the content is long */
-    width: 100%; /* Ensures the table takes full width */
-}
-
-/* Sticky header */
-.table-container thead th {
-    position: sticky;
-    top: 0; /* Sticks the header to the top during vertical scroll */
-    background-color: #f3f4f6; /* Sticky header background */
-    color: #374151; /* Text color */
-    z-index: 10; /* Ensures it stays on top of the table content */
-    box-shadow: 0 2px 2px -1px rgba(0, 0, 0, 0.4); /* Adds shadow for clarity */
-}
-
-/* Table styling */
-.table-container table {
-    min-width: 100%; /* Ensures table content doesn’t shrink on horizontal scroll */
-}
-
-#InfoUserAuth {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: .5rem;
-  font-size: 2rem;
-  color: rgb(49, 0, 82);
-}
-
-
-#InfoUserAuth span {
-  font-size: 1.5rem;
-  color: rgb(49, 0, 82);
-}
-#InfoUserAuth i {
-  font-size: 2rem;
-  color: rgb(49, 0, 82);
-  position: relative;
-  top: .3rem;
-}
-
-
-/* 
-.InfoUserAuth i{
-  font-size: 2rem;
-} */
-
-
-</style>
 
 
 <!-- for search  -->
@@ -360,13 +120,13 @@ margin-top: -20px;
           <a class="nav-link nav-profile d-flex align-items-center pe-0" href="#" data-bs-toggle="dropdown">
       <!-- <img src="../static/assets/img/0.jpg" class="rounded-circle" alt="hey"> -->
       {% if user.is_authenticated %}
-            <span class="d-none d-md-block dropdown-toggle ps-2" id="InfoUserAuth"><i class='bx bxs-user-circle'></i> <span>{{ user.nom|slice:":1" }}. {{ user.prenom }}</span></span>
+            <span class="d-none d-md-block dropdown-toggle ps-2" id="InfoUserAuth"><i class='bx bxs-user-circle'></i> <span>{{ user.last_name|slice:":1" }}. {{ user.first_name }}</span></span>
           </a><!-- End Profile Iamge Icon -->
 
           <ul class="dropdown-menu dropdown-menu-end dropdown-menu-arrow profile">
             <li class="dropdown-header">
-              <h6>{{ user.nom }} {{ user.prenom }}</h6>
-              <span>{{ user.Role }}</span> <br>
+              <h6>{{ user.last_name }} {{ user.first_name }}</h6>
+              <!-- <span>{{ user.Role }}</span> <br> -->
               <span>last login:{{ user.last_login }}  </span>
             </li>
             {% endif %}

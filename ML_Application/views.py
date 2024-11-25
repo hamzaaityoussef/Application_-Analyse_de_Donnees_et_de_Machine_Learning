@@ -2,25 +2,26 @@ from django.shortcuts import render
 from django.shortcuts import render, HttpResponse, redirect
 from .models import *
 
-# Create your views here.
 def base(request):
-    info = {
-        'user_session': 'TestSession',
-        'ip_address': '127.0.0.1',
-        'current_time': '2024-08-21T14:00:00'
-    }
-    print('bnjrjr')
+    # Check if the user is authenticated
+    if request.user.is_authenticated:
+        nom = request.user.last_name if request.user.last_name else "Not provided"
+        prenom = request.user.first_name if request.user.first_name else "Not provided"
+    else:
+        nom = "Guest"
+        prenom = "User"
 
-    # Call the synchronous function directly
-    # send_telegram_message('Run', info)
-
-    return render(request, 'base.html', {'user_role': 'user_role'})
+    return render(request, 'base.html', {
+        'nom': nom,
+        'prenom': prenom,
+        'user': request.user,  # Pass the full user object for additional details
+    })
 
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
 
-
+# login 
 def loginpage(request):
     if request.user.is_authenticated:
         
@@ -48,7 +49,16 @@ def loginpage(request):
 
 
 
-
 def logoutUser(request):
     logout(request)
     return redirect('login')
+
+# end login 
+
+
+# upload 
+def upload(request):
+    
+    print('bnjrjr')
+    return render(request, 'upload.html')
+#end upload 
