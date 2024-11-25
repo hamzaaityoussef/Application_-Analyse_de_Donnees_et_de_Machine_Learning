@@ -5,7 +5,7 @@
   <meta charset="utf-8">
   <meta content="width=device-width, initial-scale=1.0" name="viewport">
 
-  <title>WMN </title>
+  <title>CMH /WMN </title>
   <meta content="" name="description">
   <meta content="" name="keywords">
  
@@ -20,6 +20,9 @@
   <link href="{% static 'app/assets/vendor/quill/quill.bubble.css' %}" rel="stylesheet">
   <link href="{% static 'app/assets/vendor/remixicon/remixicon.css' %}" rel="stylesheet">
   <link href="{% static 'app/assets/vendor/simple-datatables/style.css' %}" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
   <!-- Template Main CSS File -->
   <link href="{% static 'app/assets/css/style.css' %}" rel="stylesheet">
  
@@ -42,31 +45,45 @@
                 <div class="card-body">
                   
                   <div class="flex justify-center items-center flex-col">
-                    <img src="../../../static/app/assets/img/WMN.png" alt="H" width="200px" class="mb-4 mt-4" style="    margin-left: 80px;">
+                    <img src="../../../static/app/assets/img/ML.png" alt="H" width="200px" class="mb-4 mt-4" style="    margin-left: 80px;">
                     <h5 class="card-title text-center pb-0 fs-4">Login to Your Account</h5>
-                    <p class="text-center pb-0 fs-5">Please enter the verification code</p>
+                    <p class="text-center small">Enter your username & password to login</p>
                 </div>
                 
 
-                  <form class="row g-3 needs-validation" method="post" novalidate>
-    {% csrf_token %}
-    <div class="col-12">
-        <label for="yourCode" class="form-label">2FA Code:</label>
-        <div class="input-group has-validation">
-            <input class="form-control" type="text" name="code" id="code" required>
-            <div class="invalid-feedback">Please enter the verification code.</div>
-        </div>
-    </div>
-    <div class="col-12">
-        <button class="btn btn-primary w-100" type="submit">Vérifier</button>
-    </div>
-    {% for message in messages %}
-    {% if message.tags == 'error' %}
-        <p class="alert alert-danger">{{ message }}</p>
-    {% endif %}
-    {% endfor %}
-</form>
+                  <form class="row g-3 needs-validation" method="post"  novalidate>
+                    {% csrf_token %}
+                    <div class="col-12">
+                      <label for="yourUsername" class="form-label">Username</label>
+                      <div class="input-group has-validation">
+                         <input class="form-control" type="text" name="username" id="username" required>
+                        <div class="invalid-feedback">Please enter your username.</div>
+                      </div>
+                    </div>
 
+                    <div class="col-12">
+                      <label for="yourPassword" class="form-label">Password</label>
+                      <div class="input-group has-validation position-relative">
+                          <input class="form-control" name="password" required type="password" id="password">
+                          <i class="bi bi-eye-slash" id="passwordToggleIcon" style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); cursor: pointer;"></i>
+                      </div>
+                      <div class="invalid-feedback">Please enter your password!</div>
+                  </div>
+
+                    <div class="col-12">
+
+                    </div>
+                    <div class="col-12">
+                      <button class="btn btn-primary w-100" type="submit">Login</button>
+                    </div>
+                    {% for message in messages %}
+                    {% if message.tags == 'error' and message %}
+                      <p class="alert alert-danger">
+                        {{ message }}
+                      </p>
+                    {% endif %}
+                  {% endfor %}
+                  </form>
 
                 </div>
               </div>

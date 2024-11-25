@@ -8,10 +8,10 @@ urlpatterns = [
 
    path('base/', views.base, name='base'),
 #     # login
-#     path('', views.main , name='main'),
-#     path('',views.main , name='login'),
-#     path('accounts/login/', views.loginpage, name='login'),
-#     path('verification/', views.verification, name='verification'),
+    # path('', views.main , name='main'),
+    # path('',views.main , name='login'),
+    path('login/', views.loginpage, name='login'),
+    # path('verification/', views.verification, name='verification'),
 
 #     path('accounts/logout/', views.logoutUser, name='logout'),
 #          #path('accounts/reset/', views.resetUser, name='reset'),
