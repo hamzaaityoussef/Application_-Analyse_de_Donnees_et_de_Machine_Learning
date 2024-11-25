@@ -44,6 +44,12 @@ class Dataset(models.Model):
     date_import = models.DateTimeField(auto_now_add=True)  # Date d'importation (automatique)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='datasets')  # FK vers User
 
+    status_normalized = models.BooleanField(default=False)  # Status de normalisation
+    status_standarized = models.BooleanField(default=False)  # Status de standardisation
+    status_cleaned = models.BooleanField(default=False)  # Status de nettoyage
+    status_encoded = models.BooleanField(default=False)  # Status d'encodage
+    copied = models.BooleanField(default=False)  # Indicateur de copie
+
     def _str_(self):
         return self.name
 
