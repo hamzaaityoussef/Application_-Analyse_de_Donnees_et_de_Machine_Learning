@@ -8,17 +8,17 @@
 </head>
 <body>
     <div class="container mt-4">
-        <h1 class="text-center">Tableau de bord</h1>
+        <h1 class="text-center" style='color:aliceblue'>Tableau de bord</h1>
 
         <!-- Row for the four sections -->
         <div class="row">
             {% for i, section in sections.items %}
                 <div class="col-md-6 mb-4">
                     <div class="border p-3">
-                        <h3 class="text-center">Section {{ i }}</h3>
+                        <h3 class="text-center" style='color:aliceblue'>Section {{ i }}</h3>
                         <form method="get">
                             <div class="mb-3">
-                                <label for="x_axis_{{ i }}" class="form-label">Sélectionner l'axe X</label>
+                                <label for="x_axis_{{ i }}" class="form-label" style='color:aliceblue'>Sélectionner l'axe X</label>
                                 <select id="x_axis_{{ i }}" name="x_axis_{{ i }}" class="form-select">
                                     {% for column in section.columns %}
                                         <option value="{{ column }}" {% if column == section.selected_x %}selected{% endif %}>{{ column }}</option>
@@ -26,7 +26,7 @@
                                 </select>
                             </div>
                             <div class="mb-3">
-                                <label for="y_axis_{{ i }}" class="form-label">Sélectionner l'axe Y</label>
+                                <label for="y_axis_{{ i }}" class="form-label" style='color:aliceblue'>Sélectionner l'axe Y</label>
                                 <select id="y_axis_{{ i }}" name="y_axis_{{ i }}" class="form-select">
                                     {% for column in section.columns %}
                                         <option value="{{ column }}" {% if column == section.selected_y %}selected{% endif %}>{{ column }}</option>
@@ -36,7 +36,7 @@
                             <button type="submit" class="btn btn-primary w-100">Mettre à jour le graphique</button>
                         </form>
                         <div class="mt-4">
-                            <h4 class="text-center">Graphique</h4>
+                            <h4 class="text-center" style='color:aliceblue'>Graphique</h4>
                             {% if section.chart_uri %}
                                 <img src="{{ section.chart_uri }}" class="img-fluid" alt="Graphique Section {{ i }}">
                             {% else %}
