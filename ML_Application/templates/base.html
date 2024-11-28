@@ -95,7 +95,7 @@
   <header id="header" class="header fixed-top d-flex align-items-center" style="background-color: #05172a;">
 
     <div class="d-flex align-items-center justify-content-between">
-      <img src="../../../static/app/assets/img/ML.png" alt="H" width="80px" class="mb-4 mt-4" style="    margin-left: 40px;">
+      <img src="../../../static/app/assets/img/ML2.png" alt="H" width="80px" class="mb-4 mt-4" style="    margin-left: 40px;">
       <i class="bi bi-list toggle-sidebar-btn"></i>
     </div><!-- End Logo -->
 
@@ -160,53 +160,101 @@
     </nav><!-- End Icons Navigation -->
 
   </header><!-- End Header -->
+<!-- test  -->
 
+<style>
+/* Default state for li */
+.sidebar-nav li.nav-item {
+  background-color: #05172a; /* Initial background color */
+  transition: background-color 0.3s ease; /* Smooth transition */
+}
+
+/* Text color for links inside li */
+.sidebar-nav li.nav-item a {
+  color: white; /* Default link color */
+  text-decoration: none; /* Remove underline */
+  transition: color 0.3s ease;
+}
+
+/* Hover effect for li */
+/* .sidebar-nav li.nav-item:hover {
+  background-color: #17619a; 
+} */
+
+/* Active state for li */
+/* .sidebar-nav li.nav-item.active {
+  background-color: white; 
+}
+
+.sidebar-nav li.nav-item.active a {
+  color: #05172a; 
+  background-color: white;
+} */
+
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const navItems = document.querySelectorAll('.sidebar-nav li.nav-item');
+
+  navItems.forEach(item => {
+    item.addEventListener('click', () => {
+      // Remove 'active' class from all items
+      navItems.forEach(nav => nav.classList.remove('active'));
+      // Add 'active' class to the clicked item
+      item.classList.add('active');
+    });
+  });
+});
+
+
+</script>
   <!-- ======= Sidebar ======= -->
-  <aside id="sidebar" class="sidebar" >
+  <aside id="sidebar" class="sidebar" style="background-color: #05172a;">
 
     <ul class="sidebar-nav" id="sidebar-nav" style="background-color: #05172a;">
       
-      <li class="nav-item" > 
-        <a class="nav-link collapsed" href="{% url 'home' %}"> 
-          <i class="fa-solid fa-gauge"></i> 
+      <li class="nav-item"  > 
+        <a class="nav-link collapsed" href="{% url 'home' %}" style="background-color: #05172a; color :white"> 
+          <i class="fa-solid fa-gauge " ></i> 
           <span>Home</span> 
         </a> 
       </li>
       
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'upload' %}">
+        <a class="nav-link collapsed" href="{% url 'upload' %}" style="background-color: #05172a; color :white">
           <i class="glyphicon glyphicon-user"></i><span>Upload</span>
         </a>
       </li>
       <li class="nav-item" >
-        <a class="nav-link collapsed" href="{% url 'visualisation' %}">
+        <a class="nav-link collapsed" href="{% url 'visualisation' %}" style="background-color: #05172a; color :white">
           <i class="fa fa-envelope"></i><span>visualisation</span>
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'modeles' %}">
+        <a class="nav-link collapsed" href="{% url 'modeles' %}" style="background-color: #05172a; color :white">
           <i class="fa fa-envelope"></i><span>Modeles</span>
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'Predictions' %}">
+        <a class="nav-link collapsed" href="{% url 'Predictions' %}" style="background-color: #05172a; color :white">
           <i class="fa fa-envelope"></i><span>Predictions</span>
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'documentation' %}">
+        <a class="nav-link collapsed" href="{% url 'documentation' %}" style="background-color: #05172a; color :white">
           <i class="fa-solid fa-sort"></i><span>documentation</span>
         </a>
       </li>
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'report' %}">
+        <a class="nav-link collapsed" href="{% url 'report' %}" style="background-color: #05172a; color :white">
           <i class="bi bi-envelope-x-fill" ></i><span>report</span>
         </a>
       </li>
       
       
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'logout' %}">
+        <a class="nav-link collapsed" href="{% url 'logout' %}" style="background-color: #05172a; color :white">
           <i class="bi bi-box-arrow-right"></i>
           <span>Sign out</span>
         </a>
