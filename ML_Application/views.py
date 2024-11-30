@@ -109,41 +109,59 @@ import io
 import urllib, base64
 # visualisation 
 def visualisation(request):
+    # Load your dataset
+    csv_path = r'C:\Users\Asus PC\Downloads\Dataset_lharba.csv'  # Replace with your dataset's path
+    df = pd.read_csv(csv_path)
+
     
-        csv_path = r'C:\Users\Asus PC\Downloads\Startups.csv'  # Chemin absolu ou relatif du fichier CSV
-        df = pd.read_csv(csv_path)  # Charger le CSV dans un DataFrame
+    categorical_vars = [col for col in df.columns if df[col].nunique() <= 20 and df[col].dtype == 'object']
+    continuous_vars = [col for col in df.columns if df[col].dtype in ['float64', 'int64']]
 
+    categorical_sections = {}
+    continuous_sections = {}
 
-        sections = {}
-        for i in range(1, 5):
-            selected_x = request.GET.get(f'x_axis_{i}', df.columns[0])  # Default to first column
-            selected_y = request.GET.get(f'y_axis_{i}', df.columns[1])  # Default to second column
+    # Handle Categorical Sections
+    for i, col in enumerate(categorical_vars[:2], start=1):  # Limit to 2 sections
+        selected_col = request.GET.get(f'cat_{i}', col)  # Get the specific parameter for each section
+        fig, ax = plt.subplots(figsize=(4, 2))
+        if i == 1:  # Pie chart for the first categorical variable
+            df[selected_col].value_counts().plot(kind='pie', ax=ax, autopct='%1.1f%%')
+        else:  # Bar chart for the second categorical variable
+            df[selected_col].value_counts().plot(kind='bar', ax=ax)
 
-            # Generate the plot for this section
-            fig, ax = plt.subplots(figsize=(4, 2))
-            ax.scatter(df[selected_x], df[selected_y], color='blue', alpha=0.7)  # Scatter plot
-            ax.set_xlabel(selected_x)
-            ax.set_ylabel(selected_y)
-            ax.set_title(f'Section {i}: {selected_y} vs {selected_x}')
+            ax.set_title(f'{selected_col} Distribution')
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        categorical_sections[f'cat_{i}'] = {
+            'chart_uri': 'data:image/png;base64,' + urllib.parse.quote(base64.b64encode(buf.read())),
+            'options': categorical_vars,
+            'selected': selected_col,
+        }
+        buf.close()
 
-            # Save the plot to a bytes buffer
-            buf = io.BytesIO()
-            plt.savefig(buf, format='png')
-            buf.seek(0)
-            string = base64.b64encode(buf.read())
-            uri = 'data:image/png;base64,' + urllib.parse.quote(string)
-            buf.close()
+    # Handle Continuous Sections
+    for i, col in enumerate(continuous_vars[:2], start=1):  # Limit to 2 sections
+        selected_col = request.GET.get(f'cont_{i}', col)  # Get the specific parameter for each section
+        fig, ax = plt.subplots(figsize=(4, 2))
+        ax.scatter(range(len(df[selected_col])), df[selected_col], alpha=0.7, color='blue')
+        ax.set_title(f'{selected_col} Scatter Plot')
+        buf = io.BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+        continuous_sections[f'cont_{i}'] = {
+            'chart_uri': 'data:image/png;base64,' + urllib.parse.quote(base64.b64encode(buf.read())),
+            'options': continuous_vars,
+            'selected': selected_col,
+        }
+        buf.close()
 
-            # Store dropdown values and graph for this section
-            sections[i] = {
-                'columns': df.columns,
-                'selected_x': selected_x,
-                'selected_y': selected_y,
-                'chart_uri': uri,
-            }
-
-        return render(request, 'visualisation.html', {'sections': sections})
-#end visualisation 
+    return render(request, 'visualisation.html', {
+        'categorical_sections': categorical_sections,
+        'continuous_sections': continuous_sections,
+    })
+    
+#end upload 
 
 
 # modeles 

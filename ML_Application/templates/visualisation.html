@@ -1,46 +1,76 @@
 {% extends 'base.html' %}
 {% block content %}
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau de bord</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #001f3f;
+            color: #ffffff;
+        }
+        h1, h3 {
+            color: #ffffff;
+        }
+    </style>
 </head>
 <body>
     <div class="container mt-4">
-        <h1 class="text-center" style='color:aliceblue'>Tableau de bord</h1>
+        <h1 class="text-center">Tableau de bord</h1>
 
-        <!-- Row for the four sections -->
+        <!-- Categorical Variables -->
         <div class="row">
-            {% for i, section in sections.items %}
+            {% for key, section in categorical_sections.items %}
                 <div class="col-md-6 mb-4">
-                    <div class="border p-3">
-                        <h3 class="text-center" style='color:aliceblue'>Section {{ i }}</h3>
+                    <div class="border p-3 bg-dark text-white">
+                        <h3 class="text-center">Categorical: {{ key }}</h3>
                         <form method="get">
                             <div class="mb-3">
-                                <label for="x_axis_{{ i }}" class="form-label" style='color:aliceblue'>Sélectionner l'axe X</label>
-                                <select id="x_axis_{{ i }}" name="x_axis_{{ i }}" class="form-select">
-                                    {% for column in section.columns %}
-                                        <option value="{{ column }}" {% if column == section.selected_x %}selected{% endif %}>{{ column }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <div class="mb-3">
-                                <label for="y_axis_{{ i }}" class="form-label" style='color:aliceblue'>Sélectionner l'axe Y</label>
-                                <select id="y_axis_{{ i }}" name="y_axis_{{ i }}" class="form-select">
-                                    {% for column in section.columns %}
-                                        <option value="{{ column }}" {% if column == section.selected_y %}selected{% endif %}>{{ column }}</option>
+                                <label for="{{ key }}" class="form-label">Sélectionner une colonne</label>
+                                <select id="{{ key }}" name="{{ key }}" class="form-select">
+                                    {% for option in section.options %}
+                                        <option value="{{ option }}" {% if option == section.selected %}selected{% endif %}>{{ option }}</option>
                                     {% endfor %}
                                 </select>
                             </div>
                             <button type="submit" class="btn btn-primary w-100">Mettre à jour le graphique</button>
                         </form>
                         <div class="mt-4">
-                            <h4 class="text-center" style='color:aliceblue'>Graphique</h4>
                             {% if section.chart_uri %}
-                                <img src="{{ section.chart_uri }}" class="img-fluid" alt="Graphique Section {{ i }}">
+                                <img src="{{ section.chart_uri }}" class="img-fluid" alt="{{ section.title }}">
                             {% else %}
-                                <p>Aucun graphique à afficher.</p>
+                                <p class="text-center">Aucun graphique à afficher.</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <!-- Continuous Variables -->
+        <div class="row">
+            {% for key, section in continuous_sections.items %}
+                <div class="col-md-6 mb-4">
+                    <div class="border p-3 bg-dark text-white">
+                        <h3 class="text-center">Continuous: {{ key }}</h3>
+                        <form method="get">
+                            <div class="mb-3">
+                                <label for="{{ key }}" class="form-label">Sélectionner une colonne</label>
+                                <select id="{{ key }}" name="{{ key }}" class="form-select">
+                                    {% for option in section.options %}
+                                        <option value="{{ option }}" {% if option == section.selected %}selected{% endif %}>{{ option }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary w-100">Mettre à jour le graphique</button>
+                        </form>
+                        <div class="mt-4">
+                            {% if section.chart_uri %}
+                                <img src="{{ section.chart_uri }}" class="img-fluid" alt="{{ section.title }}">
+                            {% else %}
+                                <p class="text-center">Aucun graphique à afficher.</p>
                             {% endif %}
                         </div>
                     </div>
@@ -49,5 +79,4 @@
         </div>
     </div>
 </body>
-
 {% endblock %}
