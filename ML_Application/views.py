@@ -4,6 +4,15 @@ from .models import *
 import pandas as pd
 from django.shortcuts import render
 from django.http import JsonResponse
+import os
+from django.conf import settings
+from django.shortcuts import render, redirect
+from .forms import FileUploadForm
+from .models import Dataset
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth import authenticate, login, logout
+from django.contrib import messages
+
 
 def base(request):
     # Check if the user is authenticated
@@ -20,8 +29,7 @@ def base(request):
         'user': request.user,  # Pass the full user object for additional details
     })
 
-from django.contrib.auth import authenticate, login, logout
-from django.contrib import messages
+
 
 
 # login 
@@ -61,25 +69,45 @@ def logoutUser(request):
 
 
 
+
 # upload 
+@login_required(login_url='/login')
 def upload(request):
+    if request.method == 'POST':
+        form = FileUploadForm(request.POST, request.FILES)
+        if form.is_valid():
+            file = form.cleaned_data['file']
+
+            # Save the dataset instance
+            dataset = Dataset.objects.create(
+                name=file.name,
+                file=file,  # Assign the file directly to the FileField
+                user=request.user  # Associate the dataset with the logged-in user
+            )
+
+            # Redirect to a success page or the same upload page
+            return redirect('upload')
+
+    else:
+        form = FileUploadForm()
+
+    return render(request, 'upload.html', {'form': form})
     
-    print('bnjrjr')
-    return render(request, 'upload.html')
 #end upload 
 
 
-# upload 
+# home 
 def home(request):
     
     print('bnjrjr')
     return render(request, 'home.html')
-#end upload 
+#end  home 
+ 
 
 import matplotlib.pyplot as plt
 import io
 import urllib, base64
-# upload 
+# visualisation 
 def visualisation(request):
     
         csv_path = r'C:\Users\Asus PC\Downloads\Startups.csv'  # Chemin absolu ou relatif du fichier CSV
@@ -115,35 +143,35 @@ def visualisation(request):
             }
 
         return render(request, 'visualisation.html', {'sections': sections})
-#end upload 
+#end visualisation 
 
 
-# upload 
+# modeles 
 def modeles(request):
     
     print('bnjrjr')
     return render(request, 'modeles.html')
-#end upload 
+#end modeles 
 
 
-# upload 
+# Predictions 
 def Predictions(request):
     
     print('bnjrjr')
     return render(request, 'Predictions.html')
-#end upload 
+#end Predictions 
 
 
-# upload 
+# documentation 
 def documentation(request):
     
     print('bnjrjr')
     return render(request, 'documentation.html')
-#end upload 
+#end documentation 
 
-# upload 
+# report 
 def report(request):
     
     print('bnjrjr')
     return render(request, 'report.html')
-#end upload 
+#end report 

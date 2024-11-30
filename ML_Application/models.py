@@ -14,7 +14,7 @@ def generate_unique_filename(instance, filename):
     """
     ext = os.path.splitext(filename)[1]  # Extension du fichier
     date_str = datetime.now().strftime('%Y-%m-%d')  # Date au format AAAA-MM-JJ
-    return f"datasets/user_{instance.user.id}/{date_str}/{uuid.uuid4().hex}{ext}"
+    return f"datasets/{instance.user.username}/{filename}"
 
 
 

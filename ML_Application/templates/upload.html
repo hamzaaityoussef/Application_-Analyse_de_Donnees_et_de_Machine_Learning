@@ -2,6 +2,23 @@
 
 {% block content %}
 
-<h1></h1>
+<h1>Upload a File</h1>
+<form method="post" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Upload</button>
+</form>
+
+
+<h1>Uploaded Files</h1>
+<ul>
+    {% for dataset in request.user.datasets.all %}
+        <li>
+            <strong>{{ dataset.name }}</strong>: 
+            <a href="{{ dataset.file.url }}">{{ dataset.file.url }}</a>
+        </li>
+    {% endfor %}
+</ul>
+
 
 {% endblock %}
