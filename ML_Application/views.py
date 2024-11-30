@@ -13,7 +13,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
 
-
+@login_required(login_url='/login')
 def base(request):
     # Check if the user is authenticated
     if request.user.is_authenticated:
@@ -108,6 +108,7 @@ import matplotlib.pyplot as plt
 import io
 import urllib, base64
 # visualisation 
+@login_required(login_url='/login')
 def visualisation(request):
     # Load your dataset
     csv_path = r'C:\Users\Asus PC\Downloads\Dataset_lharba.csv'  # Replace with your dataset's path
@@ -165,6 +166,7 @@ def visualisation(request):
 
 
 # modeles 
+@login_required(login_url='/login')
 def modeles(request):
     
     print('bnjrjr')
@@ -173,6 +175,7 @@ def modeles(request):
 
 
 # Predictions 
+@login_required(login_url='/login')
 def Predictions(request):
     
     print('bnjrjr')
@@ -181,6 +184,7 @@ def Predictions(request):
 
 
 # documentation 
+@login_required(login_url='/login')
 def documentation(request):
     
     print('bnjrjr')
@@ -188,6 +192,7 @@ def documentation(request):
 #end documentation 
 
 # report 
+@login_required(login_url='/login')
 def report(request):
     
     print('bnjrjr')
