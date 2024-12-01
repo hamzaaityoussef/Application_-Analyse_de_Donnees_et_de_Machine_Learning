@@ -26,7 +26,8 @@ urlpatterns = [
 
 
     path('visualisation/', views.visualisation, name='visualisation'),
-    path('get_columns/', views.get_columns, name='get_columns'),  # URL for fetching columns
+    path('get_columns/', views.get_columns, name='get_columns'),
+      path('generate_chart/', views.generate_chart, name='generate_chart'),   # URL for fetching columns
 
     path('modeles/', views.modeles, name='modeles'),
     path('Predictions/', views.Predictions, name='Predictions'),

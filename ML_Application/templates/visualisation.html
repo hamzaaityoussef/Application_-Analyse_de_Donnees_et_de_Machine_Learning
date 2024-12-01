@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+
 {% block content %}
 <head>
     <meta charset="UTF-8">
@@ -12,6 +13,12 @@
         }
         h1, h3 {
             color: #ffffff;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        #chart-container {
+            margin-top: 20px;
         }
     </style>
 </head>
@@ -30,19 +37,69 @@
             </select>
         </div>
 
-        <!-- Dropdown for selecting columns (dynamically updated) -->
-        <div class="mb-4">
-            <label for="column-select" class="form-label">Sélectionner une colonne</label>
-            <select id="column-select" class="form-select" disabled>
-                <option value="">Choisir une colonne</option>
-            </select>
+        <!-- Categorical Variables Section -->
+        <div class="row">
+            <!-- Categorical Pie Chart -->
+            <div class="col-md-6 section">
+                <h3 class="text-center">Categorical Variable - Pie Chart</h3>
+                <div class="mb-3">
+                    <label for="pie-column-select" class="form-label">Sélectionner une colonne</label>
+                    <select id="pie-column-select" class="form-select" disabled>
+                        <option value="">Choisir une colonne</option>
+                    </select>
+                </div>
+                <div id="pie-chart-container"></div> <!-- Placeholder for Pie Chart -->
+            </div>
+
+            <!-- Categorical Histogram -->
+            <div class="col-md-6 section">
+                <h3 class="text-center">Categorical Variable - Histogram</h3>
+                <div class="mb-3">
+                    <label for="histogram-column-select" class="form-label">Sélectionner une colonne</label>
+                    <select id="histogram-column-select" class="form-select" disabled>
+                        <option value="">Choisir une colonne</option>
+                    </select>
+                </div>
+                <div id="histogram-chart-container"></div> <!-- Placeholder for Histogram -->
+            </div>
         </div>
 
-        <!-- Section for showing the chart -->
-        <div class="mb-4">
-            <h3>Graphique</h3>
-            <div id="chart-container">
-                <!-- Chart will be rendered here -->
+        <!-- Continuous Variables Section -->
+        <div class="row">
+            <!-- Continuous Scatter Plot 1 -->
+            <div class="col-md-6 section">
+                <h3 class="text-center">Continuous Variable - Scatter Plot</h3>
+                <div class="mb-3">
+                    <label for="scatter-column-x-select" class="form-label">Sélectionner la colonne X</label>
+                    <select id="scatter-column-x-select" class="form-select" disabled>
+                        <option value="">Choisir une colonne</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="scatter-column-y-select" class="form-label">Sélectionner la colonne Y</label>
+                    <select id="scatter-column-y-select" class="form-select" disabled>
+                        <option value="">Choisir une colonne</option>
+                    </select>
+                </div>
+                <div id="scatter-plot-container"></div> <!-- Placeholder for Scatter Plot -->
+            </div>
+
+            <!-- Continuous Scatter Plot 2 -->
+            <div class="col-md-6 section">
+                <h3 class="text-center">Continuous Variable - Scatter Plot</h3>
+                <div class="mb-3">
+                    <label for="scatter2-column-x-select" class="form-label">Sélectionner la colonne X</label>
+                    <select id="scatter2-column-x-select" class="form-select" disabled>
+                        <option value="">Choisir une colonne</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="scatter2-column-y-select" class="form-label">Sélectionner la colonne Y</label>
+                    <select id="scatter2-column-y-select" class="form-select" disabled>
+                        <option value="">Choisir une colonne</option>
+                    </select>
+                </div>
+                <div id="scatter2-plot-container"></div> <!-- Placeholder for Scatter Plot -->
             </div>
         </div>
     </div>
@@ -56,18 +113,33 @@
                 // Make AJAX request to get columns for the selected dataset
                 $.ajax({
                     url: "{% url 'get_columns' %}",
-                    data: {
-                        dataset_id: datasetId
-                    },
+                    data: { dataset_id: datasetId },
                     success: function(response) {
-                        if (response.columns) {
-                            var columnSelect = $('#column-select');
-                            columnSelect.empty();
-                            columnSelect.append('<option value="">Choisir une colonne</option>');
-                            response.columns.forEach(function(col) {
-                                columnSelect.append('<option value="' + col + '">' + col + '</option>');
+                        if (response.categorical_vars) {
+                            // Populate categorical column selects
+                            var categoricalSelects = ['#pie-column-select', '#histogram-column-select'];
+                            categoricalSelects.forEach(function(selectId) {
+                                var columnSelect = $(selectId);
+                                columnSelect.empty();
+                                columnSelect.append('<option value="">Choisir une colonne</option>');
+                                response.categorical_vars.forEach(function(col) {
+                                    columnSelect.append('<option value="' + col + '">' + col + '</option>');
+                                });
+                                columnSelect.prop('disabled', false);
                             });
-                            columnSelect.prop('disabled', false);  
+                        }
+                        if (response.continuous_vars) {
+                            // Populate continuous column selects
+                            var continuousSelects = ['#scatter-column-x-select', '#scatter-column-y-select', '#scatter2-column-x-select', '#scatter2-column-y-select'];
+                            continuousSelects.forEach(function(selectId) {
+                                var columnSelect = $(selectId);
+                                columnSelect.empty();
+                                columnSelect.append('<option value="">Choisir une colonne</option>');
+                                response.continuous_vars.forEach(function(col) {
+                                    columnSelect.append('<option value="' + col + '">' + col + '</option>');
+                                });
+                                columnSelect.prop('disabled', false);
+                            });
                         }
                     },
                     error: function(xhr) {
@@ -75,20 +147,79 @@
                     }
                 });
             } else {
-                $('#column-select').empty().prop('disabled', true);
+                // Disable all dropdowns if no dataset is selected
+                $('#pie-column-select, #histogram-column-select, #scatter-column-x-select, #scatter-column-y-select, #scatter2-column-x-select, #scatter2-column-y-select')
+                    .prop('disabled', true)
+                    .empty()
+                    .append('<option value="">Choisir une colonne</option>');
             }
         });
 
-        // Handle column selection to update chart
-        $('#column-select').change(function() {
-            var datasetId = $('#dataset-select').val();
-            var column = $(this).val();
-            if (datasetId && column) {
-                // Update chart here (e.g., create a chart based on the column)
-                // You can use a library like Chart.js or just an image placeholder for now
-                $('#chart-container').html('<img src="ML2.png" alt="Chart">');
+        // Handle chart selection and update
+        // Handle chart selection and update
+function updateChart(chartType, columnX, columnY, section) {
+    var datasetId = $('#dataset-select').val();
+    if (datasetId && columnX) {
+        $.ajax({
+            url: "{% url 'generate_chart' %}",
+            data: {
+                dataset_id: datasetId,
+                chart_type: chartType,
+                column_x: columnX,
+                column_y: columnY
+            },
+            success: function(response) {
+                if (response.chart_base64) {
+                    var imgElement = '<img src="data:image/png;base64,' + response.chart_base64 + '" alt="Chart">';
+                    if (chartType === 'pie' && section === 'categorical') {
+                        $('#pie-chart-container').html(imgElement);  // For categorical pie chart
+                    } else if (chartType === 'histogram' && section === 'categorical') {
+                        $('#histogram-chart-container').html(imgElement);  // For categorical histogram
+                    } else if (chartType === 'scatter' && section === 'scatter1') {
+                        $('#scatter-plot-container').html(imgElement);  // For Scatter Plot 1
+                    } else if (chartType === 'scatter' && section === 'scatter2') {
+                        $('#scatter2-plot-container').html(imgElement);  // For Scatter Plot 2
+                    }
+                }
             }
         });
+    }
+}
+
+// Handle Categorical Column Selection for Pie and Histogram charts
+$('#pie-column-select').change(function() {
+    var column = $(this).val();
+    if (column) {
+        updateChart('pie', column, null, 'categorical');
+    }
+});
+
+$('#histogram-column-select').change(function() {
+    var column = $(this).val();
+    if (column) {
+        updateChart('histogram', column, null, 'categorical');
+    }
+});
+
+// Handle Continuous Column Selection for Scatter Plot 1
+$('#scatter-column-x-select, #scatter-column-y-select').change(function() {
+    var xColumn = $('#scatter-column-x-select').val();
+    var yColumn = $('#scatter-column-y-select').val();
+    if (xColumn && yColumn) {
+        updateChart('scatter', xColumn, yColumn, 'scatter1');
+    }
+});
+
+// Handle Continuous Column Selection for Scatter Plot 2
+$('#scatter2-column-x-select, #scatter2-column-y-select').change(function() {
+    var xColumn = $('#scatter2-column-x-select').val();
+    var yColumn = $('#scatter2-column-y-select').val();
+    if (xColumn && yColumn) {
+        updateChart('scatter', xColumn, yColumn, 'scatter2');
+    }
+});
+
     </script>
 </body>
 {% endblock %}
+
