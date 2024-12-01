@@ -9,9 +9,11 @@ from .models import Dataset
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+import matplotlib
 import matplotlib.pyplot as plt
 import io
 import urllib, base64
+matplotlib.use('Agg') 
 
 @login_required(login_url='/login')
 def base(request):
@@ -178,8 +180,71 @@ def get_columns(request):
             return JsonResponse({'error': 'Unsupported file format'}, status=400)
         
         # Get columns from the DataFrame
-        columns = df.columns.tolist()
-        return JsonResponse({'columns': columns})
+        categorical_vars = [col for col in df.columns if df[col].nunique() <= 20 and df[col].dtype == 'object']
+        continuous_vars = [col for col in df.columns if df[col].dtype in ['float64', 'int64']]
+
+        return JsonResponse({
+            'categorical_vars': categorical_vars,
+            'continuous_vars': continuous_vars
+        })
+
+    except Dataset.DoesNotExist:
+        return JsonResponse({'error': 'Dataset not found'}, status=400)
+    
+def generate_chart(request):
+    dataset_id = request.GET.get('dataset_id')
+    chart_type = request.GET.get('chart_type')  # 'pie', 'histogram', or 'scatter'
+    column_x = request.GET.get('column_x')  # For scatter plot, x-axis column
+    column_y = request.GET.get('column_y')  # For scatter plot, y-axis column
+
+    try:
+        dataset = Dataset.objects.get(id=dataset_id, user=request.user)
+        file_path = dataset.file.path
+        
+        # Load the dataset
+        if file_path.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith('.xlsx'):
+            df = pd.read_excel(file_path)
+        else:
+            return JsonResponse({'error': 'Unsupported file format'}, status=400)
+
+        # Prepare a chart buffer
+        buf = io.BytesIO()
+
+        fig, ax = plt.subplots(figsize=(4, 3)) 
+
+        if chart_type == 'pie':
+            # Pie chart for categorical data
+            df[column_x].value_counts().plot(kind='pie', ax=plt.gca(), autopct='%1.1f%%')
+            plt.title(f'{column_x} Distribution (Pie Chart)')
+            plt.ylabel('')
+            plt.savefig(buf, format='png')
+            plt.close()
+
+        elif chart_type == 'histogram':
+            # Histogram for categorical data
+            df[column_x].value_counts().plot(kind='bar', ax=plt.gca())
+            plt.title(f'{column_x} Distribution (Histogram)')
+            plt.ylabel('Frequency')
+            plt.savefig(buf, format='png')
+            plt.close()
+
+        elif chart_type == 'scatter':
+            # Scatter plot for continuous data
+            df.plot.scatter(x=column_x, y=column_y, ax=plt.gca())
+            plt.title(f'{column_x} vs {column_y} (Scatter Plot)')
+            plt.savefig(buf, format='png')
+            plt.close()
+
+        buf.seek(0)
+        chart_base64 = base64.b64encode(buf.read()).decode('utf-8')  # Base64 encode the image
+        buf.close()
+
+        # Debugging: log the base64 response
+        print("Generated chart base64: ", chart_base64[:50])  # Print a snippet of the base64 string for debugging
+
+        return JsonResponse({'chart_base64': chart_base64})
 
     except Dataset.DoesNotExist:
         return JsonResponse({'error': 'Dataset not found'}, status=400)
