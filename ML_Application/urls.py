@@ -6,7 +6,9 @@ from django.contrib.auth import views as auth_views
 
 urlpatterns = [
 
+    path('', views.home, name='home'),
    path('base/', views.base, name='base'),
+
    
    
 #     # login
@@ -21,7 +23,6 @@ urlpatterns = [
 
 
     path('Preprocess/', views.Preprocess, name='Preprocess'),
-    path('home/', views.home, name='home'),
 
 
     path('visualisation/', views.visualisation, name='visualisation'),

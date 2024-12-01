@@ -122,10 +122,18 @@ def delete_dataset(request, dataset_id):
 
 
 # Preprocess 
+from django.shortcuts import render, redirect
+from .models import Dataset
+import pandas as pd
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.impute import SimpleImputer
+
 def Preprocess(request):
-    csv_path = r'C:\Users\Asus PC\Downloads\Dataset_lharba.csv'  # Replace with your dataset's path
-    df = pd.read_csv(csv_path)
- # Basic Statistics
+    dataset = Dataset.objects.get(id=9)  # Replace with actual dataset logic
+    df = pd.read_csv(dataset.file.path)  # Load dataset
+
+    # Basic Statistics
     row_count = df.shape[0]
     feature_count = df.shape[1]
     missing_values = df.isnull().sum()
@@ -134,7 +142,42 @@ def Preprocess(request):
 
     # First 5 rows
     head = df.head(10).to_html(classes="table table-light")
-   
+
+    if request.method == 'POST':
+        if 'clean_data' in request.POST:
+            action = request.POST.get('action')
+            if action == 'delete':
+                df = df.dropna()
+
+            elif action == 'fill':
+                fill_method = request.POST.get('fill_method')
+                if fill_method == 'mean':
+                    imputer = SimpleImputer(strategy='mean')
+                elif fill_method == 'next':
+                    df.fillna(method='ffill', inplace=True)
+                elif fill_method == 'most_frequent':
+                    imputer = SimpleImputer(strategy='most_frequent')
+                df = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
+
+            df.to_csv(dataset.file.path)  # Save updated dataset
+
+        if 'transform_data' in request.POST:
+            transform_type = request.POST.get('transform_type')
+            if transform_type == 'normalize':
+                scaler = MinMaxScaler()
+                df[df.select_dtypes(include=['float64', 'int64']).columns] = scaler.fit_transform(
+                    df.select_dtypes(include=['float64', 'int64']))
+            elif transform_type == 'standardize':
+                scaler = StandardScaler()
+                df[df.select_dtypes(include=['float64', 'int64']).columns] = scaler.fit_transform(
+                    df.select_dtypes(include=['float64', 'int64']))
+            
+            # Feature selection logic
+            if 'feature_selection' in request.POST:
+                selector = SelectKBest(f_classif, k='all')
+                df = selector.fit_transform(df, df['target'])  # Assuming target column is 'target'
+
+            df.to_excel(dataset.file.path)  # Save transformed dataset
 
     return render(request, 'preprocess.html', {
         'head': head,
@@ -143,8 +186,9 @@ def Preprocess(request):
         'missing_values': missing_values,
         'duplicate_rows': duplicate_rows,
         'data_types': data_types,
-        
+        'dataset': dataset,
     })
+
 #end  Preprocess 
 
 
