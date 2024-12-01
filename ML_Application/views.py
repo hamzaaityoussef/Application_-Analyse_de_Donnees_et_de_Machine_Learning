@@ -1,12 +1,9 @@
-from django.shortcuts import render
-from django.shortcuts import render, HttpResponse, redirect
+from django.shortcuts import render, HttpResponse, redirect, get_object_or_404
 from .models import *
 import pandas as pd
-from django.shortcuts import render
 from django.http import JsonResponse
 import os
 from django.conf import settings
-from django.shortcuts import render, redirect
 from .forms import FileUploadForm
 from .models import Dataset
 from django.contrib.auth.decorators import login_required
@@ -70,7 +67,7 @@ def logoutUser(request):
 
 
 
-# upload 
+# upload and delete datasets
 @login_required(login_url='/login')
 def upload(request):
     if request.method == 'POST':
@@ -81,18 +78,39 @@ def upload(request):
             # Save the dataset instance
             dataset = Dataset.objects.create(
                 name=file.name,
-                file=file,  # Assign the file directly to the FileField
-                user=request.user  # Associate the dataset with the logged-in user
+                file=file,
+                user=request.user
             )
 
-            # Redirect to a success page or the same upload page
+            # Redirect to refresh the page
             return redirect('upload')
 
     else:
         form = FileUploadForm()
 
-    return render(request, 'upload.html', {'form': form})
-    
+    # Fetch datasets associated with the logged-in user
+    datasets = Dataset.objects.filter(user=request.user)
+
+    return render(request, 'upload.html', {'form': form, 'datasets': datasets})
+
+
+
+@login_required
+def delete_dataset(request, dataset_id):
+    dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
+
+    # Delete the file from storage
+    if dataset.file:
+        file_path = dataset.file.path
+        if os.path.isfile(file_path):
+            os.remove(file_path)
+
+    # Delete the database entry
+    dataset.delete()
+
+    # Redirect back to the upload page
+    return redirect('upload')
+
 #end upload 
 
 
