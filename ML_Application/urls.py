@@ -20,6 +20,7 @@ urlpatterns = [
     path('delete/<int:dataset_id>/', views.delete_dataset, name='delete_dataset'),
 
 
+    path('Preprocess/', views.Preprocess, name='Preprocess'),
     path('home/', views.home, name='home'),
     path('visualisation/', views.visualisation, name='visualisation'),
     path('modeles/', views.modeles, name='modeles'),

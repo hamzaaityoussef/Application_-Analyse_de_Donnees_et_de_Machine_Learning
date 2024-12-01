@@ -9,6 +9,9 @@ from .models import Dataset
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth import authenticate, login, logout
 from django.contrib import messages
+import matplotlib.pyplot as plt
+import io
+import urllib, base64
 
 @login_required(login_url='/login')
 def base(request):
@@ -29,7 +32,7 @@ def base(request):
 
 
 
-# login 
+# login and logout
 def loginpage(request):
     if request.user.is_authenticated:
         
@@ -55,15 +58,18 @@ def loginpage(request):
     return render(request, 'login.html')
 
 
-
-
 def logoutUser(request):
     logout(request)
     return redirect('login')
 
-# end login 
+# end login and logout
 
-
+# home 
+def home(request):
+    
+    print('bnjrjr')
+    return render(request, 'home.html')
+#end  home 
 
 
 
@@ -94,7 +100,6 @@ def upload(request):
     return render(request, 'upload.html', {'form': form, 'datasets': datasets})
 
 
-
 @login_required
 def delete_dataset(request, dataset_id):
     dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
@@ -114,17 +119,17 @@ def delete_dataset(request, dataset_id):
 #end upload 
 
 
-# home 
-def home(request):
+# Preprocess 
+def Preprocess(request):
     
     print('bnjrjr')
-    return render(request, 'home.html')
-#end  home 
- 
+    return render(request, 'Preprocess.html')
+#end  Preprocess 
 
-import matplotlib.pyplot as plt
-import io
-import urllib, base64
+
+
+
+
 # visualisation 
 @login_required(login_url='/login')
 def visualisation(request):
