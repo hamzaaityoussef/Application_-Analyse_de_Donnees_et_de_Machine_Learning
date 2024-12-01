@@ -1,5 +1,65 @@
 {% extends 'base.html' %}
 {% block content %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Preprocessing</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #001f3f;
+            color: #ffffff;
+        }
+        h1, h3 {
+            color: #ffffff;
+        }
+        /* Style for making the table scrollable */
+        .table-container {
+            max-height: 300px;
+            max-width: 600px; /* Adjust the height as needed */
+            overflow-y: auto;  /* Enable vertical scrolling */
+            overflow-x: auto;  /* Enable horizontal scrolling */
+            border: 1px solid #ccc; /* Optional border for the container */
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center">Data Preprocessing</h1>
+        <br>
+
+        <div class="row">
+            <!-- Div for displaying head(10) -->
+            <div class="col-md-6 mb-4">
+                <div class=" p-1 text-white" style="width: 500px;"><br>
+                    <h3 class="text-center">First 10 Rows</h3><br>
+                    <div class="table-container">
+                        <!-- Display the first 10 rows here -->
+                        {{ head|safe }}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Div for displaying statistics -->
+            <div class="col-md-4 mb-4"  style="margin-left: 100px;">
+                <div class="m-5 text-white"">
+                    <h3 class="text-center">Statistics</h3><br>
+                    <ul>
+                        <li><strong>Number of Rows:</strong> {{ row_count }}</li>
+                        <li><strong>Number of Features:</strong> {{ feature_count }}</li>
+                        <li><strong>Missing Values:</strong> {{ missing_values }}</li>
+                        <li><strong>Duplicate Rows:</strong> {{ duplicate_rows }}</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
 
 
 {% endblock %}

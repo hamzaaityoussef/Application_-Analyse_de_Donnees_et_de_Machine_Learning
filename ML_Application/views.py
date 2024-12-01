@@ -121,9 +121,28 @@ def delete_dataset(request, dataset_id):
 
 # Preprocess 
 def Preprocess(request):
-    
-    print('bnjrjr')
-    return render(request, 'Preprocess.html')
+    csv_path = r'C:\Users\Asus PC\Downloads\Dataset_lharba.csv'  # Replace with your dataset's path
+    df = pd.read_csv(csv_path)
+ # Basic Statistics
+    row_count = df.shape[0]
+    feature_count = df.shape[1]
+    missing_values = df.isnull().sum()
+    duplicate_rows = df.duplicated().sum()
+    data_types = df.dtypes
+
+    # First 5 rows
+    head = df.head(10).to_html(classes="table table-light")
+   
+
+    return render(request, 'preprocess.html', {
+        'head': head,
+        'row_count': row_count,
+        'feature_count': feature_count,
+        'missing_values': missing_values,
+        'duplicate_rows': duplicate_rows,
+        'data_types': data_types,
+        
+    })
 #end  Preprocess 
 
 
