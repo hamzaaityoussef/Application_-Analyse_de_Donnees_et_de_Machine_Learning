@@ -7,6 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Preprocessing</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             background-color: #001f3f;
@@ -19,9 +20,8 @@
         .table-container {
             max-height: 300px;
             max-width: 600px; /* Adjust the height as needed */
-            overflow-y: auto;  /* Enable vertical scrolling */
-            overflow-x: auto;  /* Enable horizontal scrolling */
-            border: 1px solid #ccc; /* Optional border for the container */
+            overflow-y: auto;
+            border: 1px solid #ccc;
         }
     </style>
 </head>
@@ -29,9 +29,8 @@
     <div class="container mt-4">
         <h1 class="text-center">Data Preprocessing</h1>
         <br>
-
+        <!-- first 10 rows  -->
         <div class="row">
-            <!-- Div for displaying head(10) -->
             <div class="col-md-6 mb-4">
                 <div class=" p-1 text-white" style="width: 500px;"><br>
                     <h3 class="text-center">First 10 Rows</h3><br>
@@ -42,9 +41,8 @@
                 </div>
             </div>
 
-            <!-- Div for displaying statistics -->
             <div class="col-md-4 mb-4"  style="margin-left: 100px;">
-                <div class="m-5 text-white"">
+                <div class="m-5 text-white">
                     <h3 class="text-center">Statistics</h3><br>
                     <ul>
                         <li><strong>Number of Rows:</strong> {{ row_count }}</li>
@@ -55,11 +53,92 @@
                 </div>
             </div>
         </div>
+
+        <!-- Data Cleaning Modal -->
+<div id="data-cleaning-modal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
+    <div class="relative w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+        <h3 class="text-center text-lg font-semibold">Data Cleaning</h3>
+        <form method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="clean_data" value="true">
+            <div class="mb-3">
+                <label for="action" class="block">Choose Action</label>
+                <select id="action" name="action" class="form-select">
+                    <option value="delete">Delete Nulls</option>
+                    <option value="fill">Fill Nulls</option>
+                </select>
+            </div>
+
+            <div id="fill-method-container" class="mb-3 hidden">
+                <label for="fill-method" class="block">Fill Method</label>
+                <select id="fill-method" name="fill_method" class="form-select">
+                    <option value="mean">Fill with Mean</option>
+                    <option value="next">Fill with Next Value</option>
+                    <option value="most_frequent">Fill with Most Frequent</option>
+                </select>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-full">Apply</button>
+        </form>
+        <button data-modal-toggle="data-cleaning-modal" class="btn btn-secondary w-full mt-3">Close</button>
+    </div>
+</div>
+
+        <!-- Data Transformation Modal -->
+        <div id="data-transformation-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 justify-center items-center">
+            <div class="relative w-full max-w-md">
+                <div class="bg-white rounded-lg shadow-lg p-6">
+                    <h3 class="text-center text-lg font-semibold">Data Transformation</h3>
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="transform_data" value="true">
+
+                        <div class="mb-3">
+                            <label for="transform_type" class="block">Transformation Type</label>
+                            <select id="transform_type" name="transform_type" class="form-select">
+                                <option value="normalize">Normalize</option>
+                                <option value="standardize">Standardize</option>
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="feature_selection" class="block">Feature Selection</label>
+                            <input type="checkbox" name="feature_selection" id="feature_selection"> Use auto feature selection
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100">Apply</button>
+                    </form>
+                    <button data-modal-toggle="data-transformation-modal" class="btn btn-secondary w-100 mt-3">Close</button>
+                </div>
+            </div>
+        </div>
+        <!-- Data Cleaning Button -->
+        <button data-modal-toggle="data-cleaning-modal" class="btn btn-danger w-100">Data Cleaning</button>
+
+        <!-- Data Transformation Button -->
+        <button data-modal-toggle="data-transformation-modal" class="btn btn-warning w-100 mt-3">Data Transformation</button>
+
+
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Show modal when button is clicked
+        document.querySelectorAll('[data-modal-toggle]').forEach(button => {
+            button.addEventListener('click', () => {
+                const modalId = button.getAttribute('data-modal-toggle');
+                document.getElementById(modalId).classList.toggle('hidden');
+            });
+        });
+
+        // Show fill method select if "Fill Nulls" is selected
+        document.getElementById('action').addEventListener('change', function() {
+            if (this.value === 'fill') {
+                document.getElementById('fill-method-container').classList.remove('hidden');
+            } else {
+                document.getElementById('fill-method-container').classList.add('hidden');
+            }
+        });
+    </script>
 </body>
 </html>
-
-
 {% endblock %}
