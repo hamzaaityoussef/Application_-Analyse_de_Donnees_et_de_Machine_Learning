@@ -149,62 +149,46 @@ def Preprocess(request):
 
 
 
+from django.shortcuts import render
+from django.http import JsonResponse
+from .models import Dataset
+import pandas as pd
+import os
 # visualisation 
 @login_required(login_url='/login')
+
+# View to render the visualisation page
 def visualisation(request):
-    # Load your dataset
-    csv_path = r'C:\Users\Asus PC\Downloads\Dataset_lharba.csv'  # Replace with your dataset's path
-    df = pd.read_csv(csv_path)
+    datasets = Dataset.objects.filter(user=request.user)  # Get datasets for the logged-in user
+    return render(request, 'visualisation.html', {'datasets': datasets})
 
-    
-    categorical_vars = [col for col in df.columns if df[col].nunique() <= 20 and df[col].dtype == 'object']
-    continuous_vars = [col for col in df.columns if df[col].dtype in ['float64', 'int64']]
+# View to handle AJAX request for dataset columns
+def get_columns(request):
+    dataset_id = request.GET.get('dataset_id')  # Get the dataset ID from the request
+    try:
+        dataset = Dataset.objects.get(id=dataset_id, user=request.user)  # Ensure it's the user's dataset
+        file_path = dataset.file.path  # Get the file path for the selected dataset
+        
+        # Read the dataset into a pandas DataFrame
+        if file_path.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith('.xlsx'):
+            df = pd.read_excel(file_path)
+        else:
+            return JsonResponse({'error': 'Unsupported file format'}, status=400)
+        
+        # Get columns from the DataFrame
+        columns = df.columns.tolist()
+        return JsonResponse({'columns': columns})
 
-    categorical_sections = {}
-    continuous_sections = {}
+    except Dataset.DoesNotExist:
+        return JsonResponse({'error': 'Dataset not found'}, status=400)
 
-    # Handle Categorical Sections
-    for i, col in enumerate(categorical_vars[:2], start=1):  # Limit to 2 sections
-        selected_col = request.GET.get(f'cat_{i}', col)  # Get the specific parameter for each section
-        fig, ax = plt.subplots(figsize=(4, 2))
-        if i == 1:  # Pie chart for the first categorical variable
-            df[selected_col].value_counts().plot(kind='pie', ax=ax, autopct='%1.1f%%')
-        else:  # Bar chart for the second categorical variable
-            df[selected_col].value_counts().plot(kind='bar', ax=ax)
 
-            ax.set_title(f'{selected_col} Distribution')
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        categorical_sections[f'cat_{i}'] = {
-            'chart_uri': 'data:image/png;base64,' + urllib.parse.quote(base64.b64encode(buf.read())),
-            'options': categorical_vars,
-            'selected': selected_col,
-        }
-        buf.close()
 
-    # Handle Continuous Sections
-    for i, col in enumerate(continuous_vars[:2], start=1):  # Limit to 2 sections
-        selected_col = request.GET.get(f'cont_{i}', col)  # Get the specific parameter for each section
-        fig, ax = plt.subplots(figsize=(4, 2))
-        ax.scatter(range(len(df[selected_col])), df[selected_col], alpha=0.7, color='blue')
-        ax.set_title(f'{selected_col} Scatter Plot')
-        buf = io.BytesIO()
-        plt.savefig(buf, format='png')
-        buf.seek(0)
-        continuous_sections[f'cont_{i}'] = {
-            'chart_uri': 'data:image/png;base64,' + urllib.parse.quote(base64.b64encode(buf.read())),
-            'options': continuous_vars,
-            'selected': selected_col,
-        }
-        buf.close()
 
-    return render(request, 'visualisation.html', {
-        'categorical_sections': categorical_sections,
-        'continuous_sections': continuous_sections,
-    })
-    
-#end upload 
+
+#end visualisation 
 
 
 # modeles 

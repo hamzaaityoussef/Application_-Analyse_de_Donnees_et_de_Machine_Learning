@@ -1,6 +1,5 @@
 {% extends 'base.html' %}
 {% block content %}
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -19,64 +18,77 @@
 <body>
     <div class="container mt-4">
         <h1 class="text-center">Tableau de bord</h1>
-
-        <!-- Categorical Variables -->
-        <div class="row">
-            {% for key, section in categorical_sections.items %}
-                <div class="col-md-6 mb-4">
-                    <div class="border p-3 bg-dark text-white">
-                        <h3 class="text-center">Categorical: {{ key }}</h3>
-                        <form method="get">
-                            <div class="mb-3">
-                                <label for="{{ key }}" class="form-label">Sélectionner une colonne</label>
-                                <select id="{{ key }}" name="{{ key }}" class="form-select">
-                                    {% for option in section.options %}
-                                        <option value="{{ option }}" {% if option == section.selected %}selected{% endif %}>{{ option }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Mettre à jour le graphique</button>
-                        </form>
-                        <div class="mt-4">
-                            {% if section.chart_uri %}
-                                <img src="{{ section.chart_uri }}" class="img-fluid" alt="{{ section.title }}">
-                            {% else %}
-                                <p class="text-center">Aucun graphique à afficher.</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+        
+        <!-- Dropdown for selecting datasets -->
+        <div class="mb-4">
+            <label for="dataset-select" class="form-label">Sélectionner un dataset</label>
+            <select id="dataset-select" class="form-select">
+                <option value="">Choisir un dataset</option>
+                {% for dataset in datasets %}
+                    <option value="{{ dataset.id }}">{{ dataset.name }}</option>
+                {% endfor %}
+            </select>
         </div>
 
-        <!-- Continuous Variables -->
-        <div class="row">
-            {% for key, section in continuous_sections.items %}
-                <div class="col-md-6 mb-4">
-                    <div class="border p-3 bg-dark text-white">
-                        <h3 class="text-center">Continuous: {{ key }}</h3>
-                        <form method="get">
-                            <div class="mb-3">
-                                <label for="{{ key }}" class="form-label">Sélectionner une colonne</label>
-                                <select id="{{ key }}" name="{{ key }}" class="form-select">
-                                    {% for option in section.options %}
-                                        <option value="{{ option }}" {% if option == section.selected %}selected{% endif %}>{{ option }}</option>
-                                    {% endfor %}
-                                </select>
-                            </div>
-                            <button type="submit" class="btn btn-primary w-100">Mettre à jour le graphique</button>
-                        </form>
-                        <div class="mt-4">
-                            {% if section.chart_uri %}
-                                <img src="{{ section.chart_uri }}" class="img-fluid" alt="{{ section.title }}">
-                            {% else %}
-                                <p class="text-center">Aucun graphique à afficher.</p>
-                            {% endif %}
-                        </div>
-                    </div>
-                </div>
-            {% endfor %}
+        <!-- Dropdown for selecting columns (dynamically updated) -->
+        <div class="mb-4">
+            <label for="column-select" class="form-label">Sélectionner une colonne</label>
+            <select id="column-select" class="form-select" disabled>
+                <option value="">Choisir une colonne</option>
+            </select>
+        </div>
+
+        <!-- Section for showing the chart -->
+        <div class="mb-4">
+            <h3>Graphique</h3>
+            <div id="chart-container">
+                <!-- Chart will be rendered here -->
+            </div>
         </div>
     </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Handle dataset selection
+        $('#dataset-select').change(function() {
+            var datasetId = $(this).val();
+            if (datasetId) {
+                // Make AJAX request to get columns for the selected dataset
+                $.ajax({
+                    url: "{% url 'get_columns' %}",
+                    data: {
+                        dataset_id: datasetId
+                    },
+                    success: function(response) {
+                        if (response.columns) {
+                            var columnSelect = $('#column-select');
+                            columnSelect.empty();
+                            columnSelect.append('<option value="">Choisir une colonne</option>');
+                            response.columns.forEach(function(col) {
+                                columnSelect.append('<option value="' + col + '">' + col + '</option>');
+                            });
+                            columnSelect.prop('disabled', false);  // Enable the column dropdown
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error:', xhr.responseText);
+                    }
+                });
+            } else {
+                $('#column-select').empty().prop('disabled', true);
+            }
+        });
+
+        // Handle column selection to update chart
+        $('#column-select').change(function() {
+            var datasetId = $('#dataset-select').val();
+            var column = $(this).val();
+            if (datasetId && column) {
+                // Update chart here (e.g., create a chart based on the column)
+                // You can use a library like Chart.js or just an image placeholder for now
+                $('#chart-container').html('<img src="ML2.png" alt="Chart">');
+            }
+        });
+    </script>
 </body>
 {% endblock %}
