@@ -22,7 +22,11 @@ urlpatterns = [
 
     path('Preprocess/', views.Preprocess, name='Preprocess'),
     path('home/', views.home, name='home'),
+
+
     path('visualisation/', views.visualisation, name='visualisation'),
+    path('get_columns/', views.get_columns, name='get_columns'),  # URL for fetching columns
+
     path('modeles/', views.modeles, name='modeles'),
     path('Predictions/', views.Predictions, name='Predictions'),
     path('documentation/', views.documentation, name='documentation'),
