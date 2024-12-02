@@ -55,63 +55,65 @@
         </div>
 
         <!-- Data Cleaning Modal -->
-<div id="data-cleaning-modal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
-    <div class="relative w-full max-w-md bg-white rounded-lg shadow-lg p-6">
-        <h3 class="text-center text-lg font-semibold">Data Cleaning</h3>
-        <form method="POST">
-            {% csrf_token %}
-            <input type="hidden" name="clean_data" value="true">
-            <div class="mb-3">
-                <label for="action" class="block">Choose Action</label>
-                <select id="action" name="action" class="form-select">
-                    <option value="delete">Delete Nulls</option>
-                    <option value="fill">Fill Nulls</option>
-                </select>
-            </div>
+        <div id="data-cleaning-modal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
+            <div class="relative w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-center text-lg font-semibold" style="color: black;">Data Cleaning</h3>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="clean_data" value="true">
+                    <div class="mb-3">
+                        <label for="action" class="block" style="color: black;">Choose Action</label>
+                        <select id="action" name="action" class="form-select">
+                            <option value="delete">Delete Nulls</option>
+                            <option value="fill">Fill Nulls</option>
+                        </select>
+                    </div>
 
-            <div id="fill-method-container" class="mb-3 hidden">
-                <label for="fill-method" class="block">Fill Method</label>
-                <select id="fill-method" name="fill_method" class="form-select">
-                    <option value="mean">Fill with Mean</option>
-                    <option value="next">Fill with Next Value</option>
-                    <option value="most_frequent">Fill with Most Frequent</option>
-                </select>
-            </div>
+                    <div id="fill-method-container" class="mb-3 hidden">
+                        <label for="fill-method" class="block" style="color: black;">Fill Method</label>
+                        <select id="fill-method" name="fill_method" class="form-select">
+                            <option value="mean">Fill with Mean</option>
+                            <option value="next">Fill with Next Value</option>
+                            <option value="most_frequent">Fill with Most Frequent</option>
+                        </select>
+                    </div>
 
-            <button type="submit" class="btn btn-primary w-full">Apply</button>
-        </form>
-        <button data-modal-toggle="data-cleaning-modal" class="btn btn-secondary w-full mt-3">Close</button>
-    </div>
-</div>
-
-        <!-- Data Transformation Modal -->
-        <div id="data-transformation-modal" tabindex="-1" aria-hidden="true" class="hidden overflow-y-auto overflow-x-hidden fixed inset-0 z-50 justify-center items-center">
-            <div class="relative w-full max-w-md">
-                <div class="bg-white rounded-lg shadow-lg p-6">
-                    <h3 class="text-center text-lg font-semibold">Data Transformation</h3>
-                    <form method="POST">
-                        {% csrf_token %}
-                        <input type="hidden" name="transform_data" value="true">
-
-                        <div class="mb-3">
-                            <label for="transform_type" class="block">Transformation Type</label>
-                            <select id="transform_type" name="transform_type" class="form-select">
-                                <option value="normalize">Normalize</option>
-                                <option value="standardize">Standardize</option>
-                            </select>
-                        </div>
-
-                        <div class="mb-3">
-                            <label for="feature_selection" class="block">Feature Selection</label>
-                            <input type="checkbox" name="feature_selection" id="feature_selection"> Use auto feature selection
-                        </div>
-
-                        <button type="submit" class="btn btn-primary w-100">Apply</button>
-                    </form>
-                    <button data-modal-toggle="data-transformation-modal" class="btn btn-secondary w-100 mt-3">Close</button>
-                </div>
+                    <button type="submit" class="btn btn-primary w-full">Apply</button>
+                </form>
+                <button data-modal-toggle="data-cleaning-modal" class="btn btn-secondary w-full mt-3">Close</button>
             </div>
         </div>
+
+        
+        <!-- Data Transformation Modal -->
+        <div id="data-transformation-modal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
+            <div class="relative w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+                <h3 class="text-center text-lg font-semibold " style="color: black;">Data Transformation</h3>
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="transform_data" value="true">
+
+                    <!-- Transformation Type Dropdown -->
+                    <div class="mb-3">
+                        <label for="transform_type" class="block" style="color: black;">Transformation Type</label>
+                        <select id="transform_type" name="transform_type" class="form-select">
+                            <option value="normalize">Normalize</option>
+                            <option value="standardize">Standardize</option>
+                        </select>
+                    </div>
+
+                    <!-- Feature Selection Checkbox -->
+                    <div class="mb-3">
+                        <label for="feature_selection" class="block" style="color: black;">Feature Selection</label>
+                        <input type="checkbox" name="feature_selection" id="feature_selection" style="color: black;"> Use auto feature selection
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-full">Apply</button>
+                </form>
+                <button data-modal-toggle="data-transformation-modal" class="btn btn-secondary w-full mt-3">Close</button>
+            </div>
+        </div>
+
         <!-- Data Cleaning Button -->
         <button data-modal-toggle="data-cleaning-modal" class="btn btn-danger w-100">Data Cleaning</button>
 
