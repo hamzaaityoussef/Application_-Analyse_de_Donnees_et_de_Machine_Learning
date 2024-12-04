@@ -13,6 +13,8 @@ import matplotlib
 import matplotlib.pyplot as plt
 import io
 import urllib, base64
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import default_storage
 matplotlib.use('Agg') 
 
 @login_required(login_url='/login')
@@ -76,31 +78,43 @@ def home(request):
 
 
 # upload and delete datasets
+@csrf_exempt 
 @login_required(login_url='/login')
 def upload(request):
     if request.method == 'POST':
-        form = FileUploadForm(request.POST, request.FILES)
-        if form.is_valid():
-            file = form.cleaned_data['file']
+        # Retrieve the uploaded file
+        print('hi1à')
+        uploaded_file = request.FILES.get('fileUpload')  # FilePond sends the file with key 'file'
+        print('value ',uploaded_file)
+        if not uploaded_file:
+            print('hi1')
+            return JsonResponse({'error': 'No file uploaded.'}, status=400)
 
-            # Save the dataset instance
-            dataset = Dataset.objects.create(
-                name=file.name,
-                file=file,
-                user=request.user
-            )
+        # Save the file to the user's directory
+        print('hi')
+        # user_folder = f"media/datasets/{request.user.username}"
+        user_folder = os.path.join(settings.MEDIA_ROOT, 'datasets', request.user.username)
+        os.makedirs(user_folder, exist_ok=True)  # Ensure the user's folder exists
+        file_path = os.path.join(user_folder, uploaded_file.name)
 
-            # Redirect to refresh the page
-            return redirect('upload')
+        
+        
+        with default_storage.open(file_path, 'wb+') as destination:
+            for chunk in uploaded_file.chunks():
+                destination.write(chunk)
 
-    else:
-        form = FileUploadForm()
+        # Save the dataset instance to the database
+        dataset = Dataset.objects.create(
+            name=uploaded_file.name,
+            file=file_path,
+            user=request.user
+        )
 
-    # Fetch datasets associated with the logged-in user
+        return JsonResponse({'message': 'File uploaded successfully!', 'fileName': uploaded_file.name})
+
+    # For GET request, render the upload template with datasets
     datasets = Dataset.objects.filter(user=request.user)
-
-    return render(request, 'upload.html', {'form': form, 'datasets': datasets})
-
+    return render(request, 'upload.html', {'datasets': datasets})
 
 @login_required
 def delete_dataset(request, dataset_id):
@@ -130,65 +144,71 @@ from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.impute import SimpleImputer
 
 def Preprocess(request):
-    dataset = Dataset.objects.get(id=9)  # Replace with actual dataset logic
-    df = pd.read_csv(dataset.file.path)  # Load dataset
+    user_datasets = Dataset.objects.filter(user=request.user) 
 
-    # Basic Statistics
-    row_count = df.shape[0]
-    feature_count = df.shape[1]
-    missing_values = df.isnull().sum()
-    duplicate_rows = df.duplicated().sum()
-    data_types = df.dtypes
+    selected_dataset_id = request.GET.get('dataset_id')  # From dropdown selection
+    # Read the dataset into a pandas DataFrame
+    
+    if selected_dataset_id:
+        dataset = get_object_or_404(user_datasets, id=selected_dataset_id)
+        file_path = dataset.file.path
+        if file_path.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith('.xlsx'):
+            df = pd.read_excel(file_path)
 
-    # First 5 rows
-    head = df.head(10).to_html(classes="table table-light")
+        # Compute dataset statistics
+        row_count = df.shape[0]
+        feature_count = df.shape[1]
+        missing_values = df.isnull().sum()
+        duplicate_rows = df.duplicated().sum()
+        data_types = df.dtypes
+        head = df.head(10).to_html(classes="table table-light")
 
-    if request.method == 'POST':
-        if 'clean_data' in request.POST:
-            action = request.POST.get('action')
-            if action == 'delete':
-                df = df.dropna()
+        if request.method == 'POST':
+            if 'clean_data' in request.POST:
+                action = request.POST.get('action')
+                if action == 'delete':
+                    df = df.dropna()
+                elif action == 'fill':
+                    fill_method = request.POST.get('fill_method')
+                    if fill_method == 'mean':
+                        imputer = SimpleImputer(strategy='mean')
+                        df = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
+                    elif fill_method == 'next':
+                        df.fillna(method='ffill', inplace=True)
+                    elif fill_method == 'most_frequent':
+                        imputer = SimpleImputer(strategy='most_frequent')
+                        df = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
+                df.to_csv(dataset.file.path, index=False)
 
-            elif action == 'fill':
-                fill_method = request.POST.get('fill_method')
-                if fill_method == 'mean':
-                    imputer = SimpleImputer(strategy='mean')
-                elif fill_method == 'next':
-                    df.fillna(method='ffill', inplace=True)
-                elif fill_method == 'most_frequent':
-                    imputer = SimpleImputer(strategy='most_frequent')
-                df = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
+            if 'transform_data' in request.POST:
+                transform_type = request.POST.get('transform_type')
+                numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
+                if transform_type == 'normalize':
+                    scaler = MinMaxScaler()
+                    df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
+                elif transform_type == 'standardize':
+                    scaler = StandardScaler()
+                    df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
+                if 'feature_selection' in request.POST:
+                    selector = SelectKBest(f_classif, k='all')
+                    target_column = 'target'  # Update as per your dataset
+                    df = pd.DataFrame(selector.fit_transform(df, df[target_column]), columns=selector.get_feature_names_out())
+                df.to_csv(dataset.file.path, index=False)
 
-            df.to_csv(dataset.file.path)  # Save updated dataset
+        return render(request, 'preprocess.html', {
+            'head': head,
+            'row_count': row_count,
+            'feature_count': feature_count,
+            'missing_values': missing_values,
+            'duplicate_rows': duplicate_rows,
+            'data_types': data_types,
+            'datasets': user_datasets,
+            'selected_dataset_id': selected_dataset_id,
+        })
 
-        if 'transform_data' in request.POST:
-            transform_type = request.POST.get('transform_type')
-            if transform_type == 'normalize':
-                scaler = MinMaxScaler()
-                df[df.select_dtypes(include=['float64', 'int64']).columns] = scaler.fit_transform(
-                    df.select_dtypes(include=['float64', 'int64']))
-            elif transform_type == 'standardize':
-                scaler = StandardScaler()
-                df[df.select_dtypes(include=['float64', 'int64']).columns] = scaler.fit_transform(
-                    df.select_dtypes(include=['float64', 'int64']))
-            
-            # Feature selection logic
-            if 'feature_selection' in request.POST:
-                selector = SelectKBest(f_classif, k='all')
-                df = selector.fit_transform(df, df['target'])  # Assuming target column is 'target'
-
-            df.to_excel(dataset.file.path)  # Save transformed dataset
-
-    return render(request, 'preprocess.html', {
-        'head': head,
-        'row_count': row_count,
-        'feature_count': feature_count,
-        'missing_values': missing_values,
-        'duplicate_rows': duplicate_rows,
-        'data_types': data_types,
-        'dataset': dataset,
-    })
-
+    return render(request, 'preprocess.html', {'datasets': user_datasets})
 #end  Preprocess 
 
 

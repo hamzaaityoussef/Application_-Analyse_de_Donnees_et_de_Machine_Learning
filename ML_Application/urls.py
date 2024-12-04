@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.urls import path , include
 from ML_Application import views  # Import the views module from your app directory
 from django.contrib.auth import views as auth_views
-
+from django.urls import re_path
 
 urlpatterns = [
 
@@ -15,10 +15,11 @@ urlpatterns = [
     
     path('login/', views.loginpage, name='login'),
     path('accounts/logout/', views.logoutUser, name='logout'),
-#     # end login
+#     # end login 
+
 
 #     upload and delete datasets
-    path('upload/', views.upload, name='upload'),
+    re_path(r'^upload/?$', views.upload, name='upload'),
     path('delete/<int:dataset_id>/', views.delete_dataset, name='delete_dataset'),
 
 
