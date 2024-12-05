@@ -28,12 +28,15 @@ urlpatterns = [
 
     path('visualisation/', views.visualisation, name='visualisation'),
     path('get_columns/', views.get_columns, name='get_columns'),
-      path('generate_chart/', views.generate_chart, name='generate_chart'),   # URL for fetching columns
+    path('generate_chart/', views.generate_chart, name='generate_chart'),   # URL for fetching columns
 
     path('modeles/', views.modeles, name='modeles'),
+    path('get_MLcolumns/', views.get_MLcolumns, name='get_MLcolumns'), 
+
     path('Predictions/', views.Predictions, name='Predictions'),
     path('documentation/', views.documentation, name='documentation'),
     path('report/', views.report, name='report'),
+    path('apply_models/', views.apply_models, name='apply_models'),
     
 
 

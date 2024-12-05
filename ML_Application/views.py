@@ -16,6 +16,17 @@ import urllib, base64
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import default_storage
 matplotlib.use('Agg') 
+import json
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, precision_score, recall_score, mean_squared_error, silhouette_score
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.svm import SVC
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.naive_bayes import GaussianNB
+from sklearn.linear_model import LinearRegression, Ridge
+from sklearn.cluster import KMeans, DBSCAN
+from sklearn.preprocessing import LabelEncoder
 
 @login_required(login_url='/login')
 def base(request):
@@ -98,7 +109,7 @@ def upload(request):
         # Save the dataset instance to the database
         dataset = Dataset.objects.create(
             name=uploaded_file.name,
-            file=f"media/datasets/{request.user.username}/{uploaded_file.name}",
+            file=f"datasets/{request.user.username}/{uploaded_file.name}",
             user=request.user
         )
 
@@ -316,9 +327,140 @@ def generate_chart(request):
 # modeles 
 @login_required(login_url='/login')
 def modeles(request):
+    datasets = Dataset.objects.filter(user=request.user)  # Get datasets for the logged-in user
+    return render(request, 'modeles.html', {'datasets': datasets})
+def get_MLcolumns(request):
+    dataset_id = request.GET.get('dataset_id')  # Get dataset ID from request
     
-    print('bnjrjr')
-    return render(request, 'modeles.html')
+    try:
+        dataset = Dataset.objects.get(id=dataset_id, user=request.user)  # Ensure dataset belongs to the user
+        file_path = dataset.file.path  # Get file path of dataset
+        
+        # Read dataset into a DataFrame
+        if file_path.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith('.xlsx'):
+            df = pd.read_excel(file_path)
+        else:
+            return JsonResponse({'error': 'Unsupported file format'}, status=400)
+        
+
+        
+        columns = df.columns.tolist()  # Get list of all column names
+        column_name = request.GET.get('column_name')
+        if column_name in df.columns:
+            # Infer column type
+            if pd.api.types.is_numeric_dtype(df[column_name]):
+                # Check if the column has a limited number of unique values (e.g., <10)
+                unique_values = df[column_name].nunique()
+                if unique_values < 20:  # Considered categorical if fewer than 10 unique values
+                    column_type = 'categorical'
+                else:
+                    column_type = 'continuous'
+            else:
+                column_type = 'categorical'
+        else:
+            column_type = 'none'
+        return JsonResponse({'columns': columns,
+                             'column_type': column_type
+                             })  # Return columns in JSON format
+
+    except Dataset.DoesNotExist:
+        return JsonResponse({'error': 'Dataset not found'}, status=404)
+def apply_models(request):
+    if request.method == 'POST':
+        dataset_id = request.POST.get('dataset_id')
+        target_column = request.POST.get('target_column')
+        models = json.loads(request.POST.get('models'))
+
+        try:
+            # Load the dataset
+            dataset = Dataset.objects.get(id=dataset_id, user=request.user)
+            file_path = dataset.file.path
+            if file_path.endswith('.csv'):
+                df = pd.read_csv(file_path)
+            elif file_path.endswith('.xlsx'):
+                df = pd.read_excel(file_path)
+            else:
+                return JsonResponse({'error': 'Unsupported file format'}, status=400)
+            
+            df = df.dropna()
+             # Encode non-numeric columns
+            for column in df.columns:
+                if df[column].dtype == 'object' or df[column].dtype.name == 'category':
+                    le = LabelEncoder()
+                    df[column] = le.fit_transform(df[column])
+
+
+            # Split data into features and target
+            X = df.drop(columns=[target_column])
+            y = df[target_column]
+
+            # Handle categorical vs. continuous targets
+            is_classification = len(y.unique()) < 20  # Example threshold for categorical data
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+            # Dictionary to store metrics for each model
+            metrics = []
+
+            # Apply selected models
+            for model_name in models:
+                if model_name == 'KNN':
+                    model = KNeighborsClassifier()
+                elif model_name == 'SVM':
+                    model = SVC()
+                elif model_name == 'Random Forest':
+                    model = RandomForestClassifier()
+                elif model_name == 'Decision Tree':
+                    model = DecisionTreeClassifier()
+                elif model_name == 'Naive Bayes':
+                    model = GaussianNB()
+                elif model_name == 'Linear Regression':
+                    model = LinearRegression()
+                elif model_name == 'Ridge Regression':
+                    model = Ridge()
+                elif model_name == 'KMeans':
+                    model = KMeans(n_clusters=3, random_state=42)
+                elif model_name == 'DBSCAN':
+                    model = DBSCAN()
+                else:
+                    continue
+
+                # Train and evaluate the model
+                if model_name in ['KNN', 'SVM', 'Random Forest', 'Decision Tree', 'Naive Bayes']:  # Classification
+                    model.fit(X_train, y_train)
+                    y_pred = model.predict(X_test)
+                    metrics.append({
+                        'model': model_name,
+                        'accuracy': accuracy_score(y_test, y_pred),
+                        'precision': precision_score(y_test, y_pred, average='weighted', zero_division=0),
+                        'recall': recall_score(y_test, y_pred, average='weighted', zero_division=0),
+                    })
+                elif model_name in ['Linear Regression', 'Ridge Regression']:  # Regression
+                    model.fit(X_train, y_train)
+                    y_pred = model.predict(X_test)
+                    metrics.append({
+                        'model': model_name,
+                        'mse': mean_squared_error(y_test, y_pred),
+                    })
+                elif model_name in ['KMeans', 'DBSCAN']:  # Clustering
+                    model.fit(X)
+                    if hasattr(model, 'labels_'):
+                        labels = model.labels_
+                        metrics.append({
+                            'model': model_name,
+                            'silhouette_score': silhouette_score(X, labels) if len(set(labels)) > 1 else 'N/A',
+                        })
+
+            return JsonResponse({'metrics': metrics})
+
+        except Dataset.DoesNotExist:
+            return JsonResponse({'error': 'Dataset not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+    
 #end modeles 
 
 

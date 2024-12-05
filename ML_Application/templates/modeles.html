@@ -1,8 +1,231 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #001f3f;
+            color: #ffffff;
+        }
+        h1, h3 {
+            color: #ffffff;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        #chart-container {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center">Machine Learning Models</h1>
+        
+        <!-- Dropdown for selecting datasets -->
+        <div class="col-md-8">
+            <label for="dataset-select" class="form-label">Sélectionner une dataset</label>
+            <select id="dataset-select" class="form-select">
+                <option value="">Choisir un dataset</option>
+                {% for dataset in datasets %}
+                    <option value="{{ dataset.id }}">{{ dataset.name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- Dropdown for selecting columns -->
+        <div class="col-md-3">
+            <label for="column-select" class="form-label">Sélectionner la Target</label>
+            <select id="column-select" class="form-select" disabled>
+                <option value="">Choisir une colonne</option>
+            </select>
+        </div>
+    </div>
+    <div class="mt-4">
+        <br>
+        <br>
+        <h1 class="text-center">Types de Modèles</h1>
+        <br>
+        <br>
+        <div class="row" style="padding-left: 150px;">
+            <div class="col-md-4">
+                <h2>Classification</h2>
+                <br>
+                <br>
+                <div>
+                    <label><input type="checkbox" name="model-type" value="SVM"> SVM</label><br>
+                    <label><input type="checkbox" name="model-type" value="KNN"> KNN</label><br>
+                    <label><input type="checkbox" name="model-type" value="Random Forest"> Random Forest</label><br>
+                    <label><input type="checkbox" name="model-type" value="Decision Tree"> Decision Tree</label><br>
+                    <label><input type="checkbox" name="model-type" value="Naive Bayes"> Naive Bayes</label><br>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h2>Regression</h2>
+                <br>
+                <br>
+                <div>
+                    <label><input type="checkbox" name="model-type" value="Linear Regression"> Linear Regression</label><br>
+                    <label><input type="checkbox" name="model-type" value="Ridge Regression"> Ridge Regression</label><br>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <h2 >Clustering</h2>
+                <br>
+                <br>
+                <div>
+                    <label><input type="checkbox" name="model-type" value="KMeans"> KMeans</label><br>
+                    <label><input type="checkbox" name="model-type" value="DBSCAN"> DBSCAN</label><br>
+                </div>
+            </div>
+        </div>
+    </div>
+    <br>
+    <br>
+    <button id="apply-models" class="btn btn-primary mt-3" style="margin-left: 500px;">Apply Selected Models</button>
+    <div id="metrics-container" class="mt-4"></div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Handle dataset selection
+        $('#dataset-select').change(function() {
+    var datasetId = $(this).val();
+    if (datasetId) {
+        // Make AJAX request to get columns for the selected dataset
+        $.ajax({
+            url: "{% url 'get_MLcolumns' %}",
+            data: { dataset_id: datasetId },
+            success: function(response) {
+                if (response.columns) {
+                    var columnSelect = $('#column-select');
+                    columnSelect.empty();
+                    columnSelect.append('<option value="">Choisir une colonne</option>');
+                    response.columns.forEach(function(col) {
+                        columnSelect.append('<option value="' + col + '">' + col + '</option>');
+                    });
+                    columnSelect.prop('disabled', false); // Enable the column dropdown
+                }
+            },
+            error: function(xhr) {
+                console.error('Error:', xhr.responseText);
+            }
+        });
+    } else {
+        // Disable and reset the column dropdown if no dataset is selected
+        $('#column-select').empty().prop('disabled', true).append('<option value="">Choisir une colonne</option>');
+    }
+});
+
+        function updateModelAccessibility(columnType) {
+    const classificationModels = $('input[name="model-type"][value="SVM"], input[name="model-type"][value="KNN"], input[name="model-type"][value="Random Forest"], input[name="model-type"][value="Decision Tree"], input[name="model-type"][value="Naive Bayes"]');
+    const regressionModels = $('input[name="model-type"][value="Linear Regression"], input[name="model-type"][value="Ridge Regression"]');
+    const clusteringModels = $('input[name="model-type"][value="KMeans"], input[name="model-type"][value="DBSCAN"]');
+
+    if (columnType === 'categorical') {
+        // Disable regression and clustering models
+        regressionModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
+        clusteringModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
+        classificationModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' }); // Enable classification models
+
+    } else if (columnType === 'continuous') {
+        // Disable classification and clustering models
+        classificationModels.prop('disabled', true).parent().css({'color' : 'grey', 'text-decoration' : 'line-through'});
+        clusteringModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
+        regressionModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' }); // Enable regression models
+    } else if (columnType === 'none') {
+        // Disable classification and regression models
+        classificationModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
+        regressionModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
+        clusteringModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' }); // Enable clustering models
+    }
+}
+
+// Handle target column selection
+$('#column-select').change(function() {
+    var selectedColumn = $(this).val();
+    var datasetId = $('#dataset-select').val(); // Ensure datasetId is included
+    if (selectedColumn) {
+        // Make AJAX request to check the column type
+        $.ajax({
+            url: "{% url 'get_MLcolumns' %}", // URL for backend view
+            data: { dataset_id: datasetId, column_name: selectedColumn }, // Pass dataset ID and column name
+            success: function(response) {
+                if (response.column_type) {
+                    // Update model accessibility based on column type
+                    updateModelAccessibility(response.column_type);
+                }
+            },
+            error: function(xhr) {
+                console.error('Error:', xhr.responseText);
+            }
+        });
+    } else {
+        // If no column is selected, treat it as "none"
+        updateModelAccessibility('none');
+    }
+});
+
+
+
+
+$('#apply-models').click(function () {
+    var selectedModels = [];
+    $('input[name="model-type"]:checked').each(function () {
+        selectedModels.push($(this).val());
+    });
+
+    var datasetId = $('#dataset-select').val();
+    var targetColumn = $('#column-select').val();
+
+    if (selectedModels.length === 0) {
+        alert('Please select at least one model.');
+        return;
+    }
+
+    if (!datasetId || !targetColumn) {
+        alert('Please select a dataset and a target column.');
+        return;
+    }
+
+    // Make AJAX request to apply selected models
+    $.ajax({
+        url: "{% url 'apply_models' %}",
+        type: 'POST',
+        data: {
+            dataset_id: datasetId,
+            target_column: targetColumn,
+            models: JSON.stringify(selectedModels), // Send models as JSON
+            csrfmiddlewaretoken: '{{ csrf_token }}', // Include CSRF token
+        },
+        success: function (response) {
+            // Display metrics for each model
+            var metricsContainer = $('#metrics-container');
+            metricsContainer.empty();
+            response.metrics.forEach(function (metric) {
+                metricsContainer.append('<h3>' + metric.model + '</h3>');
+                for (const [key, value] of Object.entries(metric)) {
+                    if (key !== 'model') {
+                        metricsContainer.append('<p>' + key.charAt(0).toUpperCase() + key.slice(1) + ': ' + value + '</p>');
+                    }
+                }
+                metricsContainer.append('<hr>');
+            });
+        },
+        error: function (xhr) {
+            console.error('Error:', xhr.responseText);
+        }
+    });
+});
+
+
+    </script>
+</body>
+</html>
 
 {% endblock %}
-
-
-
