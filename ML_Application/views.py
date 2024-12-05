@@ -78,27 +78,19 @@ def home(request):
 
 
 # upload and delete datasets
-@csrf_exempt 
+@csrf_exempt
 @login_required(login_url='/login')
 def upload(request):
     if request.method == 'POST':
-        # Retrieve the uploaded file
-        print('hi1à')
         uploaded_file = request.FILES.get('fileUpload')  # FilePond sends the file with key 'file'
-        print('value ',uploaded_file)
         if not uploaded_file:
-            print('hi1')
             return JsonResponse({'error': 'No file uploaded.'}, status=400)
 
         # Save the file to the user's directory
-        print('hi')
-        # user_folder = f"media/datasets/{request.user.username}"
         user_folder = os.path.join(settings.MEDIA_ROOT, 'datasets', request.user.username)
         os.makedirs(user_folder, exist_ok=True)  # Ensure the user's folder exists
         file_path = os.path.join(user_folder, uploaded_file.name)
 
-        
-        
         with default_storage.open(file_path, 'wb+') as destination:
             for chunk in uploaded_file.chunks():
                 destination.write(chunk)
@@ -106,11 +98,12 @@ def upload(request):
         # Save the dataset instance to the database
         dataset = Dataset.objects.create(
             name=uploaded_file.name,
-            file=file_path,
+            file=f"media/datasets/{request.user.username}/{uploaded_file.name}",
             user=request.user
         )
 
-        return JsonResponse({'message': 'File uploaded successfully!', 'fileName': uploaded_file.name})
+        # Respond with dataset details
+        return redirect('upload')
 
     # For GET request, render the upload template with datasets
     datasets = Dataset.objects.filter(user=request.user)

@@ -112,18 +112,26 @@ button:hover {
 </style>
 <br><br><br><br><br><br>
 <div class="upload-container">
-    <br><br><br>
-    <h1>Upload Your Dataset</h1>
+    <h1 style="color:#4698f0">Upload Your Dataset</h1>
     <p>Upload your CSV or Excel file to preprocess your data or apply machine learning models. Drag and drop or browse your files easily.</p>
-    <input type="file" id="fileUpload" name="fileUpload" accept=".csv, .xlsx">
+    
+    <!-- Standard Django Form -->
+    <form action="{% url 'upload' %}" method="POST" enctype="multipart/form-data">
+        
+        {% csrf_token %}
+        <!-- FilePond Input -->
+        <input type="file" id="fileUpload" name="fileUpload" accept=".csv, .xlsx" required>
+        <button type="submit" class="bg-[#1f1f9b] hover:bg-[#3535b2] text-white font-semibold py-2 px-6 rounded-lg mt-4">
+            Upload File
+        </button>
+    </form>
 </div>
-
-
+  
 <!-- Uploaded Files Table -->
 <div class="mt-10 w-full max-w-4xl mx-auto bg-[#0d2538] rounded-lg p-6 shadow-lg">
     <h2 class="text-3xl font-bold text-[#4caf50] mb-6 text-center">Your Uploaded Files</h2>
     {% if datasets %}
-    <table class="table-auto w-full bg-[#0d253c] text-left rounded-lg overflow-hidden border border-[#1c3a5a] shadow">
+    <table class="table-auto w-full bg-[#0d253c] text-left rounded-lg overflow-hidden border border-[#1c3a5a] shadow" id="datasetTable">
         <thead class="bg-[#122b45] text-white uppercase text-sm">
             <tr>
                 <th class="px-6 py-4 text-center">File Name</th>
@@ -133,23 +141,17 @@ button:hover {
         </thead>
         <tbody>
             {% for dataset in datasets %}
-            <tr class="hover:bg-[#1c3a5a] text-gray-300">
+            <tr class="hover:bg-[#1c3a5a] text-gray-300" id="dataset-{{ dataset.id }}">
                 <td class="px-6 py-4 text-center font-medium">{{ dataset.name }}</td>
                 <td class="px-6 py-4 text-center">
-                    <a 
-                        href="{{ dataset.file.url }}" 
-                        target="_blank" 
-                        class="text-blue-400 hover:text-blue-300 underline">
+                    <a href="{{ dataset.file.url }}" target="_blank" class="text-blue-400 hover:text-blue-300 underline">
                         {{ dataset.file.url }}
                     </a>
                 </td>
                 <td class="px-6 py-4 text-center">
-                    <form action="{% url 'delete_dataset' dataset.id %}" method="post" class="inline">
+                    <form action="{% url 'delete_dataset' dataset.id %}" method="POST" class="inline">
                         {% csrf_token %}
-                        <button 
-                            type="submit" 
-                            class="bg-[#1f1f9b] hover:bg-[#3535b2] text-white font-semibold py-2 px-6 rounded-lg transition duration-300 ease-in-out"
-                            onclick="return confirm('Are you sure you want to delete this file?');">
+                        <button type="submit" class="bg-[#1f1f9b] hover:bg-[#3535b2] text-white font-semibold py-2 px-6 rounded-lg transition duration-300 ease-in-out">
                             Delete
                         </button>
                     </form>
@@ -162,34 +164,5 @@ button:hover {
     <p class="text-gray-400 text-center mt-4">No files uploaded yet. Start uploading to view them here!</p>
     {% endif %}
 </div>
-
-
-
-
-<script src="https://unpkg.com/filepond/dist/filepond.js"></script>
-<script>
-    // Turn input element into a FilePond instance
-    const inputElement = document.querySelector('#fileUpload');
-    const pond = FilePond.create(inputElement);
-
-    // Configure FilePond
-    FilePond.setOptions({
-        allowMultiple: false,
-        acceptedFileTypes: ['text/csv', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'],
-        labelIdle: 'Drag & Drop your file or <span class="filepond--label-action">Browse</span>',
-        labelFileTypeNotAllowed: 'Only CSV or Excel files are allowed.',
-    });
-
-    // Optional: Handle file upload (backend integration)
-    FilePond.setOptions({
-        server: {
-            process: '/upload', // API endpoint to handle file upload
-            revert: null, // Handle revert if needed
-        },
-    });
-    
-</script>
-
-
 
 {% endblock %}
