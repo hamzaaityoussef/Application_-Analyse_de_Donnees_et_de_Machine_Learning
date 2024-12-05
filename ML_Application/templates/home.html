@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AI Tool Landing Page</title>
+  <title>AI Tool - Home</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-900 text-white">
@@ -16,18 +16,9 @@
       </div>
       <span class="text-xl font-bold">AI Tool</span>
     </div>
-    <!-- Menu -->
-    <nav class="hidden md:flex items-center space-x-8">
-      <a href="#" class="text-gray-300 hover:text-white">Home</a>
-      <a href="#" class="text-gray-300 hover:text-white">Features</a>
-      <a href="#" class="text-gray-300 hover:text-white">Pricing</a>
-      <a href="#" class="text-gray-300 hover:text-white">Pages</a>
-      <a href="#" class="text-gray-300 hover:text-white">Support</a>
-    </nav>
     <!-- Auth Buttons -->
     <div class="hidden md:flex items-center space-x-4">
-      <a href="#" class="text-gray-300 hover:text-white">Sign in</a>
-      <a href="#" class="px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-500 text-white">Sign up</a>
+      <a href="{% url 'login' %}" class="px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-500 text-white">Sign in</a>
     </div>
     <!-- Mobile Menu Icon -->
     <div class="md:hidden flex items-center">
@@ -37,15 +28,75 @@
 
   <!-- Hero Section -->
   <section class="container mx-auto text-center py-20 px-4 lg:px-8">
-    <div class="mb-6">
-      <span class="px-4 py-1 text-sm bg-purple-600 rounded-full">Your Ultimate AI Tool Companion!</span>
-    </div>
-    <h1 class="text-4xl lg:text-6xl font-bold mb-4">Tailwind CSS Template for AI Tools and Startups</h1>
+    <h1 class="text-4xl lg:text-6xl font-bold mb-4">Welcome to AI Tool</h1>
     <p class="text-gray-300 mb-8 max-w-2xl mx-auto">
-      Highly customizable Tailwind CSS template for AI – Tool, Startup, Software, App and Product Sites.
-      Comes with everything you need—pages, features, sections, components, and more that you can easily customize.
+      A comprehensive platform to practice programming and machine learning with an intuitive interface, advanced algorithms, and powerful visualization tools.
     </p>
-    <a href="#" class="px-8 py-4 bg-purple-600 rounded-lg text-white hover:bg-purple-500">Start Your Free Trial</a>
+    <a href="#" class="px-8 py-4 bg-purple-600 rounded-lg text-white hover:bg-purple-500">Explore Features</a>
   </section>
+
+  <!-- Project Description -->
+  <!-- <section class="container mx-auto py-16 px-4 lg:px-8">
+    <h2 class="text-3xl font-bold mb-6 text-center">Description du Projet</h2>
+    <p class="text-gray-300 leading-relaxed">
+      Le projet à réaliser vise à fournir aux étudiants une expérience pratique dans le domaine de la programmation
+      et de l'apprentissage automatique en développant une application informatique polyvalente utilisant le
+      langage de programmation Python. Cette application consiste à analyser un ensemble de données qualitatives ou quantitatives en implémentant
+      certains algorithmes de Machine Learning tels que la régression linéaire, les arbres de décision, le naïf bayésien, SVM,
+      Random forest, K-means, et bien plus.
+    </p>
+  </section> -->
+
+  <!-- Key Functionalities -->
+  <section class="container mx-auto py-16 px-4 lg:px-8">
+    <h2 class="text-3xl font-bold mb-6 text-center">Key Features</h2>
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-center">
+      
+      <!-- Feature 1 -->
+      <div class="bg-gray-800 p-6 rounded-lg">
+        <img src="../../../static/app/assets/img/import.png" alt="Data Upload" class="w-20 mx-auto mb-4">
+        <h3 class="font-bold text-lg mb-2">Upload and Save Data</h3>
+        <p class="text-gray-300 text-sm">Easily upload your datasets and save them for future use.</p>
+      </div>
+      
+      <!-- Feature 2 -->
+      <div class="bg-gray-800 p-6 rounded-lg">
+        <img src="../../../static/app/assets/img/viz.png" alt="Data Visualization" class="w-20 mx-auto mb-4">
+        <h3 class="font-bold text-lg mb-2">Data Visualization</h3>
+        <p class="text-gray-300 text-sm">Generate clear visualizations to quickly analyze your data.</p>
+      </div>
+      
+      <!-- Feature 3 -->
+      <div class="bg-gray-800 p-6 rounded-lg">
+        <img src="../../../static/app/assets/img/process.png" alt="Data Preprocessing" class="w-20 mx-auto mb-4">
+        <h3 class="font-bold text-lg mb-2">Data Preprocessing</h3>
+        <p class="text-gray-300 text-sm">Clean and encode your data to prepare it for analysis.</p>
+      </div>
+      
+      <!-- Feature 4 -->
+      <div class="bg-gray-800 p-6 rounded-lg">
+        <img src="../../../static/app/assets/img/ML2.png" alt="Machine Learning Models" class="w-20 mx-auto mb-4">
+        <h3 class="font-bold text-lg mb-2">Apply Machine Learning Models</h3>
+        <p class="text-gray-300 text-sm">Leverage advanced algorithms, including deep learning, to train your models.</p>
+      </div>
+      
+      <!-- Feature 5 -->
+      <div class="bg-gray-800 p-6 rounded-lg">
+        <img src="../../../static/app/assets/img/predict.png" alt="Predict New Data" class="w-20 mx-auto mb-4">
+        <h3 class="font-bold text-lg mb-2">Predict on New Data</h3>
+        <p class="text-gray-300 text-sm">Generate accurate predictions using your trained models.</p>
+      </div>
+      
+      <!-- Feature 6 -->
+      <div class="bg-gray-800 p-6 rounded-lg">
+        <img src="../../../static/app/assets/img/export.png" alt="Export Cleaned Data" class="w-20 mx-auto mb-4" >
+        <h3 class="font-bold text-lg mb-2">Export Cleaned Data</h3>
+        <p class="text-gray-300 text-sm">Download your preprocessed data, ready for use in other tools or projects.</p>
+      </div>
+  
+    </div>
+  </section>
+  
+  
 </body>
 </html>
