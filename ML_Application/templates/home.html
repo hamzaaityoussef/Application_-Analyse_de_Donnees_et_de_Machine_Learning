@@ -1,83 +1,51 @@
-<!-- home.html -->
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Page d'Accueil - Projet</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Tool Landing Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body style="background-color:  #05172a; color: aliceblue">
-    <a style="margin: 0px 0 0 1130px;" href=" {%url 'logout' %}">Sign in</a>
-    <div class="container mt-5"  >
-        
-        <h1 class="text-center">Bienvenue sur notre Projet</h1>
-        
-        <div class="mt-4">
-            <h3>Introduction au Projet</h3>
-            <p>
-                Ce projet est conçu pour aider à [décrire ce que fait le projet]. Il a pour objectif de [mentionner l’objectif ou les buts du projet].
-                Grâce à cette plateforme, les utilisateurs pourront [donner des exemples d’utilisation ou de fonctionnalités].
-            </p>
-
-            <!-- Fonctionnalité 1: Gestion des utilisateurs -->
-            <div class="mt-5">
-                <h4>Gestion des utilisateurs</h4>
-                <p>
-                    Cette fonctionnalité permet de gérer les utilisateurs de la plateforme. Elle inclut l'enregistrement des utilisateurs, la gestion des rôles et des permissions, ainsi que la gestion des sessions et des connexions.
-                    Les utilisateurs peuvent se créer un compte, se connecter à leur profil, et accéder à des fonctionnalités spécifiques en fonction de leurs droits d'accès.
-                </p>
-            </div>
-
-            <!-- Fonctionnalité 2: Analyse des données -->
-            <div class="mt-5">
-                <h4>Analyse des données</h4>
-                <p>
-                    Cette fonctionnalité permet d'analyser des jeux de données en profondeur. Les utilisateurs peuvent télécharger des fichiers CSV ou Excel et effectuer des analyses statistiques avancées.
-                    Des visualisations interactives comme des graphiques, des histogrammes et des diagrammes en nuage de points sont disponibles pour aider à interpréter les données.
-                </p>
-            </div>
-
-            <!-- Fonctionnalité 3: Prédiction avec apprentissage automatique -->
-            <div class="mt-5">
-                <h4>Prédiction avec apprentissage automatique</h4>
-                <p>
-                    Cette fonctionnalité permet d'appliquer des modèles de machine learning pour effectuer des prédictions sur les données disponibles. Les utilisateurs peuvent choisir des algorithmes, entraîner les modèles et obtenir des prédictions basées sur des entrées spécifiques.
-                    Cela permet aux utilisateurs de prévoir des résultats en fonction des tendances observées dans les données historiques.
-                </p>
-            </div>
-
-            <!-- Fonctionnalité 4: Visualisation avancée -->
-            <div class="mt-5">
-                <h4>Visualisation avancée</h4>
-                <p>
-                    Cette fonctionnalité permet de visualiser les données de manière interactive grâce à des graphiques dynamiques. L'utilisateur peut personnaliser les graphiques pour mieux comprendre les relations entre les différentes variables.
-                    Des options telles que des diagrammes en boîte, des courbes de régression et des graphiques de dispersion sont disponibles pour l'analyse visuelle des données.
-                </p>
-            </div>
-
-            <!-- Fonctionnalité 5: Téléchargement et exportation des résultats -->
-            <div class="mt-5">
-                <h4>Téléchargement et exportation des résultats</h4>
-                <p>
-                    Une fois les analyses effectuées, cette fonctionnalité permet aux utilisateurs de télécharger les résultats sous différents formats (CSV, Excel, PDF) pour les utiliser dans d'autres outils ou les partager avec des collègues.
-                    Cela facilite la distribution des résultats dans un format facilement exploitable.
-                </p>
-            </div>
-
-            <!-- Conclusion -->
-            <div class="mt-5">
-                <h4>Conclusion</h4>
-                <p>
-                    Ce projet vise à offrir une solution complète et flexible pour l'analyse et la gestion des données, tout en étant accessible aux utilisateurs grâce à une interface conviviale.
-                    Nous espérons que vous trouverez cet outil utile pour vos projets et vos analyses de données.
-                </p>
-            </div>
-        </div>
+<body class="bg-gray-900 text-white">
+  <!-- Navigation Bar -->
+  <header class="container mx-auto flex justify-between items-center py-6 px-4 lg:px-8">
+    <!-- Logo -->
+    <div class="flex items-center space-x-2">
+      <div class="rounded-full bg-purple-600 w-8 h-8 flex items-center justify-center">
+        <span class="text-xl font-bold text-white">⚙</span>
+      </div>
+      <span class="text-xl font-bold">AI Tool</span>
     </div>
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/js/bootstrap.bundle.min.js"></script>
+    <!-- Menu -->
+    <nav class="hidden md:flex items-center space-x-8">
+      <a href="#" class="text-gray-300 hover:text-white">Home</a>
+      <a href="#" class="text-gray-300 hover:text-white">Features</a>
+      <a href="#" class="text-gray-300 hover:text-white">Pricing</a>
+      <a href="#" class="text-gray-300 hover:text-white">Pages</a>
+      <a href="#" class="text-gray-300 hover:text-white">Support</a>
+    </nav>
+    <!-- Auth Buttons -->
+    <div class="hidden md:flex items-center space-x-4">
+      <a href="#" class="text-gray-300 hover:text-white">Sign in</a>
+      <a href="#" class="px-4 py-2 bg-purple-600 rounded-lg hover:bg-purple-500 text-white">Sign up</a>
+    </div>
+    <!-- Mobile Menu Icon -->
+    <div class="md:hidden flex items-center">
+      <button class="text-gray-300 focus:outline-none">☰</button>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="container mx-auto text-center py-20 px-4 lg:px-8">
+    <div class="mb-6">
+      <span class="px-4 py-1 text-sm bg-purple-600 rounded-full">Your Ultimate AI Tool Companion!</span>
+    </div>
+    <h1 class="text-4xl lg:text-6xl font-bold mb-4">Tailwind CSS Template for AI Tools and Startups</h1>
+    <p class="text-gray-300 mb-8 max-w-2xl mx-auto">
+      Highly customizable Tailwind CSS template for AI – Tool, Startup, Software, App and Product Sites.
+      Comes with everything you need—pages, features, sections, components, and more that you can easily customize.
+    </p>
+    <a href="#" class="px-8 py-4 bg-purple-600 rounded-lg text-white hover:bg-purple-500">Start Your Free Trial</a>
+  </section>
 </body>
 </html>
-
-
