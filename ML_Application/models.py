@@ -67,13 +67,13 @@ class DatasetCopy(models.Model):
     status_encoded = models.BooleanField(default=False)
     copied = models.BooleanField(default=False)
 
-    def save(self, *args, **kwargs):
-        if not self.name and self.original_dataset:
-            base_name, extension = self.original_dataset.name.rsplit('.', 1)
-            self.name = f"{base_name}_copy.{extension}"  
-        if not self.user and self.original_dataset:
-            self.user = self.original_dataset.user  # Inherit user from original dataset 
-        super().save(*args, **kwargs)
+    # def save(self, *args, **kwargs):
+    #     if not self.name and self.original_dataset:
+    #         base_name, extension = self.original_dataset.name.rsplit('.', 1)
+    #         self.name = f"{base_name}_copy.{extension}"  
+    #     if not self.user and self.original_dataset:
+    #         self.user = self.original_dataset.user  # Inherit user from original dataset 
+    #     super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.name} (Copy of {self.original_dataset.name})"

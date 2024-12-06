@@ -113,12 +113,33 @@ def upload(request):
             user=request.user
         )
 
+        # Create a copy of the dataset
+        # Generate the copied file name
+        base_name, extension = uploaded_file.name.rsplit('.', 1)
+        copy_name = f"{base_name}_copy.{extension}"
+        copy_file_path = os.path.join(user_folder, copy_name)
+
+        # Save the copied file
+        with default_storage.open(copy_file_path, 'wb+') as copy_destination:
+            for chunk in uploaded_file.chunks():
+                copy_destination.write(chunk)
+
+        # Save the dataset copy instance to the database
+        DatasetCopy.objects.create(
+            original_dataset=dataset,
+            name=copy_name,
+            file=f"datasets/{request.user.username}/{copy_name}",
+            user=request.user
+        )
+
         # Respond with dataset details
         return redirect('upload')
 
     # For GET request, render the upload template with datasets
     datasets = Dataset.objects.filter(user=request.user)
     return render(request, 'upload.html', {'datasets': datasets})
+
+
 
 @login_required
 def delete_dataset(request, dataset_id):
