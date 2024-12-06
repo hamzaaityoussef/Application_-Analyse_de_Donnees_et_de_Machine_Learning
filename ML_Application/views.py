@@ -169,7 +169,7 @@ from sklearn.feature_selection import SelectKBest, f_classif
 from sklearn.impute import SimpleImputer
 
 def Preprocess(request):
-    user_datasets = Dataset.objects.filter(user=request.user) 
+    user_datasets = DatasetCopy.objects.filter(user=request.user) 
 
     selected_dataset_id = request.GET.get('dataset_id')  # From dropdown selection
     # Read the dataset into a pandas DataFrame
@@ -180,7 +180,7 @@ def Preprocess(request):
         if file_path.endswith('.csv'):
             df = pd.read_csv(file_path)
         elif file_path.endswith('.xlsx'):
-            df = pd.read_excel(file_path)
+            df = pd.read_excel(file_path, engine='openpyxl')
 
         # Compute dataset statistics
         row_count = df.shape[0]
@@ -195,17 +195,46 @@ def Preprocess(request):
                 action = request.POST.get('action')
                 if action == 'delete':
                     df = df.dropna()
+                elif action == 'duplicated':
+                    df = df.drop_duplicates()
                 elif action == 'fill':
                     fill_method = request.POST.get('fill_method')
                     if fill_method == 'mean':
-                        imputer = SimpleImputer(strategy='mean')
-                        df = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
+                        # Handle numeric columns: Replace missing values with the mean
+                        numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
+                        non_numeric_columns = df.select_dtypes(exclude=['float64', 'int64']).columns
+                        
+                        if not numeric_columns.empty:
+                            imputer_numeric = SimpleImputer(strategy='mean')
+                            df_numeric = pd.DataFrame(imputer_numeric.fit_transform(df[numeric_columns]), columns=numeric_columns)
+                        else:
+                            df_numeric = pd.DataFrame()  # Empty if no numeric columns
+                        
+                        # Handle categorical columns: Replace missing values with the most frequent value
+                        if not non_numeric_columns.empty:
+                            imputer_categorical = SimpleImputer(strategy='most_frequent')
+                            df_categorical = pd.DataFrame(imputer_categorical.fit_transform(df[non_numeric_columns]), columns=non_numeric_columns)
+                        else:
+                            df_categorical = pd.DataFrame()  # Empty if no non-numeric columns
+                        
+                        # Combine numeric and categorical data
+                        df = pd.concat([df_numeric, df_categorical], axis=1)
+
+
                     elif fill_method == 'next':
                         df.fillna(method='ffill', inplace=True)
                     elif fill_method == 'most_frequent':
                         imputer = SimpleImputer(strategy='most_frequent')
                         df = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
-                df.to_csv(dataset.file.path, index=False)
+                if file_path.endswith('.csv'):
+                    df.to_csv(file_path, index=False)
+                elif file_path.endswith('.xlsx'):
+                    # Save back to Excel format
+                    with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+                        df.to_excel(writer, index=False, sheet_name='Sheet1')
+                else:
+                    raise ValueError("Unsupported file format. Please upload a .csv or .xlsx file.")
+
 
             if 'transform_data' in request.POST:
                 transform_type = request.POST.get('transform_type')
@@ -220,7 +249,15 @@ def Preprocess(request):
                     selector = SelectKBest(f_classif, k='all')
                     target_column = 'target'  # Update as per your dataset
                     df = pd.DataFrame(selector.fit_transform(df, df[target_column]), columns=selector.get_feature_names_out())
-                df.to_csv(dataset.file.path, index=False)
+                if file_path.endswith('.csv'):
+                    df.to_csv(file_path, index=False)
+                elif file_path.endswith('.xlsx'):
+                    # Save back to Excel format
+                    with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+                        df.to_excel(writer, index=False, sheet_name='Sheet1')
+                else:
+                    raise ValueError("Unsupported file format. Please upload a .csv or .xlsx file.")
+
 
         return render(request, 'preprocess.html', {
             'head': head,

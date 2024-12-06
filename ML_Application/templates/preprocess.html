@@ -29,30 +29,41 @@
     <div class="container mt-4">
         <h1 class="text-center">Data Preprocessing</h1>
         <br>
-        <!-- first 10 rows  -->
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class=" p-1 text-white" style="width: 500px;"><br>
-                    <h3 class="text-center">First 10 Rows</h3><br>
-                    <div class="table-container">
-                        <!-- Display the first 10 rows here -->
-                        {{ head|safe }}
-                    </div>
-                </div>
-            </div>
+        <!-- Dataset Selection -->
+    <div class="mb-4">
+        <label for="dataset-select" class="form-label">Select a Dataset</label>
+        <form method="GET" action="{% url 'Preprocess' %}">                                            
+            <select id="dataset-select" name="dataset_id" class="form-select" onchange="this.form.submit()">
+                <option value="">-- Select a Dataset --</option>
+                {% for dataset in datasets %}
+                    <option value="{{ dataset.id }}" {% if dataset.id == selected_dataset_id|default:'' %}selected{% endif %}>
+                        {{ dataset.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
 
-            <div class="col-md-4 mb-4"  style="margin-left: 100px;">
-                <div class="m-5 text-white">
-                    <h3 class="text-center">Statistics</h3><br>
-                    <ul>
-                        <li><strong>Number of Rows:</strong> {{ row_count }}</li>
-                        <li><strong>Number of Features:</strong> {{ feature_count }}</li>
-                        <li><strong>Missing Values:</strong> {{ missing_values }}</li>
-                        <li><strong>Duplicate Rows:</strong> {{ duplicate_rows }}</li>
-                    </ul>
-                </div>
+    {% if selected_dataset_id %}
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <h3>First 10 Rows</h3>
+            <div class="table-container">
+                {{ head|safe }}
             </div>
         </div>
+
+        <div class="col-md-6 mb-4">
+            <h3>Statistics</h3>
+            <ul>
+                <li><strong>Number of Rows:</strong> {{ row_count }}</li>
+                <li><strong>Number of Features:</strong> {{ feature_count }}</li>
+                <li><strong>Missing Values:</strong> {{ missing_values }}</li>
+                <li><strong>Duplicate Rows:</strong> {{ duplicate_rows }}</li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
 
         <!-- Data Cleaning Modal -->
         <div id="data-cleaning-modal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
@@ -64,8 +75,10 @@
                     <div class="mb-3">
                         <label for="action" class="block" style="color: black;">Choose Action</label>
                         <select id="action" name="action" class="form-select">
+                            <option value="" >Choose option</option>
+                            <option value="fill" >Fill Nulls</option>
                             <option value="delete">Delete Nulls</option>
-                            <option value="fill">Fill Nulls</option>
+                            <option value="duplicated">Delete duplicated</option>
                         </select>
                     </div>
 
