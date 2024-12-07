@@ -23,7 +23,8 @@ urlpatterns = [
     path('delete/<int:dataset_id>/', views.delete_dataset, name='delete_dataset'),
 
 
-    path('Preprocess/', views.Preprocess, name='Preprocess'),
+    path('preprocess/', views.preprocess, name='preprocess'),
+    path('apply_action/', views.apply_actions, name='apply_actions'),
 
 
     path('visualisation/', views.visualisation, name='visualisation'),

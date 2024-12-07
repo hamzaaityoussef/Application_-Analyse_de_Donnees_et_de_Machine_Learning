@@ -32,7 +32,7 @@
         <!-- Dataset Selection -->
     <div class="mb-4">
         <label for="dataset-select" class="form-label">Select a Dataset</label>
-        <form method="GET" action="{% url 'Preprocess' %}">                                            
+        <form method="GET" action="{% url 'preprocess' %}">                                            
             <select id="dataset-select" name="dataset_id" class="form-select" onchange="this.form.submit()">
                 <option value="">-- Select a Dataset --</option>
                 {% for dataset in datasets %}
@@ -56,22 +56,26 @@
         <div class="col-md-6 mb-4">
             <h3>Statistics</h3>
             <ul>
-                <li><strong>Number of Rows:</strong> {{ row_count }}</li>
-                <li><strong>Number of Features:</strong> {{ feature_count }}</li>
-                <li><strong>Missing Values:</strong> {{ missing_values }}</li>
-                <li><strong>Duplicate Rows:</strong> {{ duplicate_rows }}</li>
+                <li><strong>Number of Rows:</strong> <span id="row-count">{{ row_count }}</span></li>
+                <li><strong>Number of Features:</strong> <span id="feature-count">{{ feature_count }}</span></li>
+                <li><strong>Missing Values:</strong> <pre id="missing-values">{{ missing_values }}</pre></li>
+                <li><strong>Duplicate Rows:</strong> <span id="duplicate-rows">{{ duplicate_rows }}</span></li>
+                <li><strong>Data Types:</strong> <pre id="data-types">{{ data_types }}</pre></li>
             </ul>
         </div>
     </div>
     {% endif %}
 
         <!-- Data Cleaning Modal -->
-        <div id="data-cleaning-modal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
-            <div class="relative w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+        <div id="data-cleaning-modal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50"    >
+
+            <div class="relative w-full max-w-md bg-white rounded-lg shadow-lg p-6" id="actionModal">
                 <h3 class="text-center text-lg font-semibold" style="color: black;">Data Cleaning</h3>
-                <form method="POST">
+                <form  id="data-cleaning-form" action="{% url 'apply_actions' %}" method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="clean_data" value="true">
+                    <input type="hidden" id="dataset-id" name="dataset_id" value="{{ selected_dataset_id }}">
+
                     <div class="mb-3">
                         <label for="action" class="block" style="color: black;">Choose Action</label>
                         <select id="action" name="action" class="form-select">
@@ -91,7 +95,7 @@
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-full">Apply</button>
+                    <button type="submit" class="btn btn-primary w-full" id="action-trigger">Apply</button>
                 </form>
                 <button data-modal-toggle="data-cleaning-modal" class="btn btn-secondary w-full mt-3">Close</button>
             </div>
@@ -139,11 +143,18 @@
     <script>
         // Show modal when button is clicked
         document.querySelectorAll('[data-modal-toggle]').forEach(button => {
-            button.addEventListener('click', () => {
-                const modalId = button.getAttribute('data-modal-toggle');
-                document.getElementById(modalId).classList.toggle('hidden');
-            });
+        button.addEventListener('click', () => {
+            const modalId = button.getAttribute('data-modal-toggle');
+            const modal = document.getElementById(modalId);
+            
+            // Check if modal is currently hidden or visible, then toggle accordingly
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden'); // Show modal
+            } else {
+                modal.classList.add('hidden'); // Hide modal
+            }
         });
+    });
 
         // Show fill method select if "Fill Nulls" is selected
         document.getElementById('action').addEventListener('change', function() {
@@ -154,6 +165,58 @@
             }
         });
     </script>
+
+
+<script>
+$('#action-trigger').on('click', function (event) {
+    event.preventDefault(); // Prevent form submission
+
+    // Extract the action, dataset ID, and fill method
+    const action = $('#action').val();
+    const datasetId = $('#dataset-id').val();
+    const fillMethod = $('#fill-method').val();
+
+    // Prepare request data
+    let requestData = {
+        action: action,
+        dataset_id: datasetId,
+        csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
+    };
+
+    if (action === 'fill') {
+        requestData.fill_method = fillMethod;
+    }
+
+    // Send AJAX request
+    $.ajax({
+        url: '/apply_action/', // Ensure this matches the route in urls.py
+        method: 'POST',
+        data: requestData,
+        success: function (response) {
+            // Update HTML content dynamically
+            $('#table-preview').html(response.head);
+            $('#row-count').text(response.row_count);
+            $('#feature-count').text(response.feature_count);
+            $('#missing-values').text(JSON.stringify(response.missing_values));
+            $('#duplicate-rows').text(response.duplicate_rows);
+            $('#data-types').text(JSON.stringify(response.data_types));
+
+            
+
+            // Hide the dataset dropdown after applying the action
+            $('#data-cleaning-modal').addClass('hidden'); // Hides the entire div containing the dropdown
+            
+        },
+        error: function (xhr) {
+            alert('Error: ' + xhr.responseJSON.error);
+        },
+    });
+});
+
+
+
+
+</script>
 </body>
 </html>
 {% endblock %}
