@@ -252,7 +252,25 @@ def apply_actions(request):
     elif action == 'fill':
         fill_method = request.POST.get('fill_method')
         if fill_method == 'mean':
-            df.fillna(df.mean(), inplace=True)
+            # Handle numeric columns: Replace missing values with the mean
+            numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
+            non_numeric_columns = df.select_dtypes(exclude=['float64', 'int64']).columns
+            
+            if not numeric_columns.empty:
+                imputer_numeric = SimpleImputer(strategy='mean')
+                df_numeric = pd.DataFrame(imputer_numeric.fit_transform(df[numeric_columns]), columns=numeric_columns)
+            else:
+                df_numeric = pd.DataFrame()  # Empty if no numeric columns
+            
+            # Handle categorical columns: Replace missing values with the most frequent value
+            if not non_numeric_columns.empty:
+                imputer_categorical = SimpleImputer(strategy='most_frequent')
+                df_categorical = pd.DataFrame(imputer_categorical.fit_transform(df[non_numeric_columns]), columns=non_numeric_columns)
+            else:
+                df_categorical = pd.DataFrame()  # Empty if no non-numeric columns
+            
+            # Combine numeric and categorical data
+            df = pd.concat([df_numeric, df_categorical], axis=1)
         elif fill_method == 'most_frequent':
             df.fillna(df.mode().iloc[0], inplace=True)
         elif fill_method == 'next':

@@ -89,6 +89,7 @@
                     <div id="fill-method-container" class="mb-3 hidden">
                         <label for="fill-method" class="block" style="color: black;">Fill Method</label>
                         <select id="fill-method" name="fill_method" class="form-select">
+                            <option value="">Choose option</option>
                             <option value="mean">Fill with Mean</option>
                             <option value="next">Fill with Next Value</option>
                             <option value="most_frequent">Fill with Most Frequent</option>
@@ -194,7 +195,7 @@ $('#action-trigger').on('click', function (event) {
         data: requestData,
         success: function (response) {
             // Update HTML content dynamically
-            $('#table-preview').html(response.head);
+            $('.table-container').html(response.head);
             $('#row-count').text(response.row_count);
             $('#feature-count').text(response.feature_count);
             $('#missing-values').text(JSON.stringify(response.missing_values));
