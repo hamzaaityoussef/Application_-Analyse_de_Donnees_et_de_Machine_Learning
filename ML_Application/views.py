@@ -228,6 +228,8 @@ def apply_actions(request):
     dataset_id = request.POST.get('dataset_id')  # Use POST data instead of GET
     if not dataset_id:
         return JsonResponse({'error': 'No dataset selected'}, status=400)
+    print(request.POST)
+
 
     # Fetch the dataset object
     user_datasets = DatasetCopy.objects.filter(user=request.user)
@@ -244,53 +246,75 @@ def apply_actions(request):
         df = pd.read_excel(file_path, engine='openpyxl')
 
     # Handle actions
-    action = request.POST.get('action')
-    if action == 'delete':
-        df = df.dropna()
-    elif action == 'duplicated':
-        df = df.drop_duplicates()
-    elif action == 'fill':
-        fill_method = request.POST.get('fill_method')
-        if fill_method == 'mean':
-            # Handle numeric columns: Replace missing values with the mean
+    if 'clean_data' in request.POST:
+        action = request.POST.get('action')
+        if action == 'delete':
+            print("Deleting missing values")
+            df = df.dropna()
+            print(df.isnull().sum())  # Check for remaining missing values
+        elif action == 'duplicated':
+            df = df.drop_duplicates()
+        elif action == 'fill':
+            fill_method = request.POST.get('fill_method')
+            if fill_method == 'mean':
+                # Handle numeric columns: Replace missing values with the mean
+                numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
+                non_numeric_columns = df.select_dtypes(exclude=['float64', 'int64']).columns
+                
+                if not numeric_columns.empty:
+                    imputer_numeric = SimpleImputer(strategy='mean')
+                    df_numeric = pd.DataFrame(imputer_numeric.fit_transform(df[numeric_columns]), columns=numeric_columns)
+                else:
+                    df_numeric = pd.DataFrame()  # Empty if no numeric columns
+                
+                # Handle categorical columns: Replace missing values with the most frequent value
+                if not non_numeric_columns.empty:
+                    imputer_categorical = SimpleImputer(strategy='most_frequent')
+                    df_categorical = pd.DataFrame(imputer_categorical.fit_transform(df[non_numeric_columns]), columns=non_numeric_columns)
+                else:
+                    df_categorical = pd.DataFrame()  # Empty if no non-numeric columns
+                
+                # Combine numeric and categorical data
+                df = pd.concat([df_numeric, df_categorical], axis=1)
+            elif fill_method == 'most_frequent':
+                df.fillna(df.mode().iloc[0], inplace=True)
+            elif fill_method == 'next':
+                df.fillna(method='ffill', inplace=True)
+
+        # Save the updated dataset back to file
+        if file_path.endswith('.csv'):
+            df.to_csv(file_path, index=False)
+        elif file_path.endswith('.xlsx'):
+            with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False)
+    if 'transform_data' in request.POST:
+            transform_type = request.POST.get('transform_type')
             numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
-            non_numeric_columns = df.select_dtypes(exclude=['float64', 'int64']).columns
-            
-            if not numeric_columns.empty:
-                imputer_numeric = SimpleImputer(strategy='mean')
-                df_numeric = pd.DataFrame(imputer_numeric.fit_transform(df[numeric_columns]), columns=numeric_columns)
-            else:
-                df_numeric = pd.DataFrame()  # Empty if no numeric columns
-            
-            # Handle categorical columns: Replace missing values with the most frequent value
-            if not non_numeric_columns.empty:
-                imputer_categorical = SimpleImputer(strategy='most_frequent')
-                df_categorical = pd.DataFrame(imputer_categorical.fit_transform(df[non_numeric_columns]), columns=non_numeric_columns)
-            else:
-                df_categorical = pd.DataFrame()  # Empty if no non-numeric columns
-            
-            # Combine numeric and categorical data
-            df = pd.concat([df_numeric, df_categorical], axis=1)
-        elif fill_method == 'most_frequent':
-            df.fillna(df.mode().iloc[0], inplace=True)
-        elif fill_method == 'next':
-            df.fillna(method='ffill', inplace=True)
+            if transform_type == 'normalize':
+                scaler = MinMaxScaler() 
+                df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
+            elif transform_type == 'standardize':
+                scaler = StandardScaler()
+                df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
+            # if 'feature_selection' in request.POST:
+            #     selector = SelectKBest(f_classif, k='all')
+            #     target_column = 'target'  
+            #     df = pd.DataFrame(selector.fit_transform(df, df[target_column]), columns=selector.get_feature_names_out())
 
-    # Save the updated dataset back to file
-    if file_path.endswith('.csv'):
-        df.to_csv(file_path, index=False)
-    elif file_path.endswith('.xlsx'):
-        with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False)
+            # Save the updated dataset back to file
+            if file_path.endswith('.csv'):
+                df.to_csv(file_path, index=False)
+            elif file_path.endswith('.xlsx'):
+                with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+                    df.to_excel(writer, index=False)
 
     # Compute updated statistics
-    # Compute updated statistics
-            head = df.head(10).to_html(classes="table table-light")
-            row_count = int(df.shape[0])  # Ensure it is a native Python int
-            feature_count = int(df.shape[1])  # Ensure it is a native Python int
-            missing_values = {key: int(value) for key, value in df.isnull().sum().to_dict().items()}  # Convert values to int
-            duplicate_rows = int(df.duplicated().sum())  # Ensure it is a native Python int
-            data_types = {key: str(value) for key, value in df.dtypes.to_dict().items()}  # Convert to string
+    head = df.head(10).to_html(classes="table table-light")
+    row_count = int(df.shape[0])  # Ensure it is a native Python int
+    feature_count = int(df.shape[1])  # Ensure it is a native Python int
+    missing_values = {key: int(value) for key, value in df.isnull().sum().to_dict().items()}  # Convert values to int
+    duplicate_rows = int(df.duplicated().sum())  # Ensure it is a native Python int
+    data_types = {key: str(value) for key, value in df.dtypes.to_dict().items()}  # Convert to string
 
     # Return JSON response
     return JsonResponse({
