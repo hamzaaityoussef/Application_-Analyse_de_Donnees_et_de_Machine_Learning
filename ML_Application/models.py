@@ -39,22 +39,49 @@ class User(AbstractUser):
 
 # Dataset model
 class Dataset(models.Model):
-    name = models.CharField(max_length=255)  # Nom du dataset
-    file = models.FileField(upload_to=generate_unique_filename)  # Sauvegarde du fichier dans un chemin unique
-    date_import = models.DateTimeField(auto_now_add=True)  # Date d'importation (automatique)
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='datasets')  # FK vers User
+    name = models.CharField(max_length=255) 
+    file = models.FileField(upload_to=generate_unique_filename)  
+    date_import = models.DateTimeField(auto_now_add=True)  
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='datasets')  
 
-    status_normalized = models.BooleanField(default=False)  # Status de normalisation
-    status_standarized = models.BooleanField(default=False)  # Status de standardisation
-    status_cleaned = models.BooleanField(default=False)  # Status de nettoyage
-    status_encoded = models.BooleanField(default=False)  # Status d'encodage
-    copied = models.BooleanField(default=False)  # Indicateur de copie
-
-    def _str_(self):
+    def __str__(self):
         return self.name
 
     class Meta:
-        db_table = 'Dataset'  # Définit le nom de la table
+        db_table = 'Dataset'  
+
+
+
+
+class DatasetCopy(models.Model):
+    original_dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name='copies')  
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='dataset_copies', null=True, blank=True)  
+    name = models.CharField(max_length=255)  
+    file = models.FileField(upload_to=generate_unique_filename)  
+    date_created = models.DateTimeField(auto_now_add=True)  
+
+    # Preprocessing statuses
+    status_normalized = models.BooleanField(default=False)
+    status_standardized = models.BooleanField(default=False)
+    status_cleaned = models.BooleanField(default=False)
+    status_encoded = models.BooleanField(default=False)
+    copied = models.BooleanField(default=False)
+
+    # def save(self, *args, **kwargs):
+    #     if not self.name and self.original_dataset:
+    #         base_name, extension = self.original_dataset.name.rsplit('.', 1)
+    #         self.name = f"{base_name}_copy.{extension}"  
+    #     if not self.user and self.original_dataset:
+    #         self.user = self.original_dataset.user  # Inherit user from original dataset 
+    #     super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.name} (Copy of {self.original_dataset.name})"
+
+    class Meta:
+        db_table = 'DatasetCopy'
+
+
 
 
 # Historique model

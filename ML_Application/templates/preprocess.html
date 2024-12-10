@@ -29,56 +29,74 @@
     <div class="container mt-4">
         <h1 class="text-center">Data Preprocessing</h1>
         <br>
-        <!-- first 10 rows  -->
-        <div class="row">
-            <div class="col-md-6 mb-4">
-                <div class=" p-1 text-white" style="width: 500px;"><br>
-                    <h3 class="text-center">First 10 Rows</h3><br>
-                    <div class="table-container">
-                        <!-- Display the first 10 rows here -->
-                        {{ head|safe }}
-                    </div>
-                </div>
-            </div>
+        <!-- Dataset Selection -->
+    <div class="mb-4">
+        <label for="dataset-select" class="form-label">Select a Dataset</label>
+        <form method="GET" action="{% url 'preprocess' %}">                                            
+            <select id="dataset-select" name="dataset_id" class="form-select" onchange="this.form.submit()">
+                <option value="">-- Select a Dataset --</option>
+                {% for dataset in datasets %}
+                    <option value="{{ dataset.id }}" {% if dataset.id == selected_dataset_id|default:'' %}selected{% endif %}>
+                        {{ dataset.name }}
+                    </option>
+                {% endfor %}
+            </select>
+        </form>
+    </div>
 
-            <div class="col-md-4 mb-4"  style="margin-left: 100px;">
-                <div class="m-5 text-white">
-                    <h3 class="text-center">Statistics</h3><br>
-                    <ul>
-                        <li><strong>Number of Rows:</strong> {{ row_count }}</li>
-                        <li><strong>Number of Features:</strong> {{ feature_count }}</li>
-                        <li><strong>Missing Values:</strong> {{ missing_values }}</li>
-                        <li><strong>Duplicate Rows:</strong> {{ duplicate_rows }}</li>
-                    </ul>
-                </div>
+    {% if selected_dataset_id %}
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <h3>First 10 Rows</h3>
+            <div class="table-container">
+                {{ head|safe }}
             </div>
         </div>
 
+        <div class="col-md-6 mb-4">
+            <h3>Statistics</h3>
+            <ul>
+                <li><strong>Number of Rows:</strong> <span id="row-count">{{ row_count }}</span></li>
+                <li><strong>Number of Features:</strong> <span id="feature-count">{{ feature_count }}</span></li>
+                <li><strong>Missing Values:</strong> <pre id="missing-values">{{ missing_values }}</pre></li>
+                <li><strong>Duplicate Rows:</strong> <span id="duplicate-rows">{{ duplicate_rows }}</span></li>
+                <li><strong>Data Types:</strong> <pre id="data-types">{{ data_types }}</pre></li>
+            </ul>
+        </div>
+    </div>
+    {% endif %}
+
         <!-- Data Cleaning Modal -->
-        <div id="data-cleaning-modal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
-            <div class="relative w-full max-w-md bg-white rounded-lg shadow-lg p-6">
+        <div id="data-cleaning-modal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50"    >
+
+            <div class="relative w-full max-w-md bg-white rounded-lg shadow-lg p-6" id="actionModal">
                 <h3 class="text-center text-lg font-semibold" style="color: black;">Data Cleaning</h3>
-                <form method="POST">
+                <form  id="data-cleaning-form" action="{% url 'apply_actions' %}" method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="clean_data" value="true">
+                    <input type="hidden" id="dataset-id" name="dataset_id" value="{{ selected_dataset_id }}">
+
                     <div class="mb-3">
                         <label for="action" class="block" style="color: black;">Choose Action</label>
                         <select id="action" name="action" class="form-select">
+                            <option value="" >Choose option</option>
+                            <option value="fill" >Fill Nulls</option>
                             <option value="delete">Delete Nulls</option>
-                            <option value="fill">Fill Nulls</option>
+                            <option value="duplicated">Delete duplicated</option>
                         </select>
                     </div>
 
                     <div id="fill-method-container" class="mb-3 hidden">
                         <label for="fill-method" class="block" style="color: black;">Fill Method</label>
                         <select id="fill-method" name="fill_method" class="form-select">
+                            <option value="">Choose option</option>
                             <option value="mean">Fill with Mean</option>
-                            <option value="next">Fill with Next Value</option>
+                            <option value="next">Fill with previous Value</option>
                             <option value="most_frequent">Fill with Most Frequent</option>
                         </select>
                     </div>
 
-                    <button type="submit" class="btn btn-primary w-full">Apply</button>
+                    <button type="submit" class="btn btn-primary w-full" id="action-trigger">Apply</button>
                 </form>
                 <button data-modal-toggle="data-cleaning-modal" class="btn btn-secondary w-full mt-3">Close</button>
             </div>
@@ -88,8 +106,8 @@
         <!-- Data Transformation Modal -->
         <div id="data-transformation-modal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
             <div class="relative w-full max-w-md bg-white rounded-lg shadow-lg p-6">
-                <h3 class="text-center text-lg font-semibold " style="color: black;">Data Transformation</h3>
-                <form method="POST">
+                <h3 class="text-center text-lg font-semibold" style="color: black;">Data Transformation</h3>
+                <form id="data-transformation-form" action="{% url 'apply_actions' %}" method="POST">
                     {% csrf_token %}
                     <input type="hidden" name="transform_data" value="true">
 
@@ -97,22 +115,24 @@
                     <div class="mb-3">
                         <label for="transform_type" class="block" style="color: black;">Transformation Type</label>
                         <select id="transform_type" name="transform_type" class="form-select">
+                            <option value="">Choose option</option>
                             <option value="normalize">Normalize</option>
                             <option value="standardize">Standardize</option>
                         </select>
                     </div>
 
                     <!-- Feature Selection Checkbox -->
-                    <div class="mb-3">
+                    <!-- <div class="mb-3">
                         <label for="feature_selection" class="block" style="color: black;">Feature Selection</label>
                         <input type="checkbox" name="feature_selection" id="feature_selection" style="color: black;"> Use auto feature selection
-                    </div>
+                    </div> -->
 
-                    <button type="submit" class="btn btn-primary w-full">Apply</button>
+                    <button type="submit" class="btn btn-primary w-full" id="transformation-trigger">Apply</button>
                 </form>
                 <button data-modal-toggle="data-transformation-modal" class="btn btn-secondary w-full mt-3">Close</button>
             </div>
         </div>
+
 
         <!-- Data Cleaning Button -->
         <button data-modal-toggle="data-cleaning-modal" class="btn btn-danger w-100">Data Cleaning</button>
@@ -126,11 +146,18 @@
     <script>
         // Show modal when button is clicked
         document.querySelectorAll('[data-modal-toggle]').forEach(button => {
-            button.addEventListener('click', () => {
-                const modalId = button.getAttribute('data-modal-toggle');
-                document.getElementById(modalId).classList.toggle('hidden');
-            });
+        button.addEventListener('click', () => {
+            const modalId = button.getAttribute('data-modal-toggle');
+            const modal = document.getElementById(modalId);
+            
+            // Check if modal is currently hidden or visible, then toggle accordingly
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden'); // Show modal
+            } else {
+                modal.classList.add('hidden'); // Hide modal
+            }
         });
+    });
 
         // Show fill method select if "Fill Nulls" is selected
         document.getElementById('action').addEventListener('change', function() {
@@ -141,6 +168,106 @@
             }
         });
     </script>
+
+
+<script>
+$('#action-trigger').on('click', function (event) {
+    event.preventDefault(); // Prevent form submission
+
+    // Extract the action, dataset ID, and fill method
+    const action = $('#action').val();
+    const datasetId = $('#dataset-id').val();
+    const fillMethod = $('#fill-method').val();
+
+    // Prepare request data
+    let requestData = {
+        action: action,
+        dataset_id: datasetId,
+        clean_data: true,
+        csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
+    };
+
+    if (action === 'fill') {
+        requestData.fill_method = fillMethod;
+    }
+
+    // Send AJAX request
+    $.ajax({
+        url: '/apply_action/', // Ensure this matches the route in urls.py
+        method: 'POST',
+        
+        data: requestData,
+        success: function (response) {
+            // Update HTML content dynamically
+            $('.table-container').html(response.head);
+            $('#row-count').text(response.row_count);
+            $('#feature-count').text(response.feature_count);
+            $('#missing-values').text(JSON.stringify(response.missing_values));
+            $('#duplicate-rows').text(response.duplicate_rows);
+            $('#data-types').text(JSON.stringify(response.data_types));
+
+            
+
+            // Hide the dataset dropdown after applying the action
+            $('#data-cleaning-modal').addClass('hidden'); // Hides the entire div containing the dropdown
+            
+        },
+        error: function (xhr) {
+            alert('Error: ' + xhr.responseJSON.error);
+        },
+    });
+});
+
+
+
+
+
+
+// Handle the AJAX submission for Data Transformation
+$('#transformation-trigger').on('click', function (event) {
+    event.preventDefault(); // Prevent form submission
+
+    // Extract transformation details
+    const transformType = $('#transform_type').val();
+    // const featureSelection = $('#feature_selection').is(':checked');
+    const datasetId = $('#dataset-id').val();  // Assuming dataset ID is present
+
+    // Prepare request data
+    let requestData = {
+        transform_type: transformType,
+        dataset_id: datasetId,
+        transform_data: true,
+        // feature_selection: featureSelection,
+        csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
+    };
+
+    // Send AJAX request
+    $.ajax({
+        url: '/apply_action/',  // Ensure this matches the route in urls.py
+        method: 'POST',
+        data: requestData,
+        success: function (response) {
+            // Update HTML content dynamically for statistics
+            $('.table-container').html(response.head);  // Update table preview
+            $('#row-count').text(response.row_count);  // Update row count
+            $('#feature-count').text(response.feature_count);  // Update feature count
+            $('#missing-values').text(JSON.stringify(response.missing_values));  // Update missing values
+            $('#duplicate-rows').text(response.duplicate_rows);  // Update duplicate rows
+            $('#data-types').text(JSON.stringify(response.data_types));  // Update data types
+
+            
+
+            // Hide the modal after applying the action
+            $('#data-transformation-modal').addClass('hidden');
+        },
+        error: function (xhr) {
+            alert('Error: ' + xhr.responseJSON.error);
+        }
+    });
+});
+
+
+</script>
 </body>
 </html>
 {% endblock %}
