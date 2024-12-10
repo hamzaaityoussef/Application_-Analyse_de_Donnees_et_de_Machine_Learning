@@ -32,7 +32,7 @@
             margin-bottom: 15px;
             font-weight: 700;
             letter-spacing: 1px;
-            color: #4caf50; /* Green color for the heading */
+            /*color: #4caf50;*/ /* Green color for the heading */
         }
 
         .upload-container p {
@@ -112,24 +112,26 @@ button:hover {
 </style>
 <br><br><br><br><br><br>
 <div class="upload-container">
-    <h1 style="color:#4698f0">Upload Your Dataset</h1>
+    <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white" >Upload Your Dataset</h1>
     <p>Upload your CSV or Excel file to preprocess your data or apply machine learning models. Drag and drop or browse your files easily.</p>
     
     <!-- Standard Django Form -->
-    <form action="{% url 'upload' %}" method="POST" enctype="multipart/form-data">
+    <form action="{% url 'upload' %}" method="POST" enctype="multipart/form-data" >
         
         {% csrf_token %}
         <!-- FilePond Input -->
-        <input type="file" id="fileUpload" name="fileUpload" accept=".csv, .xlsx" required>
-        <button type="submit" class="bg-[#1f1f9b] hover:bg-[#3535b2] text-white font-semibold py-2 px-6 rounded-lg mt-4">
-            Upload File
+        <input type="file" id="fileUpload" name="fileUpload" accept=".csv, .xlsx" required   class="block w-full text-lg text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"><br>
+        <button type="submit" class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
+            <span class="relative px-5 py-2.5 transition-all ease-in duration-75 dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                Upload file
+                </span>
         </button>
     </form>
 </div>
   
 <!-- Uploaded Files Table -->
-<div class="mt-10 w-full max-w-4xl mx-auto bg-[#0d2538] rounded-lg p-6 shadow-lg">
-    <h2 class="text-3xl font-bold text-[#4caf50] mb-6 text-center">Your Uploaded Files</h2>
+<div class="mt-10 w-full mx-auto bg-[#0d2538] rounded-lg p-6 shadow-lg">
+    <h2 class="text-3xl font-bold  mb-6 text-center">Your Uploaded Files</h2>
     {% if datasets %}
     <table class="table-auto w-full bg-[#0d253c] text-left rounded-lg overflow-hidden border border-[#1c3a5a] shadow" id="datasetTable">
         <thead class="bg-[#122b45] text-white uppercase text-sm">
@@ -151,9 +153,12 @@ button:hover {
                 <td class="px-6 py-4 text-center">
                     <form action="{% url 'delete_dataset' dataset.id %}" method="POST" class="inline">
                         {% csrf_token %}
-                        <button type="submit" class="bg-[#1f1f9b] hover:bg-[#3535b2] text-white font-semibold py-2 px-6 rounded-lg transition duration-300 ease-in-out">
-                            Delete
+                        <button type="submit" class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
+                            <span class="relative px-5 py-2.5 transition-all ease-in duration-75 dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                                Delete
+                                </span>
                         </button>
+                        
                     </form>
                 </td>
             </tr>
