@@ -288,7 +288,21 @@ def apply_actions(request):
                 fill_method = request.POST.get('fill_method')
                 if fill_method == 'mean':
                     numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
-                    df[numeric_columns] = df[numeric_columns].fillna(df[numeric_columns].mean())
+                    non_numeric_columns = df.select_dtypes(exclude=['float64', 'int64']).columns
+                
+                    if not numeric_columns.empty:
+                        imputer_numeric = SimpleImputer(strategy='mean')
+                        df_numeric = pd.DataFrame(imputer_numeric.fit_transform(df[numeric_columns]), columns=numeric_columns)
+                    else:
+                        df_numeric = pd.DataFrame()
+                    
+                    if not non_numeric_columns.empty:
+                        imputer_categorical = SimpleImputer(strategy='most_frequent')
+                        df_categorical = pd.DataFrame(imputer_categorical.fit_transform(df[non_numeric_columns]), columns=non_numeric_columns)
+                    else:
+                        df_categorical = pd.DataFrame()
+                
+                    df = pd.concat([df_numeric, df_categorical], axis=1)
                 elif fill_method == 'most_frequent':
                     df.fillna(df.mode().iloc[0], inplace=True)
                 elif fill_method == 'next':
