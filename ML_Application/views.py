@@ -675,9 +675,9 @@ def apply_models(request):
                     y_pred = model.predict(X_test)
                     metrics.append({
                         'model': model_name,
-                        'accuracy': accuracy_score(y_test, y_pred),
-                        'precision': precision_score(y_test, y_pred, average='weighted', zero_division=0),
-                        'recall': recall_score(y_test, y_pred, average='weighted', zero_division=0),
+                        'accuracy': round(accuracy_score(y_test, y_pred) , 3),
+                        'precision': round(precision_score(y_test, y_pred, average='weighted', zero_division=0),3),
+                        'recall': round(recall_score(y_test, y_pred, average='weighted', zero_division=0),3),
                     })
                 elif model_name in ['Linear Regression', 'Ridge Regression']:  # Regression
                     model.fit(X_train, y_train)
@@ -703,17 +703,107 @@ def apply_models(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
-    
+@login_required(login_url='/login')
+def save_selected_model(request):
+    if request.method == 'POST':
+        model_name = request.POST.get('model_name')
+        if not model_name:
+            return JsonResponse({'error': 'No model selected'}, status=400)
+
+        # Save the selected model in the session
+        request.session['selected_model_name'] = model_name
+        return JsonResponse({'message': f'Model "{model_name}" has been saved successfully.'})
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
 #end modeles 
 
 
 # Predictions 
 @login_required(login_url='/login')
 def Predictions(request):
-    
-    print('bnjrjr')
-    return render(request, 'Predictions.html')
-#end Predictions 
+    if request.method == 'POST':
+        # Retrieve dataset, target, and model from session
+        dataset_id = request.session.get('selected_dataset_id')
+        target_column = request.session.get('selected_target_column')
+        model_name = request.session.get('selected_model_name')
+
+        if not dataset_id or not target_column or not model_name:
+            return JsonResponse({'error': 'Required information is missing. Please select dataset, target, and model in the Modeles page.'}, status=400)
+
+        # Load the dataset
+        try:
+            dataset = Dataset.objects.get(id=dataset_id, user=request.user)
+            file_path = dataset.file.path
+            if file_path.endswith('.csv'):
+                df = pd.read_csv(file_path)
+            elif file_path.endswith('.xlsx'):
+                df = pd.read_excel(file_path)
+            else:
+                return JsonResponse({'error': 'Unsupported file format'}, status=400)
+
+            # Prepare input data
+            df = df.dropna()
+            input_data = json.loads(request.POST.get('inputs'))
+            input_data_dict = {item['name']: float(item['value']) for item in input_data}
+            input_df = pd.DataFrame([input_data_dict])
+
+            # Map the saved model name to the actual trained model instance
+            trained_models = {
+                'KNN': KNeighborsClassifier(),
+                'SVM': SVC(),
+                'Random Forest': RandomForestClassifier(),
+                'Decision Tree': DecisionTreeClassifier(),
+                'Naive Bayes': GaussianNB(),
+                'Linear Regression': LinearRegression(),
+                'Ridge Regression': Ridge(),
+                'KMeans': KMeans(n_clusters=3, random_state=42),
+                'DBSCAN': DBSCAN(),
+            }
+
+            model = trained_models.get(model_name)
+            if not model:
+                return JsonResponse({'error': f'Model "{model_name}" is not recognized.'}, status=400)
+
+            # Re-train the model using the saved dataset and target
+            X = df.drop(columns=[target_column])
+            y = df[target_column]
+            model.fit(X, y)  # Re-train the model
+            prediction = model.predict(input_df)
+
+            return JsonResponse({'prediction': prediction[0]})
+
+        except Dataset.DoesNotExist:
+            return JsonResponse({'error': 'Dataset not found.'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid request method.'}, status=400)
+
+
+@login_required(login_url='/login')
+def get_estimation_inputs(request):
+    dataset_id = request.session.get('selected_dataset_id')
+    target_column = request.session.get('selected_target_column')
+
+    if not dataset_id or not target_column:
+        return JsonResponse({'error': 'Dataset or target column not selected.'}, status=400)
+
+    try:
+        dataset = Dataset.objects.get(id=dataset_id, user=request.user)
+        file_path = dataset.file.path
+        if file_path.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith('.xlsx'):
+            df = pd.read_excel(file_path)
+        else:
+            return JsonResponse({'error': 'Unsupported file format'}, status=400)
+
+        columns = [col for col in df.columns if col != target_column]
+        return JsonResponse({'columns': columns})
+
+    except Dataset.DoesNotExist:
+        return JsonResponse({'error': 'Dataset not found.'}, status=404)
 
 
 # documentation 
