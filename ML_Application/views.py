@@ -324,8 +324,7 @@ def apply_actions(request):
     head = df.head(10).to_dict(orient='records')  # List of dicts
     columns = df.columns.tolist()
 
-    print('hesd',head)
-    print('columns',columns)
+   
     # Return JSON response
     return JsonResponse({
         'head': head,

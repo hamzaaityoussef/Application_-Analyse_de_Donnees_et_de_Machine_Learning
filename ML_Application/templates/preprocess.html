@@ -137,6 +137,7 @@
                 <option value="duplicated">Drop Duplicates</option>
             </select>
 
+
             <!-- Fill Method (Hidden initially) -->
             <div id="fill-method-container" class="hidden">
                 <label for="fill-method" class="block text-lg font-medium">Fill Method</label>
@@ -147,12 +148,14 @@
                     <option value="most_frequent">Fill with Most Frequent</option>
                 </select>
             </div>
-
+            
             <button type="submit" id="action-trigger"
-                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-                id="action-trigger">
-                Apply Action
-            </button>
+            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+            id="action-trigger">
+            Apply Action
+        </button>
+
+        
         </form>
         <br>
         <button type="button" onclick="document.getElementById('data-cleaning-modal').classList.add('hidden');"
@@ -219,6 +222,58 @@
         });
     </script>
 
+    <!-- fonctions i use  -->
+    <script>
+        // Utility function to generate table HTML from JSON data
+        function generateTableHTML(data) {
+            if (!data || !data.length) return '<p>No data available</p>';
+
+            // Extract table columns from the keys of the first row
+            const columns = Object.keys(data[0]);
+
+            let table = '<table class="table-auto w-full text-white border-collapse">';
+            table += '<thead><tr>';
+            columns.forEach(col => {
+                table += `<th class="border px-4 py-2">${col}</th>`;
+            });
+            table += '</tr></thead><tbody>';
+
+            // Populate rows
+            data.forEach(row => {
+                table += '<tr>';
+                columns.forEach(col => {
+                    table += `<td class="border px-4 py-2">${row[col] || ''}</td>`;
+                });
+                table += '</tr>';
+            });
+
+            table += '</tbody></table>';
+            return table;
+        }
+
+
+        // Utility function to format missing values into a list
+        function formatMissingValues(missingValues) {
+            let html = '<ul class="list-disc list-inside">';
+            for (const [key, value] of Object.entries(missingValues)) {
+                html += `<li><strong>${key}:</strong> ${value}</li>`;
+            }
+            html += '</ul>';
+            return html;
+        }
+
+        // Optional: Format data types into a readable list
+        function formatDataTypes(dataTypes) {
+            let html = '<ul class="list-disc list-inside">';
+            for (const [key, value] of Object.entries(dataTypes)) {
+                html += `<li><strong>${key}:</strong> ${value}</li>`;
+            }
+            html += '</ul>';
+            return html;
+        }
+
+
+    </script>
 
     <script>
     $('#action-trigger').on('click', function (event) {
@@ -250,15 +305,15 @@
             success: function (response) {
                 // Generate HTML for the table dynamically
                 const tableHTML = generateTableHTML(response.head);
-
+                const missingValuesHTML = formatMissingValues(response.missing_values);
               
                 // Update HTML content dynamically
-                $('.table-container').html(tableHTML); // Render the new table
+                $('.table-container').html(tableHTML); 
                 $('#row-count').text(response.row_count);
                 $('#feature-count').text(response.feature_count);
-                $('#missing-values').html(missingValuesHTML); // Inject formatted missing values
+                $('#missing-values').html(missingValuesHTML); 
                 $('#duplicate-rows').text(response.duplicate_rows);
-                $('#data-types').text(formatDataTypes(response.data_types)); // Optional formatting for clarity
+                $('#data-types').text(formatDataTypes(response.data_types)); 
 
                 
 
@@ -267,59 +322,19 @@
                 
             },
             error: function (xhr) {
-                alert('Error: ' + xhr.responseJSON.error);
+                let message = 'An unknown error occurred.';
+                if (xhr.responseJSON && xhr.responseJSON.error) {
+                    message = xhr.responseJSON.error;
+                } else if (xhr.status) {
+                    message = `Error ${xhr.status}: ${xhr.statusText}`;
+                }
+                alert(message);
+                console.error('AJAX Error:', xhr); // Logs the full response for debugging
             },
+
         });
     });
 
-
-// Utility function to generate table HTML from JSON data
-function generateTableHTML(data) {
-    if (!data || !data.length) return '<p>No data available</p>';
-
-    // Extract table columns from the keys of the first row
-    const columns = Object.keys(data[0]);
-
-    let table = '<table class="table-auto w-full text-white border-collapse">';
-    table += '<thead><tr>';
-    columns.forEach(col => {
-        table += `<th class="border px-4 py-2">${col}</th>`;
-    });
-    table += '</tr></thead><tbody>';
-
-    // Populate rows
-    data.forEach(row => {
-        table += '<tr>';
-        columns.forEach(col => {
-            table += `<td class="border px-4 py-2">${row[col] || ''}</td>`;
-        });
-        table += '</tr>';
-    });
-
-    table += '</tbody></table>';
-    return table;
-}
-
-
-// Utility function to format missing values into a list
-function formatMissingValues(missingValues) {
-    let html = '<ul class="list-disc list-inside">';
-    for (const [key, value] of Object.entries(missingValues)) {
-        html += `<li><strong>${key}:</strong> ${value}</li>`;
-    }
-    html += '</ul>';
-    return html;
-}
-
-// Optional: Format data types into a readable list
-function formatDataTypes(dataTypes) {
-    let html = '<ul class="list-disc list-inside">';
-    for (const [key, value] of Object.entries(dataTypes)) {
-        html += `<li><strong>${key}:</strong> ${value}</li>`;
-    }
-    html += '</ul>';
-    return html;
-}
 
 
     // Handle the AJAX submission for Data Transformation
