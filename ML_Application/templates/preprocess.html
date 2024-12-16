@@ -104,10 +104,10 @@
                 <div id="dataset-statuses">
                     <p><strong>Dataset Status:</strong></p>
                     <ul>
-                        <li>Normalized: {% if status_normalized %}Yes{% else %}No{% endif %}</li>
-                        <li>Standardized: {% if status_standardized %}Yes{% else %}No{% endif %}</li>
-                        <li>Cleaned: {% if status_cleaned %}Yes{% else %}No{% endif %}</li>
-                        <li>Encoded: {% if status_encoded %}Yes{% else %}No{% endif %}</li>
+                        <li id="status-normalized">Normalized: {% if status_normalized %}Yes{% else %}No{% endif %}</li>
+                        <li id="status-standardized">Standardized: {% if status_standardized %}Yes{% else %}No{% endif %}</li>
+                        <li id="status-cleaned">Cleaned: {% if status_cleaned %}Yes{% else %}No{% endif %}</li>
+                        <li id="status-encoded">Encoded: {% if status_encoded %}Yes{% else %}No{% endif %}</li>
                     </ul>
                 </div>
                 
@@ -383,14 +383,15 @@
             
 
             // Update the dataset statuses
-            $('#status-normalized').text(response.status.normalized ? 'Yes' : 'No');
-            $('#status-standardized').text(response.status.standardized ? 'Yes' : 'No');
-            $('#status-cleaned').text(response.status.cleaned ? 'Yes' : 'No');
-            $('#status-encoded').text(response.status.encoded ? 'Yes' : 'No');
+            $('#status-normalized').text(response.status.normalized ? 'Normalized: Yes' : 'Normalized: No');
+            $('#status-standardized').text(response.status.standardized ? 'Standardized: Yes' : 'Standardized: No');
+            $('#status-cleaned').text(response.status.cleaned ? 'Cleaned: Yes' : 'Cleaned: No');
+            $('#status-encoded').text(response.status.encoded ? 'Encoded: Yes' : 'Encoded: No');
 
             // Hide the dataset dropdown after applying the action
             $('#data-cleaning-modal').addClass('hidden'); // Hides the modal after action is completed
         },
+       
         error: function (xhr) {
             $('#loading-indicator').hide(); // Hide loading indicator on error
             $('#data-cleaning-modal').addClass('hidden');
@@ -442,11 +443,11 @@ $('#transformation-trigger').on('click', function (event) {
             $('#data-types').html(dataTypesHTML); // Update data types
 
 
-            // Update the dataset statuses
-            $('#status-normalized').text(response.status.normalized ? 'Yes' : 'No');
-            $('#status-standardized').text(response.status.standardized ? 'Yes' : 'No');
-            $('#status-cleaned').text(response.status.cleaned ? 'Yes' : 'No');
-            $('#status-encoded').text(response.status.encoded ? 'Yes' : 'No');
+              // Update the dataset statuses
+              $('#status-normalized').text(response.status.normalized ? 'Normalized: Yes' : 'Normalized: No');
+            $('#status-standardized').text(response.status.standardized ? 'Standardized: Yes' : 'Standardized: No');
+            $('#status-cleaned').text(response.status.cleaned ? 'Cleaned: Yes' : 'Cleaned: No');
+            $('#status-encoded').text(response.status.encoded ? 'Encoded: Yes' : 'Encoded: No');
 
             // Hide the modal after applying the action
             $('#data-transformation-modal').addClass('hidden');
