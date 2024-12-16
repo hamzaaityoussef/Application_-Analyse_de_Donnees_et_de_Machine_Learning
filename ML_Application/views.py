@@ -184,6 +184,8 @@ def preprocess(request):
     missing_values = {}
     duplicate_rows = 0
     data_types = {}
+    columns = [1]
+
 
     if selected_dataset_id:
         dataset = get_object_or_404(user_datasets, id=selected_dataset_id)
@@ -201,18 +203,20 @@ def preprocess(request):
         missing_values = df.isnull().sum().to_dict()
         duplicate_rows = df.duplicated().sum()
         data_types = df.dtypes.to_dict()
-        head = df.head(10).to_html(classes="table table-light")
+        head = df.head(10).to_dict(orient='records')  # List of dicts
+        columns = df.columns.tolist()
 
     return render(request, 'preprocess.html', {
-        'head': head,
-        'row_count': row_count,
-        'feature_count': feature_count,
-        'missing_values': missing_values,
-        'duplicate_rows': duplicate_rows,
-        'data_types': data_types,
-        'datasets': user_datasets,
-        'selected_dataset_id': selected_dataset_id,
-    })
+    'head': head,       
+    'columns': columns  ,
+    'row_count': row_count,
+    'feature_count': feature_count,
+    'missing_values': missing_values,
+    'duplicate_rows': duplicate_rows,
+    'data_types': data_types,
+    'datasets': user_datasets,
+    'selected_dataset_id': selected_dataset_id,
+})
 
 
 
@@ -309,23 +313,25 @@ def apply_actions(request):
                     df.to_excel(writer, index=False)
 
     # Compute updated statistics
-    head = df.head(10).to_html(classes="table table-light")
+    # head = df.head(10).to_html(classes="table table-light")
     row_count = int(df.shape[0])  # Ensure it is a native Python int
     feature_count = int(df.shape[1])  # Ensure it is a native Python int
     missing_values = {key: int(value) for key, value in df.isnull().sum().to_dict().items()}  # Convert values to int
     duplicate_rows = int(df.duplicated().sum())  # Ensure it is a native Python int
     data_types = {key: str(value) for key, value in df.dtypes.to_dict().items()}  # Convert to string
+    head = df.head(10).to_dict(orient='records')  # List of dicts
+    columns = df.columns.tolist()
 
     # Return JSON response
     return JsonResponse({
         'head': head,
+        'columns': columns  ,
         'row_count': row_count,
         'feature_count': feature_count,
         'missing_values': missing_values,
         'duplicate_rows': duplicate_rows,
         'data_types': data_types,
     })
-
 
 
 

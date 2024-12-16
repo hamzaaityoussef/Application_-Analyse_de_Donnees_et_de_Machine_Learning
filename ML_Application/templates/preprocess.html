@@ -1,148 +1,121 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
 {% block content %}
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Data Preprocessing</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body {
-            background-color: #001f3f;
-            color: #ffffff;
-        }
-        h1, h3 {
-            color: #ffffff;
-        }
-        /* Style for making the table scrollable */
-        .table-container {
-            max-height: 300px;
-            max-width: 600px; /* Adjust the height as needed */
-            overflow-y: auto;
-            border: 1px solid #ccc;
-        }
-    </style>
+    <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
-<body>
-    <div class="container mt-4">
-        <h1 class="text-center">Data Preprocessing</h1>
-        <br>
+<body class="bg-gray-900 text-white">
+    <div class="container mx-auto mt-10 px-4">
+        <h1 class="text-4xl font-bold text-center mb-8">Data Preprocessing</h1>
+
         <!-- Dataset Selection -->
-    <div class="mb-4">
-        <label for="dataset-select" class="form-label">Select a Dataset</label>
-        <form method="GET" action="{% url 'preprocess' %}">                                            
-            <select id="dataset-select" name="dataset_id" class="form-select" onchange="this.form.submit()">
-                <option value="">-- Select a Dataset --</option>
-                {% for dataset in datasets %}
-                    <option value="{{ dataset.id }}" {% if dataset.id == selected_dataset_id|default:'' %}selected{% endif %}>
-                        {{ dataset.name }}
-                    </option>
-                {% endfor %}
-            </select>
-        </form>
-    </div>
+        <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+            <form method="GET" action="{% url 'preprocess' %}" class="space-y-4">
+                <label for="dataset-select" class="block text-lg font-medium">Select a Dataset</label>
+                <div class="flex items-center space-x-2">
+                    <select id="dataset-select" name="dataset_id" class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white">
+                        <option value="">-- Select a Dataset --</option>
+                        {% for dataset in datasets %}
+                            <option value="{{ dataset.id }}" {% if dataset.id == selected_dataset_id|default:'' %}selected{% endif %}>{{ dataset.name }}</option>
+                        {% endfor %}
+                    </select>
+                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center">
+                        <i class="fas fa-upload mr-2"></i> Load
+                    </button>
+                </div>
+            </form>
+        </div>
 
-    {% if selected_dataset_id %}
-    <div class="row">
-        <div class="col-md-6 mb-4">
-            <h3>First 10 Rows</h3>
-            <div class="table-container">
-                {{ head|safe }}
+        {% if selected_dataset_id %}
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- First 10 Rows -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold mb-4">First 10 Rows</h3>
+                <div class="overflow-auto max-h-64 border border-gray-700 rounded">
+                    <table class="table-auto w-full border-collapse border border-gray-700">
+                        <thead class="bg-gray-700 text-white">
+                            <tr>
+                                {% for column in columns %}
+                                    <th class="p-2 border border-gray-600">{{ column }}</th>
+                                {% endfor %}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for row in head %}
+                                <tr class="odd:bg-gray-800 even:bg-gray-700">
+                                    {% for col in columns %}
+                                        <td class="p-2 border border-gray-600">{{ row|get_item:col }}</td>
+                                    {% endfor %}
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                    
+                </div>
+            </div>
+
+            <!-- Statistics -->
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+                <h3 class="text-2xl font-semibold mb-4">Statistics</h3>
+                <div class="overflow-auto max-h-64 border border-gray-700 rounded">
+                    <table class="w-full text-sm text-left">
+                        <tr class="border-b border-gray-700">
+                            <td class="p-2 font-semibold">Number of Rows:</td>
+                            <td class="p-2">{{ row_count }}</td>
+                        </tr>
+                        <tr class="border-b border-gray-700">
+                            <td class="p-2 font-semibold">Number of Features:</td>
+                            <td class="p-2">{{ feature_count }}</td>
+                        </tr>
+                        <tr class="border-b border-gray-700">
+                            <td class="p-2 font-semibold">Missing Values:</td>
+                            <td class="p-2">
+                                <table class="w-full text-sm">
+                                    {% for key, value in missing_values.items %}
+                                    <tr>
+                                        <td class="pr-4">{{ key }}:</td>
+                                        <td>{{ value }}</td>
+                                    </tr>
+                                    {% endfor %}
+                                </table>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-semibold">Duplicate Rows:</td>
+                            <td class="p-2">{{ duplicate_rows }}</td>
+                        </tr>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <div class="col-md-6 mb-4">
-            <h3>Statistics</h3>
-            <ul>
-                <li><strong>Number of Rows:</strong> <span id="row-count">{{ row_count }}</span></li>
-                <li><strong>Number of Features:</strong> <span id="feature-count">{{ feature_count }}</span></li>
-                <li><strong>Missing Values:</strong> <pre id="missing-values">{{ missing_values }}</pre></li>
-                <li><strong>Duplicate Rows:</strong> <span id="duplicate-rows">{{ duplicate_rows }}</span></li>
-                <li><strong>Data Types:</strong> <pre id="data-types">{{ data_types }}</pre></li>
-            </ul>
+        <!-- Buttons -->
+        <div class="flex space-x-4 justify-center mt-8">
+            <button data-modal-toggle="data-cleaning-modal"
+                class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded flex items-center">
+                <i class="fas fa-broom mr-2"></i> Data Cleaning
+            </button>
+            <button data-modal-toggle="data-transformation-modal"
+                class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded flex items-center">
+                <i class="fas fa-sync-alt mr-2"></i> Data Transformation
+            </button>
         </div>
-    </div>
-    {% endif %}
-
-        <!-- Data Cleaning Modal -->
-        <div id="data-cleaning-modal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50"    >
-
-            <div class="relative w-full max-w-md bg-white rounded-lg shadow-lg p-6" id="actionModal">
-                <h3 class="text-center text-lg font-semibold" style="color: black;">Data Cleaning</h3>
-                <form  id="data-cleaning-form" action="{% url 'apply_actions' %}" method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="clean_data" value="true">
-                    <input type="hidden" id="dataset-id" name="dataset_id" value="{{ selected_dataset_id }}">
-
-                    <div class="mb-3">
-                        <label for="action" class="block" style="color: black;">Choose Action</label>
-                        <select id="action" name="action" class="form-select">
-                            <option value="" >Choose option</option>
-                            <option value="fill" >Fill Nulls</option>
-                            <option value="delete">Delete Nulls</option>
-                            <option value="duplicated">Delete duplicated</option>
-                        </select>
-                    </div>
-
-                    <div id="fill-method-container" class="mb-3 hidden">
-                        <label for="fill-method" class="block" style="color: black;">Fill Method</label>
-                        <select id="fill-method" name="fill_method" class="form-select">
-                            <option value="">Choose option</option>
-                            <option value="mean">Fill with Mean</option>
-                            <option value="next">Fill with previous Value</option>
-                            <option value="most_frequent">Fill with Most Frequent</option>
-                        </select>
-                    </div>
-
-                    <button type="submit" class="btn btn-primary w-full" id="action-trigger">Apply</button>
-                </form>
-                <button data-modal-toggle="data-cleaning-modal" class="btn btn-secondary w-full mt-3">Close</button>
-            </div>
-        </div>
-
         
-        <!-- Data Transformation Modal -->
-        <div id="data-transformation-modal" tabindex="-1" aria-hidden="true" class="hidden fixed inset-0 z-50 flex justify-center items-center bg-black bg-opacity-50">
-            <div class="relative w-full max-w-md bg-white rounded-lg shadow-lg p-6">
-                <h3 class="text-center text-lg font-semibold" style="color: black;">Data Transformation</h3>
-                <form id="data-transformation-form" action="{% url 'apply_actions' %}" method="POST">
-                    {% csrf_token %}
-                    <input type="hidden" name="transform_data" value="true">
 
-                    <!-- Transformation Type Dropdown -->
-                    <div class="mb-3">
-                        <label for="transform_type" class="block" style="color: black;">Transformation Type</label>
-                        <select id="transform_type" name="transform_type" class="form-select">
-                            <option value="">Choose option</option>
-                            <option value="normalize">Normalize</option>
-                            <option value="standardize">Standardize</option>
-                        </select>
-                    </div>
-
-                    <!-- Feature Selection Checkbox -->
-                    <!-- <div class="mb-3">
-                        <label for="feature_selection" class="block" style="color: black;">Feature Selection</label>
-                        <input type="checkbox" name="feature_selection" id="feature_selection" style="color: black;"> Use auto feature selection
-                    </div> -->
-
-                    <button type="submit" class="btn btn-primary w-full" id="transformation-trigger">Apply</button>
-                </form>
-                <button data-modal-toggle="data-transformation-modal" class="btn btn-secondary w-full mt-3">Close</button>
-            </div>
-        </div>
-
-
-        <!-- Data Cleaning Button -->
-        <button data-modal-toggle="data-cleaning-modal" class="btn btn-danger w-100">Data Cleaning</button>
-
-        <!-- Data Transformation Button -->
-        <button data-modal-toggle="data-transformation-modal" class="btn btn-warning w-100 mt-3">Data Transformation</button>
-
-
+        {% endif %}
     </div>
 
+
+
+
+   
     <script>
         // Show modal when button is clicked
         document.querySelectorAll('[data-modal-toggle]').forEach(button => {
@@ -170,104 +143,106 @@
     </script>
 
 
-<script>
-$('#action-trigger').on('click', function (event) {
-    event.preventDefault(); // Prevent form submission
+    <script>
+    $('#action-trigger').on('click', function (event) {
+        event.preventDefault(); // Prevent form submission
 
-    // Extract the action, dataset ID, and fill method
-    const action = $('#action').val();
-    const datasetId = $('#dataset-id').val();
-    const fillMethod = $('#fill-method').val();
+        // Extract the action, dataset ID, and fill method
+        const action = $('#action').val();
+        const datasetId = $('#dataset-id').val();
+        const fillMethod = $('#fill-method').val();
 
-    // Prepare request data
-    let requestData = {
-        action: action,
-        dataset_id: datasetId,
-        clean_data: true,
-        csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
-    };
+        // Prepare request data
+        let requestData = {
+            action: action,
+            dataset_id: datasetId,
+            clean_data: true,
+            csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
+        };
 
-    if (action === 'fill') {
-        requestData.fill_method = fillMethod;
-    }
-
-    // Send AJAX request
-    $.ajax({
-        url: '/apply_action/', // Ensure this matches the route in urls.py
-        method: 'POST',
-        
-        data: requestData,
-        success: function (response) {
-            // Update HTML content dynamically
-            $('.table-container').html(response.head);
-            $('#row-count').text(response.row_count);
-            $('#feature-count').text(response.feature_count);
-            $('#missing-values').text(JSON.stringify(response.missing_values));
-            $('#duplicate-rows').text(response.duplicate_rows);
-            $('#data-types').text(JSON.stringify(response.data_types));
-
-            
-
-            // Hide the dataset dropdown after applying the action
-            $('#data-cleaning-modal').addClass('hidden'); // Hides the entire div containing the dropdown
-            
-        },
-        error: function (xhr) {
-            alert('Error: ' + xhr.responseJSON.error);
-        },
-    });
-});
-
-
-
-
-
-
-// Handle the AJAX submission for Data Transformation
-$('#transformation-trigger').on('click', function (event) {
-    event.preventDefault(); // Prevent form submission
-
-    // Extract transformation details
-    const transformType = $('#transform_type').val();
-    // const featureSelection = $('#feature_selection').is(':checked');
-    const datasetId = $('#dataset-id').val();  // Assuming dataset ID is present
-
-    // Prepare request data
-    let requestData = {
-        transform_type: transformType,
-        dataset_id: datasetId,
-        transform_data: true,
-        // feature_selection: featureSelection,
-        csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
-    };
-
-    // Send AJAX request
-    $.ajax({
-        url: '/apply_action/',  // Ensure this matches the route in urls.py
-        method: 'POST',
-        data: requestData,
-        success: function (response) {
-            // Update HTML content dynamically for statistics
-            $('.table-container').html(response.head);  // Update table preview
-            $('#row-count').text(response.row_count);  // Update row count
-            $('#feature-count').text(response.feature_count);  // Update feature count
-            $('#missing-values').text(JSON.stringify(response.missing_values));  // Update missing values
-            $('#duplicate-rows').text(response.duplicate_rows);  // Update duplicate rows
-            $('#data-types').text(JSON.stringify(response.data_types));  // Update data types
-
-            
-
-            // Hide the modal after applying the action
-            $('#data-transformation-modal').addClass('hidden');
-        },
-        error: function (xhr) {
-            alert('Error: ' + xhr.responseJSON.error);
+        if (action === 'fill') {
+            requestData.fill_method = fillMethod;
         }
+
+        // Send AJAX request
+        $.ajax({
+            url: '/apply_action/', // Ensure this matches the route in urls.py
+            method: 'POST',
+            
+            data: requestData,
+            success: function (response) {
+                // Update HTML content dynamically
+                $('.table-container').html(response.head);
+                $('#row-count').text(response.row_count);
+                $('#feature-count').text(response.feature_count);
+                $('#missing-values').text(JSON.stringify(response.missing_values));
+                $('#duplicate-rows').text(response.duplicate_rows);
+                $('#data-types').text(JSON.stringify(response.data_types));
+
+                
+
+                // Hide the dataset dropdown after applying the action
+                $('#data-cleaning-modal').addClass('hidden'); // Hides the entire div containing the dropdown
+                
+            },
+            error: function (xhr) {
+                alert('Error: ' + xhr.responseJSON.error);
+            },
+        });
     });
-});
 
 
-</script>
+
+
+
+
+    // Handle the AJAX submission for Data Transformation
+    $('#transformation-trigger').on('click', function (event) {
+        event.preventDefault(); // Prevent form submission
+
+        // Extract transformation details
+        const transformType = $('#transform_type').val();
+        // const featureSelection = $('#feature_selection').is(':checked');
+        const datasetId = $('#dataset-id').val();  // Assuming dataset ID is present
+
+        // Prepare request data
+        let requestData = {
+            transform_type: transformType,
+            dataset_id: datasetId,
+            transform_data: true,
+            // feature_selection: featureSelection,
+            csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
+        };
+
+        // Send AJAX request
+        $.ajax({
+            url: '/apply_action/',  // Ensure this matches the route in urls.py
+            method: 'POST',
+            data: requestData,
+            success: function (response) {
+                // Update HTML content dynamically for statistics
+                $('.table-container').html(response.head);  // Update table preview
+                $('#row-count').text(response.row_count);  // Update row count
+                $('#feature-count').text(response.feature_count);  // Update feature count
+                $('#missing-values').text(JSON.stringify(response.missing_values));  // Update missing values
+                $('#duplicate-rows').text(response.duplicate_rows);  // Update duplicate rows
+                $('#data-types').text(JSON.stringify(response.data_types));  // Update data types
+
+                
+
+                // Hide the modal after applying the action
+                $('#data-transformation-modal').addClass('hidden');
+            },
+            error: function (xhr) {
+                alert('Error: ' + xhr.responseJSON.error);
+            }
+        });
+    });
+
+
+    </script>
 </body>
 </html>
 {% endblock %}
+
+
