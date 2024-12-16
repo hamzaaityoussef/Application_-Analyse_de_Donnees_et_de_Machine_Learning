@@ -12,7 +12,7 @@
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
 </head>
 <body class="bg-gray-900 text-white">
-    <div class="container mx-auto mt-10 px-4">
+    <div class="container mx-auto  px-4">
         <h1 class="text-4xl font-bold text-center mb-8">Data Preprocessing</h1>
 
         <!-- Dataset Selection -->
@@ -33,9 +33,9 @@
         {% if selected_dataset_id %}
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6" >
             <!-- First 10 Rows -->
-            <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
+            <div class="bg-gray-800 p-6 rounded-lg shadow-lg" >
                 <h3 class="text-2xl font-semibold mb-4">First 10 Rows</h3>
-                <div class="overflow-auto  border border-gray-700 rounded table-container" style="height: 200px;">
+                <div class="overflow-auto  border border-gray-700 rounded table-container" style="height: 330px;">
                     <table class="table-auto w-full border-collapse border border-gray-700" style="height: 200px;">
                         <thead class="bg-gray-700 text-white">
                             <tr>
@@ -100,6 +100,19 @@
                         </tr>
                     </table>
                 </div>
+                <br>
+                <div id="dataset-statuses">
+                    <p><strong>Dataset Status:</strong></p>
+                    <ul>
+                        <li>Normalized: {% if status_normalized %}Yes{% else %}No{% endif %}</li>
+                        <li>Standardized: {% if status_standardized %}Yes{% else %}No{% endif %}</li>
+                        <li>Cleaned: {% if status_cleaned %}Yes{% else %}No{% endif %}</li>
+                        <li>Encoded: {% if status_encoded %}Yes{% else %}No{% endif %}</li>
+                    </ul>
+                </div>
+                
+                
+                
             </div>
         </div>
 
@@ -222,7 +235,7 @@
             <!-- Buttons in a flex container to align them inline -->
             <div class="flex justify-between gap-4 mt-4">
                 <!-- Apply Transformation Button -->
-                <button type="submit" id="transformation-trigger" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
+                <button type="submit" id="transformation-trigger" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
                     Apply Transformation
                 </button>
                 
@@ -367,6 +380,13 @@
             $('#missing-values').html(missingValuesHTML); // Update missing values display
             $('#duplicate-rows').text(response.duplicate_rows); // Update duplicated rows count
             $('#data-types').html(dataTypesHTML); // Update data types display
+            
+
+            // Update the dataset statuses
+            $('#status-normalized').text(response.status.normalized ? 'Yes' : 'No');
+            $('#status-standardized').text(response.status.standardized ? 'Yes' : 'No');
+            $('#status-cleaned').text(response.status.cleaned ? 'Yes' : 'No');
+            $('#status-encoded').text(response.status.encoded ? 'Yes' : 'No');
 
             // Hide the dataset dropdown after applying the action
             $('#data-cleaning-modal').addClass('hidden'); // Hides the modal after action is completed
@@ -420,6 +440,13 @@ $('#transformation-trigger').on('click', function (event) {
             $('#missing-values').html(missingValuesHTML); // Update missing values
             $('#duplicate-rows').text(response.duplicate_rows); // Update duplicated rows count
             $('#data-types').html(dataTypesHTML); // Update data types
+
+
+            // Update the dataset statuses
+            $('#status-normalized').text(response.status.normalized ? 'Yes' : 'No');
+            $('#status-standardized').text(response.status.standardized ? 'Yes' : 'No');
+            $('#status-cleaned').text(response.status.cleaned ? 'Yes' : 'No');
+            $('#status-encoded').text(response.status.encoded ? 'Yes' : 'No');
 
             // Hide the modal after applying the action
             $('#data-transformation-modal').addClass('hidden');
