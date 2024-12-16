@@ -263,27 +263,19 @@ $('#apply-models').click(function () {
     });
 });
 
-// Save selected model
+let selectedModelName = null; // Initialize the variable to store the selected model name
+
+// Save the selected model
 $('#save-model').click(function () {
-    var selectedModel = $('#model-select').val();
+    const selectedModel = $('#model-select').val();
     if (!selectedModel) {
         alert('Veuillez sélectionner un modèle.');
         return;
     }
 
-    $.ajax({
-        url: "{% url 'save_selected_model' %}",
-        type: 'POST',
-        data: {
-            model_name: selectedModel,
-            csrfmiddlewaretoken: '{{ csrf_token }}',
-        },
-        success: function (response) {
-            alert('Le modèle "' + selectedModel + '" a été sauvegardé pour les prédictions.');
-        },
-        error: function (xhr) {
-            console.error('Error:', xhr.responseText);
-        }
-    });
-});</script>
+    // Save the model name in the variable
+    selectedModelName = selectedModel;
+    alert(`Le modèle "${selectedModelName}" a été sauvegardé pour les prédictions.`);
+});
+</script>
 {% endblock %}

@@ -722,16 +722,22 @@ def save_selected_model(request):
 @login_required(login_url='/login')
 def Predictions(request):
     if request.method == 'POST':
-        # Retrieve dataset, target, and model from session
-        dataset_id = request.session.get('selected_dataset_id')
-        target_column = request.session.get('selected_target_column')
-        model_name = request.session.get('selected_model_name')
-
-        if not dataset_id or not target_column or not model_name:
-            return JsonResponse({'error': 'Required information is missing. Please select dataset, target, and model in the Modeles page.'}, status=400)
-
-        # Load the dataset
         try:
+            model_name = request.POST.get('model_name')
+            inputs = request.POST.get('inputs')
+
+            if not model_name:
+                return JsonResponse({'error': 'No model selected.'}, status=400)
+            if not inputs:
+                return JsonResponse({'error': 'Inputs are missing.'}, status=400)
+
+            # Retrieve dataset and target column from session
+            dataset_id = request.session.get('selected_dataset_id')
+            target_column = request.session.get('selected_target_column')
+            if not dataset_id or not target_column:
+                return JsonResponse({'error': 'Dataset or target not specified.'}, status=400)
+
+            # Load the dataset
             dataset = Dataset.objects.get(id=dataset_id, user=request.user)
             file_path = dataset.file.path
             if file_path.endswith('.csv'):
@@ -741,13 +747,20 @@ def Predictions(request):
             else:
                 return JsonResponse({'error': 'Unsupported file format'}, status=400)
 
-            # Prepare input data
+            # Drop missing values
             df = df.dropna()
-            input_data = json.loads(request.POST.get('inputs'))
-            input_data_dict = {item['name']: float(item['value']) for item in input_data}
-            input_df = pd.DataFrame([input_data_dict])
 
-            # Map the saved model name to the actual trained model instance
+            # Prepare the data
+            X = df.drop(columns=[target_column])
+            y = df[target_column]
+
+            # Encode non-numeric columns
+            for column in X.columns:
+                if X[column].dtype == 'object' or X[column].dtype.name == 'category':
+                    le = LabelEncoder()
+                    X[column] = le.fit_transform(X[column])
+
+            # Map the model name to the actual trained model instance
             trained_models = {
                 'KNN': KNeighborsClassifier(),
                 'SVM': SVC(),
@@ -764,14 +777,18 @@ def Predictions(request):
             if not model:
                 return JsonResponse({'error': f'Model "{model_name}" is not recognized.'}, status=400)
 
-            # Re-train the model using the saved dataset and target
-            X = df.drop(columns=[target_column])
-            y = df[target_column]
-            model.fit(X, y)  # Re-train the model
+            # Train the model with the dataset
+            model.fit(X, y)
+
+            # Prepare input data for prediction
+            input_data = json.loads(inputs)
+            input_data_dict = {item['name']: float(item['value']) for item in input_data}
+            input_df = pd.DataFrame([input_data_dict])
+
+            # Perform prediction
             prediction = model.predict(input_df)
 
             return JsonResponse({'prediction': prediction[0]})
-
         except Dataset.DoesNotExist:
             return JsonResponse({'error': 'Dataset not found.'}, status=404)
         except Exception as e:

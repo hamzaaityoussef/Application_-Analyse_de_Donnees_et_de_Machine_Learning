@@ -40,25 +40,31 @@
         });
     });
 
-    // Handle prediction
     $('#predict-btn').click(function () {
-        var formData = $('#prediction-form').serializeArray();
-        $.ajax({
-            url: "{% url 'Predictions' %}",
-            type: 'POST',
-            data: {
-                inputs: JSON.stringify(formData),
-                csrfmiddlewaretoken: '{{ csrf_token }}'
-            },
-            success: function (response) {
-                $('#prediction-result').html(
-                    `<h3>Résultat de la prédiction: ${response.prediction}</h3>`
-                );
-            },
-            error: function (xhr) {
-                console.error('Error:', xhr.responseText);
-            }
-        });
+    if (!selectedModelName) {
+        alert('Aucun modèle sélectionné. Veuillez d’abord sauvegarder un modèle.');
+        return;
+    }
+
+    const formData = $('#prediction-form').serializeArray();
+    $.ajax({
+        url: "{% url 'Predictions' %}",
+        type: 'POST',
+        data: {
+            model_name: selectedModelName, // Include the model name in the request
+            inputs: JSON.stringify(formData),
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function (response) {
+            $('#prediction-result').html(
+                `<h3>Résultat de la prédiction: ${response.prediction}</h3>`
+            );
+        },
+        error: function (xhr) {
+            console.error('Error:', xhr.responseText);
+        }
     });
+});
+
 </script>
 {% endblock %}
