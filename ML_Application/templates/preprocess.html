@@ -106,13 +106,14 @@
         
         <br>
         <!-- Buttons -->
-        <div class="flex flex-wrap sm:flex-row flex-col space-x-4 justify-center mt-8">
+        <div class="flex flex-wrap sm:flex-row flex-col space-x-4 justify-center mt-8" style="margin-left: 35px;">
             <button data-modal-toggle="data-cleaning-modal"
-                class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded flex items-center">
+                class="rounded-lg group bg-gradient-to-br from-purple-600 to-purple-400  text-white px-6 py-2 rounded flex items-center">
                 <i class="fas fa-broom mr-2"></i> Data Cleaning
             </button>
+            
             <button data-modal-toggle="data-transformation-modal"
-                class="bg-yellow-500 hover:bg-yellow-600 text-white px-6 py-2 rounded flex items-center">
+                class="rounded-lg group bg-gradient-to-br from-purple-600 to-purple-400 text-white px-6 py-2 rounded flex items-center">
                 <i class="fas fa-sync-alt mr-2"></i> Data Transformation
             </button>
         </div>
@@ -120,7 +121,7 @@
         {% endif %}
     </div>
 
-    <!-- Data Cleaning Modal -->
+<!-- Data Cleaning Modal -->
 <div id="data-cleaning-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden flex items-center justify-center">
     <div class="bg-gray-800 rounded-lg shadow-lg p-6 w-1/2">
         <h2 class="text-2xl font-bold mb-4">Data Cleaning</h2>
@@ -128,7 +129,7 @@
             {% csrf_token %}
             <input type="hidden" name="clean_data" value="true">
             <input type="hidden" id="dataset-id" name="dataset_id" value="{{ selected_dataset_id }}">
-            
+
             <label for="action" class="block text-lg font-medium">Select Cleaning Action</label>
             <select id="action" name="action" class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white">
                 <option value="">-- Select Action --</option>
@@ -136,7 +137,6 @@
                 <option value="fill">Fill Nulls</option>
                 <option value="duplicated">Drop Duplicates</option>
             </select>
-
 
             <!-- Fill Method (Hidden initially) -->
             <div id="fill-method-container" class="hidden">
@@ -148,22 +148,25 @@
                     <option value="most_frequent">Fill with Most Frequent</option>
                 </select>
             </div>
-            
-            <button type="submit" id="action-trigger"
-            class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
-            id="action-trigger">
-            Apply Action
-        </button>
 
-        
+            <!-- Buttons in a flex container to align them inline -->
+            <div class="flex justify-between gap-4">
+                <!-- Apply Action Button -->
+                <button type="submit" id="action-trigger" class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded">
+                    Apply Action
+                </button>
+                
+                <!-- Cancel Button (type="button" to prevent form submission) -->
+                <button type="button" onclick="document.getElementById('data-cleaning-modal').classList.add('hidden');"
+                        class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                    Cancel
+                </button>
+            </div>
         </form>
-        <br>
-        <button type="button" onclick="document.getElementById('data-cleaning-modal').classList.add('hidden');"
-            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
-            Cancel
-        </button>
     </div>
 </div>
+
+
 
 <!-- Data Transformation Modal -->
 <div id="data-transformation-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden flex items-center justify-center">
@@ -172,6 +175,7 @@
         <form id="data-transformation-form" class="space-y-4" action="{% url 'apply_actions' %}" method="POST">
             {% csrf_token %}
             <input type="hidden" name="transform_data" value="true">
+
             <label for="transform_type" class="block text-lg font-medium">Select Transformation Type</label>
             <select id="transform_type" name="transform_type" class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white">
                 <option value="">-- Select Transformation --</option>
@@ -180,18 +184,23 @@
                 <option value="encode">One-Hot Encoding</option>
             </select>
 
-            <button type="submit" id="transformation-trigger"
-                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
-                Apply Transformation
-            </button>
+            <!-- Buttons in a flex container to align them inline -->
+            <div class="flex justify-between gap-4 mt-4">
+                <!-- Apply Transformation Button -->
+                <button type="submit" id="transformation-trigger" class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
+                    Apply Transformation
+                </button>
+                
+                <!-- Cancel Button (type="button" to prevent form submission) -->
+                <button type="button" onclick="document.getElementById('data-transformation-modal').classList.add('hidden');"
+                        class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+                    Cancel
+                </button>
+            </div>
         </form>
-        <br>
-        <button type="button" onclick="document.getElementById('data-transformation-modal').classList.add('hidden');"
-            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
-            Cancel
-        </button>
     </div>
 </div>
+
 
 
 
@@ -322,14 +331,7 @@
                 
             },
             error: function (xhr) {
-                let message = 'An unknown error occurred.';
-                if (xhr.responseJSON && xhr.responseJSON.error) {
-                    message = xhr.responseJSON.error;
-                } else if (xhr.status) {
-                    message = `Error ${xhr.status}: ${xhr.statusText}`;
-                }
-                alert(message);
-                console.error('AJAX Error:', xhr); // Logs the full response for debugging
+                alert('Error: ' + xhr.responseJSON.error);
             },
 
         });
@@ -361,13 +363,17 @@
             method: 'POST',
             data: requestData,
             success: function (response) {
-                // Update HTML content dynamically for statistics
-                $('.table-container').html(response.head);  // Update table preview
-                $('#row-count').text(response.row_count);  // Update row count
-                $('#feature-count').text(response.feature_count);  // Update feature count
-                $('#missing-values').text(JSON.stringify(response.missing_values));  // Update missing values
-                $('#duplicate-rows').text(response.duplicate_rows);  // Update duplicate rows
-                $('#data-types').text(JSON.stringify(response.data_types));  // Update data types
+
+                const tableHTML = generateTableHTML(response.head);
+                const missingValuesHTML = formatMissingValues(response.missing_values);
+
+               // Update HTML content dynamically
+                $('.table-container').html(tableHTML); 
+                $('#row-count').text(response.row_count);
+                $('#feature-count').text(response.feature_count);
+                $('#missing-values').html(missingValuesHTML); 
+                $('#duplicate-rows').text(response.duplicate_rows);
+                $('#data-types').text(formatDataTypes(response.data_types)); 
 
                 
 

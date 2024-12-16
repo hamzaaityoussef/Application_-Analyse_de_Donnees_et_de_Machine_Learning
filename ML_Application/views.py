@@ -260,6 +260,7 @@ def apply_actions(request):
             print(df.isnull().sum())  # Check for remaining missing values
         elif action == 'duplicated':
             df = df.drop_duplicates()
+            print("Deleting duplicated values")
         elif action == 'fill':
             fill_method = request.POST.get('fill_method')
             if fill_method == 'mean':
