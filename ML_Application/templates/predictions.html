@@ -1,6 +1,64 @@
 {% extends 'base.html' %}
 
 {% block content %}
+<div class="container mt-4">
+    <h1 class="text-center">Estimation</h1>
+    <br>
+    <h3 class="text-center">Entrez les valeurs pour les prédictions</h3>
+    <br>
 
+    <form id="prediction-form">
+        <div id="inputs-container">
+            <!-- Inputs will be dynamically added here -->
+        </div>
+        <button type="button" id="predict-btn" class="btn btn-primary mt-3">Prédire</button>
+    </form>
 
+    <div id="prediction-result" class="mt-4"></div>
+</div>
+
+<script>
+    // Fetch dataset attributes and generate input fields
+    $(document).ready(function () {
+        $.ajax({
+            url: "{% url 'get_estimation_inputs' %}",
+            success: function (response) {
+                var inputsContainer = $('#inputs-container');
+                inputsContainer.empty();
+                response.columns.forEach(function (col) {
+                    inputsContainer.append(`
+                        <div class="form-group">
+                            <label>${col}</label>
+                            <input type="text" class="form-control" name="${col}" placeholder="Entrez une valeur pour ${col}">
+                        </div>
+                    `);
+                });
+            },
+            error: function (xhr) {
+                console.error('Error:', xhr.responseText);
+            }
+        });
+    });
+
+    // Handle prediction
+    $('#predict-btn').click(function () {
+        var formData = $('#prediction-form').serializeArray();
+        $.ajax({
+            url: "{% url 'Predictions' %}",
+            type: 'POST',
+            data: {
+                inputs: JSON.stringify(formData),
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function (response) {
+                $('#prediction-result').html(
+                    `<h3>Résultat de la prédiction: ${response.prediction}</h3>`
+                );
+            },
+            error: function (xhr) {
+                console.error('Error:', xhr.responseText);
+            }
+        });
+    });
+</script>
 {% endblock %}

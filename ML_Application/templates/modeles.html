@@ -8,6 +8,9 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tableau de bord</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <link href="https://unpkg.com/filepond/dist/filepond.css" rel="stylesheet">
+    <script src="https://unpkg.com/filepond/dist/filepond.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <style>
         body {
             background-color: #001f3f;
@@ -27,11 +30,12 @@
 <body>
     <div class="container mt-4">
         <h1 class="text-center">Machine Learning Models</h1>
+        <br>
         
         <!-- Dropdown for selecting datasets -->
         <div class="col-md-8">
             <label for="dataset-select" class="form-label">Sélectionner une dataset</label>
-            <select id="dataset-select" class="form-select">
+            <select id="dataset-select" class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white">
                 <option value="">Choisir un dataset</option>
                 {% for dataset in datasets %}
                     <option value="{{ dataset.id }}">{{ dataset.name }}</option>
@@ -42,7 +46,7 @@
         <!-- Dropdown for selecting columns -->
         <div class="col-md-3">
             <label for="column-select" class="form-label">Sélectionner la Target</label>
-            <select id="column-select" class="form-select" disabled>
+            <select id="column-select" class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white" disabled>
                 <option value="">Choisir une colonne</option>
             </select>
         </div>
@@ -53,66 +57,80 @@
         <h1 class="text-center">Types de Modèles</h1>
         <br>
         <br>
-        <div class="row" style="padding-left: 150px;">
-            <div class="col-md-4">
-                <h2>Classification</h2>
-                <br>
-                <br>
-                <div>
-                    <label><input type="checkbox" name="model-type" value="SVM"> SVM</label><br>
-                    <label><input type="checkbox" name="model-type" value="KNN"> KNN</label><br>
-                    <label><input type="checkbox" name="model-type" value="Random Forest"> Random Forest</label><br>
-                    <label><input type="checkbox" name="model-type" value="Decision Tree"> Decision Tree</label><br>
-                    <label><input type="checkbox" name="model-type" value="Naive Bayes"> Naive Bayes</label><br>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <h2>Regression</h2>
-                <br>
-                <br>
-                <div>
-                    <label><input type="checkbox" name="model-type" value="Linear Regression"> Linear Regression</label><br>
-                    <label><input type="checkbox" name="model-type" value="Ridge Regression"> Ridge Regression</label><br>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <h2 >Clustering</h2>
-                <br>
-                <br>
-                <div>
-                    <label><input type="checkbox" name="model-type" value="KMeans"> KMeans</label><br>
-                    <label><input type="checkbox" name="model-type" value="DBSCAN"> DBSCAN</label><br>
-                </div>
-            </div>
+        <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+            <br>
+            <table class="w-full text-sm text-center text-blue-100 dark:text-blue-190"  style="font-size: 1.2rem;">
+                <thead class="text-xs text-white uppercase bg-blue-600 border-b border-blue-400 dark:text-white"  style="font-size: 1.2rem;">
+                    <tr>
+                        <th scope="col" class="px-6 py-3 bg-blue-500">Classification</th>
+                        <th scope="col" class="px-6 py-3">Regression</th>
+                        <th scope="col" class="px-6 py-3 bg-blue-500">Clustering</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td scope="col" class="px-6 py-3 bg-blue-500">
+                            <label><input type="checkbox" name="model-type" value="SVM"> SVM</label><br>
+                            <label><input type="checkbox" name="model-type" value="KNN"> KNN</label><br>
+                            <label><input type="checkbox" name="model-type" value="Random Forest"> Random Forest</label><br>
+                            <label><input type="checkbox" name="model-type" value="Decision Tree"> Decision Tree</label><br>
+                            <label><input type="checkbox" name="model-type" value="Naive Bayes"> Naive Bayes</label>
+                        </td>
+                        <td scope="col" class="px-6 py-3 bg-blue-600" >
+                            <label><input type="checkbox" name="model-type" value="Linear Regression"> Linear Regression</label><br>
+                            <label><input type="checkbox" name="model-type" value="Ridge Regression"> Ridge Regression</label>
+                        </td>
+                        <td scope="col" class="px-6 py-3 bg-blue-500">
+                            <label><input type="checkbox" name="model-type" value="KMeans"> KMeans</label><br>
+                            <label><input type="checkbox" name="model-type" value="DBSCAN"> DBSCAN</label>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
     </div>
     <br>
     <br>
-    <button id="apply-models" class="btn btn-primary mt-3" style="margin-left: 500px;">Apply Selected Models</button>
+    <button id="apply-models" class="relative inline-flex items-center justify-center px-6 py-3 mb-2 me-2 overflow-hidden text-lg font-bold text-gray-900 rounded-xl group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800" 
+    style="margin-left: 500px;">Apply Selected Models</button>
     <div id="metrics-container" class="mt-4"></div>
+
+    <div id="metrics-container" class="mt-4">
+        <!-- Metrics will be dynamically loaded here -->
+    </div>
+    
+    <!-- Dropdown for selecting the final model -->
+    <div class="mt-4 text-center">
+        <h3>Choisir le modèle à utiliser pour les prédictions</h3>
+        <select id="model-select" class="form-select w-50 mx-auto">
+            <option value="">Sélectionner un modèle</option>
+            <!-- Models will be dynamically added here -->
+        </select>
+        <button id="save-model" class="btn btn-success mt-3">Sauvegarder le Modèle</button>
+    </div>
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-        // Handle dataset selection
-        $('#dataset-select').change(function() {
+    // Handle dataset selection
+$('#dataset-select').change(function () {
     var datasetId = $(this).val();
     if (datasetId) {
         // Make AJAX request to get columns for the selected dataset
         $.ajax({
             url: "{% url 'get_MLcolumns' %}",
             data: { dataset_id: datasetId },
-            success: function(response) {
+            success: function (response) {
                 if (response.columns) {
                     var columnSelect = $('#column-select');
                     columnSelect.empty();
                     columnSelect.append('<option value="">Choisir une colonne</option>');
-                    response.columns.forEach(function(col) {
+                    response.columns.forEach(function (col) {
                         columnSelect.append('<option value="' + col + '">' + col + '</option>');
                     });
                     columnSelect.prop('disabled', false); // Enable the column dropdown
                 }
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 console.error('Error:', xhr.responseText);
             }
         });
@@ -122,32 +140,8 @@
     }
 });
 
-        function updateModelAccessibility(columnType) {
-    const classificationModels = $('input[name="model-type"][value="SVM"], input[name="model-type"][value="KNN"], input[name="model-type"][value="Random Forest"], input[name="model-type"][value="Decision Tree"], input[name="model-type"][value="Naive Bayes"]');
-    const regressionModels = $('input[name="model-type"][value="Linear Regression"], input[name="model-type"][value="Ridge Regression"]');
-    const clusteringModels = $('input[name="model-type"][value="KMeans"], input[name="model-type"][value="DBSCAN"]');
-
-    if (columnType === 'categorical') {
-        // Disable regression and clustering models
-        regressionModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
-        clusteringModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
-        classificationModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' }); // Enable classification models
-
-    } else if (columnType === 'continuous') {
-        // Disable classification and clustering models
-        classificationModels.prop('disabled', true).parent().css({'color' : 'grey', 'text-decoration' : 'line-through'});
-        clusteringModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
-        regressionModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' }); // Enable regression models
-    } else if (columnType === 'none') {
-        // Disable classification and regression models
-        classificationModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
-        regressionModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
-        clusteringModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' }); // Enable clustering models
-    }
-}
-
 // Handle target column selection
-$('#column-select').change(function() {
+$('#column-select').change(function () {
     var selectedColumn = $(this).val();
     var datasetId = $('#dataset-select').val(); // Ensure datasetId is included
     if (selectedColumn) {
@@ -155,13 +149,13 @@ $('#column-select').change(function() {
         $.ajax({
             url: "{% url 'get_MLcolumns' %}", // URL for backend view
             data: { dataset_id: datasetId, column_name: selectedColumn }, // Pass dataset ID and column name
-            success: function(response) {
+            success: function (response) {
                 if (response.column_type) {
                     // Update model accessibility based on column type
                     updateModelAccessibility(response.column_type);
                 }
             },
-            error: function(xhr) {
+            error: function (xhr) {
                 console.error('Error:', xhr.responseText);
             }
         });
@@ -171,9 +165,28 @@ $('#column-select').change(function() {
     }
 });
 
+// Update model accessibility based on column type
+function updateModelAccessibility(columnType) {
+    const classificationModels = $('input[name="model-type"][value="SVM"], input[name="model-type"][value="KNN"], input[name="model-type"][value="Random Forest"], input[name="model-type"][value="Decision Tree"], input[name="model-type"][value="Naive Bayes"]');
+    const regressionModels = $('input[name="model-type"][value="Linear Regression"], input[name="model-type"][value="Ridge Regression"]');
+    const clusteringModels = $('input[name="model-type"][value="KMeans"], input[name="model-type"][value="DBSCAN"]');
 
+    if (columnType === 'categorical') {
+        regressionModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
+        clusteringModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
+        classificationModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' });
+    } else if (columnType === 'continuous') {
+        classificationModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
+        clusteringModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
+        regressionModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' });
+    } else if (columnType === 'none') {
+        classificationModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
+        regressionModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
+        clusteringModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' });
+    }
+}
 
-
+// Handle model application and display metrics
 $('#apply-models').click(function () {
     var selectedModels = [];
     $('input[name="model-type"]:checked').each(function () {
@@ -200,22 +213,49 @@ $('#apply-models').click(function () {
         data: {
             dataset_id: datasetId,
             target_column: targetColumn,
-            models: JSON.stringify(selectedModels), // Send models as JSON
-            csrfmiddlewaretoken: '{{ csrf_token }}', // Include CSRF token
+            models: JSON.stringify(selectedModels),
+            csrfmiddlewaretoken: '{{ csrf_token }}',
         },
         success: function (response) {
-            // Display metrics for each model
+            // Display metrics in a table
             var metricsContainer = $('#metrics-container');
             metricsContainer.empty();
-            response.metrics.forEach(function (metric) {
-                metricsContainer.append('<h3>' + metric.model + '</h3>');
-                for (const [key, value] of Object.entries(metric)) {
+
+            var table = $('<table></table>').addClass('w-full text-sm text-center text-blue-100 dark:text-blue-100').css({ 'height': '200px','font-size': '1.2rem' });;
+            var thead = $('<thead></thead>').addClass('text-xs text-white uppercase bg-blue-600 dark:text-white').css({ 'height': '20px','font-size': '1.2rem' });;
+            var tbody = $('<tbody></tbody>');
+
+            var headerRow = $('<tr></tr>');
+            headerRow.append('<th>Model</th>');
+            if (response.metrics.length > 0) {
+                Object.keys(response.metrics[0]).forEach(function (key) {
                     if (key !== 'model') {
-                        metricsContainer.append('<p>' + key.charAt(0).toUpperCase() + key.slice(1) + ': ' + value + '</p>');
+                        headerRow.append('<th>' + key.charAt(0).toUpperCase() + key.slice(1) + '</th>');
                     }
-                }
-                metricsContainer.append('<hr>');
+                });
+            }
+            thead.append(headerRow);
+
+            var modelSelect = $('#model-select');
+            modelSelect.empty();
+            modelSelect.append('<option value="">Sélectionner un modèle</option>');
+
+            response.metrics.forEach(function (metric) {
+                var row = $('<tr></tr>');
+                row.append('<td>' + metric.model + '</td>');
+                Object.keys(metric).forEach(function (key) {
+                    if (key !== 'model') {
+                        row.append('<td>' + metric[key] + '</td>');
+                    }
+                });
+                tbody.append(row);
+
+                modelSelect.append('<option value="' + metric.model + '">' + metric.model + '</option>');
             });
+
+            table.append(thead);
+            table.append(tbody);
+            metricsContainer.append(table);
         },
         error: function (xhr) {
             console.error('Error:', xhr.responseText);
@@ -223,9 +263,27 @@ $('#apply-models').click(function () {
     });
 });
 
+// Save selected model
+$('#save-model').click(function () {
+    var selectedModel = $('#model-select').val();
+    if (!selectedModel) {
+        alert('Veuillez sélectionner un modèle.');
+        return;
+    }
 
-    </script>
-</body>
-</html>
-
+    $.ajax({
+        url: "{% url 'save_selected_model' %}",
+        type: 'POST',
+        data: {
+            model_name: selectedModel,
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        },
+        success: function (response) {
+            alert('Le modèle "' + selectedModel + '" a été sauvegardé pour les prédictions.');
+        },
+        error: function (xhr) {
+            console.error('Error:', xhr.responseText);
+        }
+    });
+});</script>
 {% endblock %}
