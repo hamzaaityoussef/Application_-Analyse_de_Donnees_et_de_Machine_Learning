@@ -103,17 +103,52 @@
             </div>
         </div>
 
-        
+        <div id="loading-indicator" style="display: none;">
+            <!-- You can use any loading spinner or animation here -->
+            <div class="spinner">Loading...</div>
+        </div>
+
+        <style>
+            #loading-indicator {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}
+
+.spinner {
+    border: 8px solid #f3f3f3;
+    border-top: 8px solid #3498db;
+    border-radius: 50%;
+    width: 50px;
+    height: 50px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+        </style>
         <br>
         <!-- Buttons -->
         <div class="flex flex-wrap sm:flex-row flex-col space-x-4 justify-center mt-8" style="margin-left: 35px;">
             <button data-modal-toggle="data-cleaning-modal"
-                class="rounded-lg group bg-gradient-to-br from-purple-600 to-purple-400  text-white px-6 py-2 rounded flex items-center">
-                <i class="fas fa-broom mr-2"></i> Data Cleaning
-            </button>
+        class="rounded-lg group bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 text-white px-6 py-2 flex items-center 
+        hover:bg-gradient-to-br hover:from-purple-400 hover:via-purple-500 hover:to-purple-600">
+    <i class="fas fa-broom mr-2"></i> Data Cleaning
+</button>
+
             
             <button data-modal-toggle="data-transformation-modal"
-                class="rounded-lg group bg-gradient-to-br from-purple-600 to-purple-400 text-white px-6 py-2 rounded flex items-center">
+                class="rounded-lg group bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 hover:from-purple-400 hover:via-purple-500 hover:to-purple-600 text-white px-6 py-2 rounded flex items-center">
                 <i class="fas fa-sync-alt mr-2"></i> Data Transformation
             </button>
         </div>
@@ -285,106 +320,115 @@
     </script>
 
     <script>
-    $('#action-trigger').on('click', function (event) {
-        event.preventDefault(); // Prevent form submission
+ $('#action-trigger').on('click', function (event) {
+    event.preventDefault(); // Prevent form submission
+    $('#loading-indicator').show(); // Show loading indicator
 
-        // Extract the action, dataset ID, and fill method
-        const action = $('#action').val();
-        const datasetId = $('#dataset-id').val();
-        const fillMethod = $('#fill-method').val();
+    // Extract the action, dataset ID, and fill method
+    const action = $('#action').val();
+    const datasetId = $('#dataset-id').val();
+    const fillMethod = $('#fill-method').val();
 
-        // Prepare request data
-        let requestData = {
-            action: action,
-            dataset_id: datasetId,
-            clean_data: true,
-            csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
-        };
+    // Prepare request data
+    let requestData = {
+        action: action,
+        dataset_id: datasetId,
+        clean_data: true,
+        csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
+    };
 
-        if (action === 'fill') {
-            requestData.fill_method = fillMethod;
-        }
+    if (action === 'fill') {
+        requestData.fill_method = fillMethod; // Include fill method if action is 'fill'
+    }
 
-        // Send AJAX request
-        $.ajax({
-            url: '/apply_action/', // Ensure this matches the route in urls.py
-            method: 'POST',
-            
-            data: requestData,
-            success: function (response) {
-                // Generate HTML for the table dynamically
-                const tableHTML = generateTableHTML(response.head);
-                const missingValuesHTML = formatMissingValues(response.missing_values);
-              
-                // Update HTML content dynamically
-                $('.table-container').html(tableHTML); 
-                $('#row-count').text(response.row_count);
-                $('#feature-count').text(response.feature_count);
-                $('#missing-values').html(missingValuesHTML); 
-                $('#duplicate-rows').text(response.duplicate_rows);
-                $('#data-types').text(formatDataTypes(response.data_types)); 
+    // Send AJAX request
+    $.ajax({
+        url: '/apply_action/', // Ensure this matches the route in urls.py
+        method: 'POST',
+        data: requestData,
+        success: function (response) {
+            $('#loading-indicator').hide(); // Hide loading indicator
 
-                
-
-                // Hide the dataset dropdown after applying the action
-                $('#data-cleaning-modal').addClass('hidden'); // Hides the entire div containing the dropdown
-                
-            },
-            error: function (xhr) {
-                alert('Error: ' + xhr.responseJSON.error);
-            },
-
-        });
-    });
-
-
-
-    // Handle the AJAX submission for Data Transformation
-    $('#transformation-trigger').on('click', function (event) {
-        event.preventDefault(); // Prevent form submission
-
-        // Extract transformation details
-        const transformType = $('#transform_type').val();
-        // const featureSelection = $('#feature_selection').is(':checked');
-        const datasetId = $('#dataset-id').val();  // Assuming dataset ID is present
-
-        // Prepare request data
-        let requestData = {
-            transform_type: transformType,
-            dataset_id: datasetId,
-            transform_data: true,
-            // feature_selection: featureSelection,
-            csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
-        };
-
-        // Send AJAX request
-        $.ajax({
-            url: '/apply_action/',  // Ensure this matches the route in urls.py
-            method: 'POST',
-            data: requestData,
-            success: function (response) {
-
-                const tableHTML = generateTableHTML(response.head);
-                const missingValuesHTML = formatMissingValues(response.missing_values);
-
-               // Update HTML content dynamically
-                $('.table-container').html(tableHTML); 
-                $('#row-count').text(response.row_count);
-                $('#feature-count').text(response.feature_count);
-                $('#missing-values').html(missingValuesHTML); 
-                $('#duplicate-rows').text(response.duplicate_rows);
-                $('#data-types').text(formatDataTypes(response.data_types)); 
-
-                
-
-                // Hide the modal after applying the action
-                $('#data-transformation-modal').addClass('hidden');
-            },
-            error: function (xhr) {
-                alert('Error: ' + xhr.responseJSON.error);
+            // Check for any errors in the response
+            if (response.error) {
+                alert(response.error);
+                return;
             }
-        });
+
+            // Generate HTML for the table dynamically
+            const tableHTML = generateTableHTML(response.head);
+            const missingValuesHTML = formatMissingValues(response.missing_values);
+            const dataTypesHTML = formatDataTypes(response.data_types);
+
+            // Update HTML content dynamically
+            $('.table-container').html(tableHTML);  // Update the table body with new data
+            $('#row-count').text(response.row_count); // Update row count
+            $('#feature-count').text(response.feature_count); // Update feature count
+            $('#missing-values').html(missingValuesHTML); // Update missing values display
+            $('#duplicate-rows').text(response.duplicate_rows); // Update duplicated rows count
+            $('#data-types').html(dataTypesHTML); // Update data types display
+
+            // Hide the dataset dropdown after applying the action
+            $('#data-cleaning-modal').addClass('hidden'); // Hides the modal after action is completed
+        },
+        error: function (xhr) {
+            $('#loading-indicator').hide(); // Hide loading indicator on error
+            $('#data-cleaning-modal').addClass('hidden');
+            alert('Error: ' + xhr.responseJSON.error); // Show error message
+        }
     });
+});
+
+   // Handle the AJAX submission for Data Transformation
+$('#transformation-trigger').on('click', function (event) {
+    event.preventDefault(); // Prevent form submission
+
+    // Extract transformation details
+    const transformType = $('#transform_type').val();
+    const datasetId = $('#dataset-id').val();  // Assuming dataset ID is present
+
+    // Prepare request data
+    let requestData = {
+        transform_type: transformType,
+        dataset_id: datasetId,
+        transform_data: true,
+        csrfmiddlewaretoken: $('input[name="csrfmiddlewaretoken"]').val(),
+    };
+
+    // Send AJAX request
+    $.ajax({
+        url: '/apply_action/',  // Ensure this matches the route in urls.py
+        method: 'POST',
+        data: requestData,
+        success: function (response) {
+
+            // Check for the response message or any errors
+            if (response.error) {
+                alert(response.error);
+                return;
+            }
+
+            // Generate HTML for the table dynamically
+            const tableHTML = generateTableHTML(response.head);
+            const missingValuesHTML = formatMissingValues(response.missing_values);
+            const dataTypesHTML = formatDataTypes(response.data_types);
+
+            // Update HTML content dynamically
+            $('.table-container').html(tableHTML);  // Update the table with the transformed data
+            $('#row-count').text(response.row_count); // Update row count
+            $('#feature-count').text(response.feature_count); // Update feature count
+            $('#missing-values').html(missingValuesHTML); // Update missing values
+            $('#duplicate-rows').text(response.duplicate_rows); // Update duplicated rows count
+            $('#data-types').html(dataTypesHTML); // Update data types
+
+            // Hide the modal after applying the action
+            $('#data-transformation-modal').addClass('hidden');
+        },
+        error: function (xhr) {
+            alert('Error: ' + xhr.responseJSON.error); // Handle error in the AJAX call
+        }
+    });
+});
 
 
     </script>
