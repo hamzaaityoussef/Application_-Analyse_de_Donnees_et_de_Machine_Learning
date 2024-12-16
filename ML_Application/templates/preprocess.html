@@ -20,26 +20,23 @@
             <form method="GET" action="{% url 'preprocess' %}" class="space-y-4">
                 <label for="dataset-select" class="block text-lg font-medium">Select a Dataset</label>
                 <div class="flex items-center space-x-2">
-                    <select id="dataset-select" name="dataset_id" class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white">
+                    <select id="dataset-select" name="dataset_id" class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white" onchange="this.form.submit()">
                         <option value="">-- Select a Dataset --</option>
                         {% for dataset in datasets %}
                             <option value="{{ dataset.id }}" {% if dataset.id == selected_dataset_id|default:'' %}selected{% endif %}>{{ dataset.name }}</option>
                         {% endfor %}
                     </select>
-                    <button class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded flex items-center">
-                        <i class="fas fa-upload mr-2"></i> Load
-                    </button>
                 </div>
             </form>
         </div>
 
         {% if selected_dataset_id %}
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6" >
             <!-- First 10 Rows -->
             <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
                 <h3 class="text-2xl font-semibold mb-4">First 10 Rows</h3>
-                <div class="overflow-auto max-h-64 border border-gray-700 rounded">
-                    <table class="table-auto w-full border-collapse border border-gray-700">
+                <div class="overflow-auto  border border-gray-700 rounded table-container" style="height: 200px;">
+                    <table class="table-auto w-full border-collapse border border-gray-700" style="height: 200px;">
                         <thead class="bg-gray-700 text-white">
                             <tr>
                                 {% for column in columns %}
@@ -64,19 +61,19 @@
             <!-- Statistics -->
             <div class="bg-gray-800 p-6 rounded-lg shadow-lg">
                 <h3 class="text-2xl font-semibold mb-4">Statistics</h3>
-                <div class="overflow-auto max-h-64 border border-gray-700 rounded">
-                    <table class="w-full text-sm text-left">
+                <div class="overflow-auto  border border-gray-700 rounded" style="height: 200px;">
+                    <table class="w-full text-lg text-left"  >
                         <tr class="border-b border-gray-700">
                             <td class="p-2 font-semibold">Number of Rows:</td>
-                            <td class="p-2">{{ row_count }}</td>
+                            <td class="p-2" id="row-count">{{ row_count }}</td>
                         </tr>
                         <tr class="border-b border-gray-700">
                             <td class="p-2 font-semibold">Number of Features:</td>
-                            <td class="p-2">{{ feature_count }}</td>
+                            <td class="p-2" id="feature-count">{{ feature_count }}</td>
                         </tr>
                         <tr class="border-b border-gray-700">
                             <td class="p-2 font-semibold">Missing Values:</td>
-                            <td class="p-2">
+                            <td class="p-2" id="missing-values">
                                 <table class="w-full text-sm">
                                     {% for key, value in missing_values.items %}
                                     <tr>
@@ -87,17 +84,29 @@
                                 </table>
                             </td>
                         </tr>
-                        <tr>
+                        <tr class="border-b border-gray-700">
                             <td class="p-2 font-semibold">Duplicate Rows:</td>
-                            <td class="p-2">{{ duplicate_rows }}</td>
+                            <td class="p-2" id="duplicate-rows">{{ duplicate_rows }}</td>
+                        </tr>
+                        <tr>
+                            <td class="p-2 font-semibold">Data Types:</td>
+                            <td class="p-2" id="data-types">
+                                <ul class="list-disc list-inside">
+                                    {% for key, value in data_types.items %}
+                                        <li><strong>{{ key }}:</strong> {{ value }}</li>
+                                    {% endfor %}
+                                </ul>
+                            </td>
                         </tr>
                     </table>
                 </div>
             </div>
         </div>
 
+        
+        <br>
         <!-- Buttons -->
-        <div class="flex space-x-4 justify-center mt-8">
+        <div class="flex flex-wrap sm:flex-row flex-col space-x-4 justify-center mt-8">
             <button data-modal-toggle="data-cleaning-modal"
                 class="bg-red-500 hover:bg-red-600 text-white px-6 py-2 rounded flex items-center">
                 <i class="fas fa-broom mr-2"></i> Data Cleaning
@@ -108,10 +117,78 @@
             </button>
         </div>
         
-
         {% endif %}
     </div>
 
+    <!-- Data Cleaning Modal -->
+<div id="data-cleaning-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden flex items-center justify-center">
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6 w-1/2">
+        <h2 class="text-2xl font-bold mb-4">Data Cleaning</h2>
+        <form id="data-cleaning-form" class="space-y-4" action="{% url 'apply_actions' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="clean_data" value="true">
+            <input type="hidden" id="dataset-id" name="dataset_id" value="{{ selected_dataset_id }}">
+            
+            <label for="action" class="block text-lg font-medium">Select Cleaning Action</label>
+            <select id="action" name="action" class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white">
+                <option value="">-- Select Action --</option>
+                <option value="delete">Delete Nulls</option>
+                <option value="fill">Fill Nulls</option>
+                <option value="duplicated">Drop Duplicates</option>
+            </select>
+
+            <!-- Fill Method (Hidden initially) -->
+            <div id="fill-method-container" class="hidden">
+                <label for="fill-method" class="block text-lg font-medium">Fill Method</label>
+                <select id="fill-method" name="fill_method" class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white">
+                    <option value="">Choose option</option>
+                    <option value="mean">Fill with Mean</option>
+                    <option value="next">Fill with previous Value</option>
+                    <option value="most_frequent">Fill with Most Frequent</option>
+                </select>
+            </div>
+
+            <button type="submit" id="action-trigger"
+                class="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                id="action-trigger">
+                Apply Action
+            </button>
+        </form>
+        <br>
+        <button type="button" onclick="document.getElementById('data-cleaning-modal').classList.add('hidden');"
+            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+            Cancel
+        </button>
+    </div>
+</div>
+
+<!-- Data Transformation Modal -->
+<div id="data-transformation-modal" class="fixed inset-0 bg-gray-900 bg-opacity-75 hidden flex items-center justify-center">
+    <div class="bg-gray-800 rounded-lg shadow-lg p-6 w-1/2">
+        <h2 class="text-2xl font-bold mb-4">Data Transformation</h2>
+        <form id="data-transformation-form" class="space-y-4" action="{% url 'apply_actions' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="transform_data" value="true">
+            <label for="transform_type" class="block text-lg font-medium">Select Transformation Type</label>
+            <select id="transform_type" name="transform_type" class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white">
+                <option value="">-- Select Transformation --</option>
+                <option value="normalize">Normalize</option>
+                <option value="standardize">Standardize</option>
+                <option value="encode">One-Hot Encoding</option>
+            </select>
+
+            <button type="submit" id="transformation-trigger"
+                class="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded">
+                Apply Transformation
+            </button>
+        </form>
+        <br>
+        <button type="button" onclick="document.getElementById('data-transformation-modal').classList.add('hidden');"
+            class="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded">
+            Cancel
+        </button>
+    </div>
+</div>
 
 
 
@@ -171,13 +248,17 @@
             
             data: requestData,
             success: function (response) {
+                // Generate HTML for the table dynamically
+                const tableHTML = generateTableHTML(response.head);
+
+              
                 // Update HTML content dynamically
-                $('.table-container').html(response.head);
+                $('.table-container').html(tableHTML); // Render the new table
                 $('#row-count').text(response.row_count);
                 $('#feature-count').text(response.feature_count);
-                $('#missing-values').text(JSON.stringify(response.missing_values));
+                $('#missing-values').html(missingValuesHTML); // Inject formatted missing values
                 $('#duplicate-rows').text(response.duplicate_rows);
-                $('#data-types').text(JSON.stringify(response.data_types));
+                $('#data-types').text(formatDataTypes(response.data_types)); // Optional formatting for clarity
 
                 
 
@@ -192,8 +273,53 @@
     });
 
 
+// Utility function to generate table HTML from JSON data
+function generateTableHTML(data) {
+    if (!data || !data.length) return '<p>No data available</p>';
+
+    // Extract table columns from the keys of the first row
+    const columns = Object.keys(data[0]);
+
+    let table = '<table class="table-auto w-full text-white border-collapse">';
+    table += '<thead><tr>';
+    columns.forEach(col => {
+        table += `<th class="border px-4 py-2">${col}</th>`;
+    });
+    table += '</tr></thead><tbody>';
+
+    // Populate rows
+    data.forEach(row => {
+        table += '<tr>';
+        columns.forEach(col => {
+            table += `<td class="border px-4 py-2">${row[col] || ''}</td>`;
+        });
+        table += '</tr>';
+    });
+
+    table += '</tbody></table>';
+    return table;
+}
 
 
+// Utility function to format missing values into a list
+function formatMissingValues(missingValues) {
+    let html = '<ul class="list-disc list-inside">';
+    for (const [key, value] of Object.entries(missingValues)) {
+        html += `<li><strong>${key}:</strong> ${value}</li>`;
+    }
+    html += '</ul>';
+    return html;
+}
+
+// Optional: Format data types into a readable list
+function formatDataTypes(dataTypes) {
+    let html = '<ul class="list-disc list-inside">';
+    for (const [key, value] of Object.entries(dataTypes)) {
+        html += `<li><strong>${key}:</strong> ${value}</li>`;
+    }
+    html += '</ul>';
+    return html;
+}
 
 
     // Handle the AJAX submission for Data Transformation

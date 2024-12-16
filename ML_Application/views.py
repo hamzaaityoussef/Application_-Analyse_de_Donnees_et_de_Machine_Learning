@@ -196,7 +196,9 @@ def preprocess(request):
             df = pd.read_csv(file_path)
         elif file_path.endswith('.xlsx'):
             df = pd.read_excel(file_path, engine='openpyxl')
-
+        # Ensure date/time fields are converted to string to avoid issues in templates
+        for col in df.select_dtypes(include=['datetime64', 'datetime64[ns]']).columns:
+            df[col] = df[col].astype(str)
         # Compute dataset statistics
         row_count = df.shape[0]
         feature_count = df.shape[1]
@@ -322,6 +324,8 @@ def apply_actions(request):
     head = df.head(10).to_dict(orient='records')  # List of dicts
     columns = df.columns.tolist()
 
+    print('hesd',head)
+    print('columns',columns)
     # Return JSON response
     return JsonResponse({
         'head': head,
