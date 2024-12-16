@@ -252,85 +252,91 @@ from sklearn.impute import SimpleImputer
 from django.http import JsonResponse, Http404
 @csrf_exempt
 def apply_actions(request):
-    # Extract dataset ID from the query parameters
-    dataset_id = request.POST.get('dataset_id')
-    if not dataset_id:
-        return JsonResponse({'error': 'No dataset selected'}, status=400)
-
-    # Fetch the dataset object
-    user_datasets = DatasetCopy.objects.filter(user=request.user)
     try:
-        dataset = user_datasets.get(id=dataset_id)
-    except DatasetCopy.DoesNotExist:
-        return JsonResponse({'error': 'Dataset not found'}, status=404)
+        # Extract dataset ID from the query parameters
+        dataset_id = request.POST.get('dataset_id')
+        if not dataset_id:
+            return JsonResponse({'error': 'No dataset selected'}, status=400)
+        print(request.POST)
+        # Fetch the dataset object
+        user_datasets = DatasetCopy.objects.filter(user=request.user)
+        try:
+            dataset = user_datasets.get(id=dataset_id)
+        except DatasetCopy.DoesNotExist:
+            return JsonResponse({'error': 'Dataset not found'}, status=404)
 
-    # Load the dataset
-    file_path = dataset.file.path
-    if file_path.endswith('.csv'):
-        df = pd.read_csv(file_path)
-    elif file_path.endswith('.xlsx'):
-        df = pd.read_excel(file_path, engine='openpyxl')
+        # Load the dataset
+        file_path = dataset.file.path
+        if file_path.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith('.xlsx'):
+            df = pd.read_excel(file_path, engine='openpyxl')
 
-    # Handle actions
-    updated_data = {}
-    if 'clean_data' in request.POST:
-        action = request.POST.get('action')
-        if action == 'delete':
-            df = df.dropna()
-            dataset.status_cleaned = True  # Update the status
-        elif action == 'duplicated':
-            df = df.drop_duplicates()
-            dataset.status_cleaned = True  # Update the status
-        elif action == 'fill':
-            fill_method = request.POST.get('fill_method')
-            if fill_method == 'mean':
-                numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
-                df[numeric_columns] = df[numeric_columns].fillna(df[numeric_columns].mean())
-            elif fill_method == 'most_frequent':
-                df.fillna(df.mode().iloc[0], inplace=True)
-            elif fill_method == 'next':
-                df.fillna(method='ffill', inplace=True)
-            dataset.status_cleaned = True  # Update the status
+        # Handle actions
+        updated_data = {}
+        if 'clean_data' in request.POST:
+            action = request.POST.get('action')
+            if action == 'delete':
+                df = df.dropna()
+                dataset.status_cleaned = True  # Update the status
+                print(df.isnull().sum())
+            elif action == 'duplicated':
+                df = df.drop_duplicates()
+                dataset.status_cleaned = True  # Update the status 
+                print('somme duplicated :', df.duplicated().sum())
+            elif action == 'fill':
+                fill_method = request.POST.get('fill_method')
+                if fill_method == 'mean':
+                    numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
+                    df[numeric_columns] = df[numeric_columns].fillna(df[numeric_columns].mean())
+                elif fill_method == 'most_frequent':
+                    df.fillna(df.mode().iloc[0], inplace=True)
+                elif fill_method == 'next':
+                    df.fillna(method='ffill', inplace=True)
+                dataset.status_cleaned = True  # Update the status
 
-    if 'transform_data' in request.POST:
-        transform_type = request.POST.get('transform_type')
-        numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
-        if transform_type == 'normalize':
-            scaler = MinMaxScaler()
-            df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
-            dataset.status_normalized = True  # Update the status
-        elif transform_type == 'standardize':
-            scaler = StandardScaler()
-            df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
-            dataset.status_standardized = True  # Update the status
+        if 'transform_data' in request.POST:
+            transform_type = request.POST.get('transform_type')
+            numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
+            if transform_type == 'normalize':
+                scaler = MinMaxScaler()
+                df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
+                dataset.status_normalized = True  # Update the status
+            elif transform_type == 'standardize':
+                scaler = StandardScaler()
+                df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
+                dataset.status_standardized = True  # Update the status
 
-    # Save the updated dataset back to file
-    if file_path.endswith('.csv'):
-        df.to_csv(file_path, index=False)
-    elif file_path.endswith('.xlsx'):
-        with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
-            df.to_excel(writer, index=False)
+        # Save the updated dataset back to file
+        if file_path.endswith('.csv'):
+            df.to_csv(file_path, index=False)
+        elif file_path.endswith('.xlsx'):
+            with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+                df.to_excel(writer, index=False)
+        
+        # Save the updated dataset object
+        dataset.save()
 
-    # Save the updated dataset object
-    dataset.save()
+        # Compute updated statistics for the relevant parts
+        updated_data['row_count'] = int(df.shape[0])
+        updated_data['feature_count'] = int(df.shape[1])
+        updated_data['columns'] = df.columns.tolist()
+        updated_data['data_types'] = {key: str(value) for key, value in df.dtypes.to_dict().items()}
+        updated_data['head'] = df.head(10).to_dict(orient='records')
+        updated_data['missing_values'] = {key: int(value) for key, value in df.isnull().sum().to_dict().items()}
+        updated_data['duplicate_rows'] = int(df.duplicated().sum())
+        updated_data['status'] = {
+            'normalized': dataset.status_normalized,
+            'standardized': dataset.status_standardized,
+            'cleaned': dataset.status_cleaned,
+            'encoded': dataset.status_encoded,
+        }
 
-    # Compute updated statistics for the relevant parts
-    updated_data['row_count'] = int(df.shape[0])
-    updated_data['feature_count'] = int(df.shape[1])
-    updated_data['columns'] = df.columns.tolist()
-    updated_data['data_types'] = {key: str(value) for key, value in df.dtypes.to_dict().items()}
-    updated_data['head'] = df.head(10).to_dict(orient='records')
-    updated_data['missing_values'] = {key: int(value) for key, value in df.isnull().sum().to_dict().items()}
-    updated_data['duplicate_rows'] = int(df.duplicated().sum())
-    updated_data['status'] = {
-        'normalized': dataset.status_normalized,
-        'standardized': dataset.status_standardized,
-        'cleaned': dataset.status_cleaned,
-        'encoded': dataset.status_encoded,
-    }
-
-    # Return a JSON response with updated data
-    return JsonResponse(updated_data)
+        # Return a JSON response with updated data
+        return JsonResponse(updated_data, status=200)
+    except Exception as e:
+        # Return a JSON response with the error message
+        return JsonResponse({"error": str(e)}, status=400) 
 
 
 
