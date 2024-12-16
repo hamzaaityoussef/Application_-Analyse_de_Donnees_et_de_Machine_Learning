@@ -175,48 +175,72 @@ import pandas as pd
 
 def preprocess(request):
     user_datasets = DatasetCopy.objects.filter(user=request.user)
-    selected_dataset_id = request.GET.get('dataset_id')  # From dropdown selection
-    
-    # Initialize default variables
+    selected_dataset_id = request.GET.get('dataset_id')  # Extract dataset_id from the query parameters
+
+    # Initialize variables
     head = ''
     row_count = 0
     feature_count = 0
     missing_values = {}
     duplicate_rows = 0
     data_types = {}
-    columns = [1]
+    columns = []
+    status_normalized = False
+    status_standardized = False
+    status_cleaned = False
+    status_encoded = False
 
-
+    # If a dataset_id is provided, fetch its details
     if selected_dataset_id:
-        dataset = get_object_or_404(user_datasets, id=selected_dataset_id)
-        file_path = dataset.file.path
+        try:
+            dataset = user_datasets.get(id=selected_dataset_id)
+            file_path = dataset.file.path
 
-        # Load the dataset
-        if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path)
-        elif file_path.endswith('.xlsx'):
-            df = pd.read_excel(file_path, engine='openpyxl')
+            # Load the dataset
+            if file_path.endswith('.csv'):
+                df = pd.read_csv(file_path)
+            elif file_path.endswith('.xlsx'):
+                df = pd.read_excel(file_path, engine='openpyxl')
 
-        # Compute dataset statistics
-        row_count = df.shape[0]
-        feature_count = df.shape[1]
-        missing_values = df.isnull().sum().to_dict()
-        duplicate_rows = df.duplicated().sum()
-        data_types = df.dtypes.to_dict()
-        head = df.head(10).to_dict(orient='records')  # List of dicts
-        columns = df.columns.tolist()
+            # Convert datetime fields to strings for compatibility with templates
+            for col in df.select_dtypes(include=['datetime64', 'datetime64[ns]']).columns:
+                df[col] = df[col].astype(str)
 
+            # Compute dataset statistics
+            row_count = df.shape[0]
+            feature_count = df.shape[1]
+            missing_values = df.isnull().sum().to_dict()
+            duplicate_rows = df.duplicated().sum()
+            data_types = df.dtypes.apply(lambda x: str(x)).to_dict()
+            head = df.head(10).to_dict(orient='records')  # First 10 rows as list of dictionaries
+            columns = df.columns.tolist()
+
+            # Fetch the statuses from the dataset
+            status_normalized = dataset.status_normalized
+            status_standardized = dataset.status_standardized
+            status_cleaned = dataset.status_cleaned
+            status_encoded = dataset.status_encoded
+
+        except DatasetCopy.DoesNotExist:
+            # Handle cases where the dataset_id does not match any record
+            raise Http404("Dataset not found")
+    print('statue cleaned :',status_cleaned)
     return render(request, 'preprocess.html', {
-    'head': head,       
-    'columns': columns  ,
-    'row_count': row_count,
-    'feature_count': feature_count,
-    'missing_values': missing_values,
-    'duplicate_rows': duplicate_rows,
-    'data_types': data_types,
-    'datasets': user_datasets,
-    'selected_dataset_id': selected_dataset_id,
-})
+        'head': head,
+        'columns': columns,
+        'row_count': row_count,
+        'feature_count': feature_count,
+        'missing_values': missing_values,
+        'duplicate_rows': duplicate_rows,
+        'data_types': data_types,
+        'datasets': user_datasets,
+        'selected_dataset_id': selected_dataset_id,
+        'status_normalized': status_normalized,
+        'status_standardized': status_standardized,
+        'status_cleaned': status_cleaned,
+        'status_encoded': status_encoded,
+    })
+
 
 
 
@@ -229,11 +253,9 @@ from django.http import JsonResponse, Http404
 @csrf_exempt
 def apply_actions(request):
     # Extract dataset ID from the query parameters
-    dataset_id = request.POST.get('dataset_id')  # Use POST data instead of GET
+    dataset_id = request.POST.get('dataset_id')
     if not dataset_id:
         return JsonResponse({'error': 'No dataset selected'}, status=400)
-    print(request.POST)
-
 
     # Fetch the dataset object
     user_datasets = DatasetCopy.objects.filter(user=request.user)
@@ -250,88 +272,65 @@ def apply_actions(request):
         df = pd.read_excel(file_path, engine='openpyxl')
 
     # Handle actions
+    updated_data = {}
     if 'clean_data' in request.POST:
         action = request.POST.get('action')
         if action == 'delete':
-            print("Deleting missing values")
             df = df.dropna()
-            print(df.isnull().sum())  # Check for remaining missing values
+            dataset.status_cleaned = True  # Update the status
         elif action == 'duplicated':
             df = df.drop_duplicates()
+            dataset.status_cleaned = True  # Update the status
         elif action == 'fill':
             fill_method = request.POST.get('fill_method')
             if fill_method == 'mean':
-                # Handle numeric columns: Replace missing values with the mean
                 numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
-                non_numeric_columns = df.select_dtypes(exclude=['float64', 'int64']).columns
-                
-                if not numeric_columns.empty:
-                    imputer_numeric = SimpleImputer(strategy='mean')
-                    df_numeric = pd.DataFrame(imputer_numeric.fit_transform(df[numeric_columns]), columns=numeric_columns)
-                else:
-                    df_numeric = pd.DataFrame()  # Empty if no numeric columns
-                
-                # Handle categorical columns: Replace missing values with the most frequent value
-                if not non_numeric_columns.empty:
-                    imputer_categorical = SimpleImputer(strategy='most_frequent')
-                    df_categorical = pd.DataFrame(imputer_categorical.fit_transform(df[non_numeric_columns]), columns=non_numeric_columns)
-                else:
-                    df_categorical = pd.DataFrame()  # Empty if no non-numeric columns
-                
-                # Combine numeric and categorical data
-                df = pd.concat([df_numeric, df_categorical], axis=1)
+                df[numeric_columns] = df[numeric_columns].fillna(df[numeric_columns].mean())
             elif fill_method == 'most_frequent':
                 df.fillna(df.mode().iloc[0], inplace=True)
             elif fill_method == 'next':
                 df.fillna(method='ffill', inplace=True)
+            dataset.status_cleaned = True  # Update the status
 
-        # Save the updated dataset back to file
-        if file_path.endswith('.csv'):
-            df.to_csv(file_path, index=False)
-        elif file_path.endswith('.xlsx'):
-            with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
-                df.to_excel(writer, index=False)
     if 'transform_data' in request.POST:
-            transform_type = request.POST.get('transform_type')
-            numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
-            if transform_type == 'normalize':
-                scaler = MinMaxScaler() 
-                df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
-            elif transform_type == 'standardize':
-                scaler = StandardScaler()
-                df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
-            # if 'feature_selection' in request.POST:
-            #     selector = SelectKBest(f_classif, k='all')
-            #     target_column = 'target'  
-            #     df = pd.DataFrame(selector.fit_transform(df, df[target_column]), columns=selector.get_feature_names_out())
+        transform_type = request.POST.get('transform_type')
+        numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
+        if transform_type == 'normalize':
+            scaler = MinMaxScaler()
+            df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
+            dataset.status_normalized = True  # Update the status
+        elif transform_type == 'standardize':
+            scaler = StandardScaler()
+            df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
+            dataset.status_standardized = True  # Update the status
 
-            # Save the updated dataset back to file
-            if file_path.endswith('.csv'):
-                df.to_csv(file_path, index=False)
-            elif file_path.endswith('.xlsx'):
-                with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
-                    df.to_excel(writer, index=False)
+    # Save the updated dataset back to file
+    if file_path.endswith('.csv'):
+        df.to_csv(file_path, index=False)
+    elif file_path.endswith('.xlsx'):
+        with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
+            df.to_excel(writer, index=False)
 
-    # Compute updated statistics
-    # head = df.head(10).to_html(classes="table table-light")
-    row_count = int(df.shape[0])  # Ensure it is a native Python int
-    feature_count = int(df.shape[1])  # Ensure it is a native Python int
-    missing_values = {key: int(value) for key, value in df.isnull().sum().to_dict().items()}  # Convert values to int
-    duplicate_rows = int(df.duplicated().sum())  # Ensure it is a native Python int
-    data_types = {key: str(value) for key, value in df.dtypes.to_dict().items()}  # Convert to string
-    head = df.head(10).to_dict(orient='records')  # List of dicts
-    columns = df.columns.tolist()
+    # Save the updated dataset object
+    dataset.save()
 
-    # Return JSON response
-    return JsonResponse({
-        'head': head,
-        'columns': columns  ,
-        'row_count': row_count,
-        'feature_count': feature_count,
-        'missing_values': missing_values,
-        'duplicate_rows': duplicate_rows,
-        'data_types': data_types,
-    })
+    # Compute updated statistics for the relevant parts
+    updated_data['row_count'] = int(df.shape[0])
+    updated_data['feature_count'] = int(df.shape[1])
+    updated_data['columns'] = df.columns.tolist()
+    updated_data['data_types'] = {key: str(value) for key, value in df.dtypes.to_dict().items()}
+    updated_data['head'] = df.head(10).to_dict(orient='records')
+    updated_data['missing_values'] = {key: int(value) for key, value in df.isnull().sum().to_dict().items()}
+    updated_data['duplicate_rows'] = int(df.duplicated().sum())
+    updated_data['status'] = {
+        'normalized': dataset.status_normalized,
+        'standardized': dataset.status_standardized,
+        'cleaned': dataset.status_cleaned,
+        'encoded': dataset.status_encoded,
+    }
+
+    # Return a JSON response with updated data
+    return JsonResponse(updated_data)
 
 
 
