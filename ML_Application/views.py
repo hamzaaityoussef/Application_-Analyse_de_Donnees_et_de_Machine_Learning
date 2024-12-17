@@ -27,6 +27,27 @@ from sklearn.naive_bayes import GaussianNB
 from sklearn.linear_model import LinearRegression, Ridge
 from sklearn.cluster import KMeans, DBSCAN
 from sklearn.preprocessing import LabelEncoder
+from django.shortcuts import render, redirect
+from .models import Dataset
+import pandas as pd
+from sklearn.preprocessing import StandardScaler, MinMaxScaler
+from sklearn.feature_selection import SelectKBest, f_classif
+from sklearn.impute import SimpleImputer
+
+from django.http import JsonResponse
+
+from django.shortcuts import render, get_object_or_404
+import pandas as pd
+from django.http import JsonResponse
+import pandas as pd
+from sklearn.impute import SimpleImputer
+
+from django.http import JsonResponse, Http404
+from django.shortcuts import render
+from django.http import JsonResponse
+from .models import Dataset
+import pandas as pd
+import os
 
 @login_required(login_url='/login')
 def base(request):
@@ -131,7 +152,14 @@ def upload(request):
             file=f"datasets/{request.user.username}/{copy_name}",
             user=request.user
         )
-
+        action = Historique(
+                action='upload Data',
+                date_action=datetime.now(),
+                user=request.user,
+                infos=f"{uploaded_file.name} uploaded successfully" 
+                
+            )
+        action.save()
         # Respond with dataset details
         return redirect('upload')
 
@@ -153,7 +181,14 @@ def delete_dataset(request, dataset_id):
 
     # Delete the database entry
     dataset.delete()
-
+    action = Historique(
+            action='Delete Data',
+            date_action=datetime.now(),
+            user=request.user,
+            infos=f"{dataset.name} deleted successfully" 
+            
+        )
+    action.save()
     # Redirect back to the upload page
     return redirect('upload')
 
@@ -161,17 +196,7 @@ def delete_dataset(request, dataset_id):
 
 
 # Preprocess 
-from django.shortcuts import render, redirect
-from .models import Dataset
-import pandas as pd
-from sklearn.preprocessing import StandardScaler, MinMaxScaler
-from sklearn.feature_selection import SelectKBest, f_classif
-from sklearn.impute import SimpleImputer
 
-from django.http import JsonResponse
-
-from django.shortcuts import render, get_object_or_404
-import pandas as pd
 
 def preprocess(request):
     user_datasets = DatasetCopy.objects.filter(user=request.user)
@@ -243,13 +268,6 @@ def preprocess(request):
 
 
 
-
-
-from django.http import JsonResponse
-import pandas as pd
-from sklearn.impute import SimpleImputer
-
-from django.http import JsonResponse, Http404
 @csrf_exempt
 def apply_actions(request):
     try:
@@ -309,6 +327,14 @@ def apply_actions(request):
                     df.fillna(method='ffill', inplace=True)
                 dataset.status_cleaned = True  # Update the status
 
+            action = Historique(
+                action='Clean Data',
+                date_action=datetime.now(),
+                user=request.user,
+                infos=f"{dataset.name} Cleaned successfully" 
+                
+                )
+            action.save()
         if 'transform_data' in request.POST:
             transform_type = request.POST.get('transform_type')
             numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
@@ -320,6 +346,15 @@ def apply_actions(request):
                 scaler = StandardScaler()
                 df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
                 dataset.status_standardized = True  # Update the status
+
+            action = Historique(
+                action='Transform Data',
+                date_action=datetime.now(),
+                user=request.user,
+                infos=f"{dataset.name} Transformed successfully" 
+                
+                )
+            action.save()    
 
         # Save the updated dataset back to file
         if file_path.endswith('.csv'):
@@ -353,140 +388,15 @@ def apply_actions(request):
         return JsonResponse({"error": str(e)}, status=400) 
 
 
-
-
-
-
-
-
-
-
-
-
-
-# def Preprocess(request):
-#     # Initialize default values for variables
-#     head = ''
-#     row_count = 0
-#     feature_count = 0
-#     missing_values = {}
-#     duplicate_rows = 0
-#     data_types = {}
-    
-#     user_datasets = DatasetCopy.objects.filter(user=request.user)
-#     selected_dataset_id = request.GET.get('dataset_id')  # From dropdown selection
-    
-#     if selected_dataset_id:
-#         dataset = get_object_or_404(user_datasets, id=selected_dataset_id)
-#         file_path = dataset.file.path
-        
-#         if file_path.endswith('.csv'):
-#             df = pd.read_csv(file_path)
-#         elif file_path.endswith('.xlsx'):
-#             df = pd.read_excel(file_path, engine='openpyxl')
-
-#         # Compute dataset statistics
-#         row_count = df.shape[0]
-#         feature_count = df.shape[1]
-#         missing_values = df.isnull().sum().to_dict()  # Convert to dictionary for easier rendering
-#         duplicate_rows = df.duplicated().sum()
-#         data_types = df.dtypes.to_dict()  # Convert to dictionary
-#         head = df.head(10).to_html(classes="table table-light")
-
-#         print('huuu')
-#     if request.method == 'POST':
-#         dataset = get_object_or_404(user_datasets, id=selected_dataset_id)
-#         file_path = dataset.file.path
-        
-#         if file_path.endswith('.csv'):
-#             df = pd.read_csv(file_path)
-#         elif file_path.endswith('.xlsx'):
-#             df = pd.read_excel(file_path, engine='openpyxl')
-#         if 'clean_data' in request.POST:
-#             action = request.POST.get('action')
-#             if action == 'delete':
-#                 df = df.dropna()
-#             elif action == 'duplicated':
-#                 df = df.drop_duplicates()
-#             elif action == 'fill':
-#                 fill_method = request.POST.get('fill_method')
-#                 if fill_method == 'mean':
-#                     # Handle numeric columns: Replace missing values with the mean
-#                     numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
-#                     non_numeric_columns = df.select_dtypes(exclude=['float64', 'int64']).columns
-                    
-#                     if not numeric_columns.empty:
-#                         imputer_numeric = SimpleImputer(strategy='mean')
-#                         df_numeric = pd.DataFrame(imputer_numeric.fit_transform(df[numeric_columns]), columns=numeric_columns)
-#                     else:
-#                         df_numeric = pd.DataFrame()  # Empty if no numeric columns
-                    
-#                     # Handle categorical columns: Replace missing values with the most frequent value
-#                     if not non_numeric_columns.empty:
-#                         imputer_categorical = SimpleImputer(strategy='most_frequent')
-#                         df_categorical = pd.DataFrame(imputer_categorical.fit_transform(df[non_numeric_columns]), columns=non_numeric_columns)
-#                     else:
-#                         df_categorical = pd.DataFrame()  # Empty if no non-numeric columns
-                    
-#                     # Combine numeric and categorical data
-#                     df = pd.concat([df_numeric, df_categorical], axis=1)
-
-#                 elif fill_method == 'next':
-#                     df.fillna(method='ffill', inplace=True)
-#                 elif fill_method == 'most_frequent':
-#                     imputer = SimpleImputer(strategy='most_frequent')
-#                     df = pd.DataFrame(imputer.fit_transform(df), columns=df.columns)
-            
-#             # Save the updated DataFrame back to file
-#             if file_path.endswith('.csv'):
-#                 df.to_csv(file_path, index=False)
-#             elif file_path.endswith('.xlsx'):
-#                 with pd.ExcelWriter(file_path, engine='openpyxl') as writer:
-#                     df.to_excel(writer, index=False, sheet_name='Sheet1')
-
-#             # Update statistics after changes
-#             row_count = df.shape[0]
-#             feature_count = df.shape[1]
-#             missing_values = df.isnull().sum().to_dict()
-#             duplicate_rows = df.duplicated().sum()
-#             data_types = df.dtypes.to_dict()
-#             head = df.head(5).to_html(classes="table table-light")
-
-#             # Return updated content as JSON
-#             return JsonResponse({
-#                 'head': head,
-#                 'row_count': row_count,
-#                 'feature_count': feature_count,
-#                 'missing_values': missing_values,
-#                 'duplicate_rows': duplicate_rows,
-#                 'data_types': data_types,
-#             })
-
-#     # Render the template with default or updated variables
-#     return render(request, 'preprocess.html', {
-#         'head': head,
-#         'row_count': row_count,
-#         'feature_count': feature_count,
-#         'missing_values': missing_values,
-#         'duplicate_rows': duplicate_rows,
-#         'data_types': data_types,
-#         'datasets': user_datasets,
-#         'selected_dataset_id': selected_dataset_id,
-#     })
-
-
 #end  Preprocess 
 
 
 
 
 
-from django.shortcuts import render
-from django.http import JsonResponse
-from .models import Dataset
-import pandas as pd
-import os
+
 # visualisation 
+
 @login_required(login_url='/login')
 
 # View to render the visualisation page
