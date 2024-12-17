@@ -1,53 +1,142 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="text-center" style="color: aliceblue;">Prédictions</h1>
-    <br>
-    {% if error %}
-        <p class="text-danger text-center">{{ error }}</p>
-    {% else %}
-        <form id="prediction-form" >
-            <div id="inputs-container">
-                {% for col in columns %}
-                <div class="form-group mb-3">
-                    <label for="{{ col }}" class="form-label" style="color: aliceblue;">{{ col }}</label>
-                    <input type="text" class="form-control" name="{{ col }}" placeholder="Entrez une valeur">
-                </div>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Predictions</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.1.3/css/bootstrap.min.css">
+    <style>
+        body {
+            background-color: #001f3f;
+            color: #ffffff;
+        }
+        h1, h3 {
+            color: #ffffff;
+        }
+        .form-control, .form-select {
+            background-color: #333333;
+            color: #ffffff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center">Predictions</h1>
+        <br>
+        <!-- Dropdown for selecting dataset -->
+        <div class="mb-4">
+            <label for="dataset-select" class="form-label">Sélectionner une Dataset</label>
+            <select id="dataset-select" class="form-select">
+                <option value="">Choisir un dataset</option>
+                {% for dataset in datasets %}
+                    <option value="{{ dataset.id }}">{{ dataset.name }}</option>
                 {% endfor %}
-            </div>
-            <button type="button" id="predict-btn" class="btn btn-primary w-100">Prédire</button>
-        </form>
-        <div id="prediction-result" class="mt-4 text-center"></div>
-    {% endif %}
-</div>
+            </select>
+        </div>
 
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<script>
-    $('#predict-btn').click(function () {
-        const formData = $('#prediction-form').serializeArray();
-        $.ajax({
-            url: "{% url 'Predictions' %}",
-            type: 'POST',
-            data: {
-                inputs: JSON.stringify(formData),
-                csrfmiddlewaretoken: '{{ csrf_token }}'
-            },
-            success: function (response) {
-                if (response.error) {
-                    $('#prediction-result').html(`<p class="text-danger">${response.error}</p>`);
-                } else {
-                    $('#prediction-result').html(`
-                        <h3>Résultat de la Prédiction</h3>
-                        <p class="fs-4 fw-bold">${response.prediction}</p>
-                    `).css('color', '#ffffff');;
-                }
-            },
-            error: function (xhr) {
-                console.error('Erreur:', xhr.responseText);
-                $('#prediction-result').html('<p class="text-danger">Une erreur est survenue lors de la prédiction.</p>');
+        <!-- Placeholder for dynamically generated input fields -->
+        <div id="inputs-container" class="mb-4"></div>
+
+        <!-- Dropdown for selecting model -->
+        <div class="mb-4">
+            <label for="model-select" class="form-label">Sélectionner un Modèle</label>
+            <select id="model-select" class="form-select" disabled>
+                <option value="">Choisir un modèle</option>
+            </select>
+        </div>
+
+        <!-- Predict Button -->
+        <button id="predict-btn" class="btn btn-success">Prédire</button>
+
+        <!-- Prediction Result -->
+        <div id="prediction-result" class="mt-4 text-center" style="display: none;">
+            <h3>Résultat de la Prédiction:</h3>
+            <p id="prediction-value" style="font-size: 1.5rem;"></p>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        // Handle dataset selection
+        $('#dataset-select').change(function () {
+            var datasetId = $(this).val();
+            if (datasetId) {
+                // Fetch dataset attributes and model type
+                $.ajax({
+                    url: "{% url 'get_prediction_inputs' %}",
+                    data: { dataset_id: datasetId },
+                    success: function (response) {
+                        // Generate input fields
+                        var inputsContainer = $('#inputs-container');
+                        inputsContainer.empty();
+                        response.attributes.forEach(function (attr) {
+                            inputsContainer.append(`
+                                <div class="mb-3">
+                                    <label class="form-label">${attr}</label>
+                                    <input type="text" class="form-control" name="${attr}" placeholder="Entrez une valeur pour ${attr}">
+                                </div>
+                            `);
+                        });
+
+                        // Populate model dropdown
+                        var modelSelect = $('#model-select');
+                        modelSelect.empty();
+                        modelSelect.append('<option value="">Choisir un modèle</option>');
+                        if (response.type_modele === 'classification') {
+                            modelSelect.append('<option value="SVM">SVM</option>');
+                            modelSelect.append('<option value="KNN">KNN</option>');
+                            modelSelect.append('<option value="Random Forest">Random Forest</option>');
+                            modelSelect.append('<option value="Decision Tree">Decision Tree</option>');
+                            modelSelect.append('<option value="Naive Bayes">Naive Bayes</option>');
+                        } else if (response.type_modele === 'regression') {
+                            modelSelect.append('<option value="Linear Regression">Linear Regression</option>');
+                            modelSelect.append('<option value="Ridge Regression">Ridge Regression</option>');
+                        } else if (response.type_modele === 'clustering') {
+                            modelSelect.append('<option value="KMeans">KMeans</option>');
+                            modelSelect.append('<option value="DBSCAN">DBSCAN</option>');
+                        }
+                        modelSelect.prop('disabled', false);
+                    },
+                    error: function (xhr) {
+                        console.error('Error:', xhr.responseText);
+                    }
+                });
+            } else {
+                $('#inputs-container').empty();
+                $('#model-select').prop('disabled', true).empty().append('<option value="">Choisir un modèle</option>');
             }
         });
-    });
-</script>
+
+        // Handle prediction
+        $('#predict-btn').click(function () {
+            var datasetId = $('#dataset-select').val();
+            var modelName = $('#model-select').val();
+            var inputs = $('#inputs-container').find('input').serializeArray();
+
+            if (!datasetId || !modelName) {
+                alert('Veuillez sélectionner une dataset et un modèle.');
+                return;
+            }
+
+            $.ajax({
+                url: "{% url 'predict' %}",
+                type: 'POST',
+                data: {
+                    dataset_id: datasetId,
+                    model_name: modelName,
+                    inputs: JSON.stringify(inputs),
+                    csrfmiddlewaretoken: '{{ csrf_token }}'
+                },
+                success: function (response) {
+                    $('#prediction-result').show();
+                    $('#prediction-value').text(response.prediction);
+                },
+                error: function (xhr) {
+                    console.error('Error:', xhr.responseText);
+                }
+            });
+        });
+    </script>
+</body>
 {% endblock %}

@@ -25,7 +25,7 @@ urlpatterns = [
 
     path('preprocess/', views.preprocess, name='preprocess'),
     path('apply_action/', views.apply_actions, name='apply_actions'),
-
+    
 
     path('visualisation/', views.visualisation, name='visualisation'),
     path('get_columns/', views.get_columns, name='get_columns'),
@@ -40,6 +40,9 @@ urlpatterns = [
     path('apply_models/', views.apply_models, name='apply_models'),
     path('save_model_selection/', views.save_model_selection, name='save_model_selection'),
     path('predictions_page/', views.predictions_page, name='predictions_page'),
+    path('data/', views.data, name='data'),
+    path('get_prediction_inputs/', views.get_prediction_inputs, name='get_prediction_inputs'),
+    path('predict/', views.predict, name='predict'),
 
 
 
