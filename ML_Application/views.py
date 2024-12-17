@@ -510,8 +510,9 @@ def get_columns(request):
             return JsonResponse({'error': 'Unsupported file format'}, status=400)
         
         # Get columns from the DataFrame
-        categorical_vars = [col for col in df.columns if df[col].nunique() <= 20 and df[col].dtype == 'object']
-        continuous_vars = [col for col in df.columns if df[col].dtype in ['float64', 'int64']]
+        categorical_vars = [col for col in df.columns if df[col].nunique() <= 20]
+        continuous_vars = [col for col in df.columns if col not in categorical_vars and df[col].dtype in ['float64', 'int64']]
+
 
         return JsonResponse({
             'categorical_vars': categorical_vars,
