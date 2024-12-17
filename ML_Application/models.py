@@ -68,9 +68,9 @@ class DatasetCopy(models.Model):
     copied = models.BooleanField(default=False)
 
 
-    target = models.CharField(max_length=254) 
-    type_modele = models.CharField(max_length=254) 
-    best_modele = models.CharField(max_length=254) 
+    target = models.CharField(max_length=255,null=True, blank=True) 
+    type_modele = models.CharField(max_length=255,null=True, blank=True) 
+    best_modele = models.CharField(max_length=255,null=True, blank=True) 
 
 
     def __str__(self):
