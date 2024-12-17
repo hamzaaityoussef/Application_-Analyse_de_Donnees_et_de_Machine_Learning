@@ -722,23 +722,7 @@ def apply_models(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
-@login_required(login_url='/login')
-def save_selected_model(request):
-    if request.method == 'POST':
-        model_name = request.POST.get('model_name')
-        if not model_name:
-            return JsonResponse({'error': 'No model selected'}, status=400)
 
-        # Save the selected model in the session
-        request.session['selected_model_name'] = model_name
-        return JsonResponse({'message': f'Model "{model_name}" has been saved successfully.'})
-
-    return JsonResponse({'error': 'Invalid request method'}, status=400)
-
-#end modeles 
-
-
-# Predictions 
 @login_required(login_url='/login')
 def save_model_selection(request):
     if request.method == 'POST':
@@ -756,6 +740,11 @@ def save_model_selection(request):
 
         return JsonResponse({'message': 'Sélection sauvegardée avec succès.'})
     return JsonResponse({'error': 'Méthode non valide.'}, status=400)
+#end modeles 
+
+
+# Predictions 
+
 
 @login_required(login_url='/login')
 def predictions_page(request):
@@ -837,35 +826,6 @@ def Predictions(request):
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Méthode non valide.'}, status=400)
-
-
-
-@login_required(login_url='/login')
-def get_estimation_inputs(request):
-    dataset_id = request.session.get('selected_dataset_id')
-    target_column = request.session.get('selected_target_column')
-    print("Dataset ID:", dataset_id)
-    print("Target Column:", target_column)
-
-
-    if not dataset_id or not target_column:
-        return JsonResponse({'error': 'Dataset or target column not selected.'}, status=400)
-
-    try:
-        dataset = Dataset.objects.get(id=dataset_id, user=request.user)
-        file_path = dataset.file.path
-        if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path)
-        elif file_path.endswith('.xlsx'):
-            df = pd.read_excel(file_path)
-        else:
-            return JsonResponse({'error': 'Unsupported file format'}, status=400)
-
-        columns = [col for col in df.columns if col != target_column]
-        return JsonResponse({'columns': columns})
-
-    except Dataset.DoesNotExist:
-        return JsonResponse({'error': 'Dataset not found.'}, status=404)
 
 
 # documentation 

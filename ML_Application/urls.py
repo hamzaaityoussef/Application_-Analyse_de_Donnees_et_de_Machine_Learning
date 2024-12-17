@@ -38,8 +38,6 @@ urlpatterns = [
     path('documentation/', views.documentation, name='documentation'),
     path('report/', views.report, name='report'),
     path('apply_models/', views.apply_models, name='apply_models'),
-    path('save_selected_model/', views.save_selected_model, name='save_selected_model'),
-    path('get_estimation_inputs/', views.get_estimation_inputs, name='get_estimation_inputs'),
     path('save_model_selection/', views.save_model_selection, name='save_model_selection'),
     path('predictions_page/', views.predictions_page, name='predictions_page'),
 
