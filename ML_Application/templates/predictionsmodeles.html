@@ -1,0 +1,53 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1 class="text-center" style="color: aliceblue;">Prédictions</h1>
+    <br>
+    {% if error %}
+        <p class="text-danger text-center">{{ error }}</p>
+    {% else %}
+        <form id="prediction-form" >
+            <div id="inputs-container">
+                {% for col in columns %}
+                <div class="form-group mb-3">
+                    <label for="{{ col }}" class="form-label" style="color: aliceblue;">{{ col }}</label>
+                    <input type="text" class="form-control" name="{{ col }}" placeholder="Entrez une valeur">
+                </div>
+                {% endfor %}
+            </div>
+            <button type="button" id="predict-btn" class="btn btn-primary w-100">Prédire</button>
+        </form>
+        <div id="prediction-result" class="mt-4 text-center"></div>
+    {% endif %}
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $('#predict-btn').click(function () {
+        const formData = $('#prediction-form').serializeArray();
+        $.ajax({
+            url: "{% url 'Predictions' %}",
+            type: 'POST',
+            data: {
+                inputs: JSON.stringify(formData),
+                csrfmiddlewaretoken: '{{ csrf_token }}'
+            },
+            success: function (response) {
+                if (response.error) {
+                    $('#prediction-result').html(`<p class="text-danger">${response.error}</p>`);
+                } else {
+                    $('#prediction-result').html(`
+                        <h3>Résultat de la Prédiction</h3>
+                        <p class="fs-4 fw-bold">${response.prediction}</p>
+                    `).css('color', '#ffffff');;
+                }
+            },
+            error: function (xhr) {
+                console.error('Erreur:', xhr.responseText);
+                $('#prediction-result').html('<p class="text-danger">Une erreur est survenue lors de la prédiction.</p>');
+            }
+        });
+    });
+</script>
+{% endblock %}

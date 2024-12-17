@@ -590,13 +590,14 @@ def generate_chart(request):
 # modeles 
 @login_required(login_url='/login')
 def modeles(request):
-    datasets = Dataset.objects.filter(user=request.user)  # Get datasets for the logged-in user
+    datasets = DatasetCopy.objects.filter(user=request.user)  # Get datasets for the logged-in user
     return render(request, 'modeles.html', {'datasets': datasets})
+@login_required(login_url='/login')
 def get_MLcolumns(request):
     dataset_id = request.GET.get('dataset_id')  # Get dataset ID from request
     
     try:
-        dataset = Dataset.objects.get(id=dataset_id, user=request.user)  # Ensure dataset belongs to the user
+        dataset = DatasetCopy.objects.get(id=dataset_id, user=request.user)  # Ensure dataset belongs to the user
         file_path = dataset.file.path  # Get file path of dataset
         
         # Read dataset into a DataFrame
@@ -606,30 +607,41 @@ def get_MLcolumns(request):
             df = pd.read_excel(file_path)
         else:
             return JsonResponse({'error': 'Unsupported file format'}, status=400)
-        
 
-        
         columns = df.columns.tolist()  # Get list of all column names
-        column_name = request.GET.get('column_name')
-        if column_name in df.columns:
-            # Infer column type
-            if pd.api.types.is_numeric_dtype(df[column_name]):
-                # Check if the column has a limited number of unique values (e.g., <10)
-                unique_values = df[column_name].nunique()
-                if unique_values < 20:  # Considered categorical if fewer than 10 unique values
-                    column_type = 'categorical'
-                else:
-                    column_type = 'continuous'
-            else:
-                column_type = 'categorical'
-        else:
-            column_type = 'none'
-        return JsonResponse({'columns': columns,
-                             'column_type': column_type
-                             })  # Return columns in JSON format
+        column_name = request.GET.get('column_name')  # Target column selected by user
 
-    except Dataset.DoesNotExist:
+        if column_name:  # Target column selected
+            if column_name in df.columns:
+                # Infer column type
+                if pd.api.types.is_numeric_dtype(df[column_name]):
+                    unique_values = df[column_name].nunique()
+                    if unique_values < 20:  # Considered categorical for classification
+                        column_type = 'classification'
+                    else:  # Continuous for regression
+                        column_type = 'regression'
+                else:
+                    column_type = 'classification'  # Non-numeric is always classification
+                
+                # Update the target and model type in DatasetCopy
+                dataset.target = column_name
+                dataset.type_modele = column_type
+                dataset.save()
+            else:
+                return JsonResponse({'error': 'Column not found in dataset'}, status=400)
+        else:  # No target column selected, default to clustering
+            column_type = 'clustering'
+            dataset.target = None  # Clear the target
+            dataset.type_modele = column_type
+            dataset.save()
+
+        return JsonResponse({'columns': columns, 'column_type': column_type})
+
+    except DatasetCopy.DoesNotExist:
         return JsonResponse({'error': 'Dataset not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
+
 def apply_models(request):
     if request.method == 'POST':
         dataset_id = request.POST.get('dataset_id')
@@ -638,7 +650,7 @@ def apply_models(request):
 
         try:
             # Load the dataset
-            dataset = Dataset.objects.get(id=dataset_id, user=request.user)
+            dataset = DatasetCopy.objects.get(id=dataset_id, user=request.user)
             file_path = dataset.file.path
             if file_path.endswith('.csv'):
                 df = pd.read_csv(file_path)
@@ -717,8 +729,8 @@ def apply_models(request):
 
             return JsonResponse({'metrics': metrics})
 
-        except Dataset.DoesNotExist:
-            return JsonResponse({'error': 'Dataset not found'}, status=404)
+        except DatasetCopy.DoesNotExist:
+            return JsonResponse({'error': 'Dataset Not Found'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
 
@@ -744,7 +756,7 @@ def save_model_selection(request):
 #end modeles 
 
 
-# Predictions 
+# Predictions Modeles
 
 
 @login_required(login_url='/login')
@@ -753,24 +765,24 @@ def predictions_page(request):
     target_column = request.session.get('selected_target_column')
 
     if not dataset_id or not target_column:
-        return render(request, 'predictions.html', {'error': 'Sélectionnez un dataset, un target et un modèle.'})
+        return render(request, 'predictionsmodeles.html', {'error': 'Sélectionnez un dataset, un target et un modèle.'})
 
     try:
         # Charger la dataset
-        dataset = Dataset.objects.get(id=dataset_id, user=request.user)
+        dataset = DatasetCopy.objects.get(id=dataset_id, user=request.user)
         file_path = dataset.file.path
         if file_path.endswith('.csv'):
             df = pd.read_csv(file_path)
         elif file_path.endswith('.xlsx'):
             df = pd.read_excel(file_path)
         else:
-            return render(request, 'predictions.html', {'error': 'Format de fichier non pris en charge.'})
+            return render(request, 'predictionsmodeles.html', {'error': 'Format de fichier non pris en charge.'})
 
         # Exclure la colonne target
         input_columns = [col for col in df.columns if col != target_column]
-        return render(request, 'predictions.html', {'columns': input_columns, 'error': None})
-    except Dataset.DoesNotExist:
-        return render(request, 'predictions.html', {'error': 'Dataset introuvable.'})
+        return render(request, 'predictionsmodeles.html', {'columns': input_columns, 'error': None})
+    except DatasetCopy.DoesNotExist:
+        return render(request, 'predictionsmodeles.html', {'error': 'Dataset introuvable.'})
 
 
 @login_required(login_url='/login')
@@ -789,7 +801,7 @@ def Predictions(request):
                 return JsonResponse({'error': 'Informations manquantes.'}, status=400)
 
             # Charger le modèle et le dataset
-            dataset = Dataset.objects.get(id=dataset_id, user=request.user)
+            dataset = DatasetCopy.objects.get(id=dataset_id, user=request.user)
             file_path = dataset.file.path
             if file_path.endswith('.csv'):
                 df = pd.read_csv(file_path)
@@ -828,7 +840,91 @@ def Predictions(request):
             return JsonResponse({'error': str(e)}, status=500)
     return JsonResponse({'error': 'Méthode non valide.'}, status=400)
 
+#fin preditions modeles
 
+#predictions
+@login_required(login_url='/login')
+def data(request):
+    datasets = DatasetCopy.objects.filter(user=request.user)
+    return render(request, 'predictions.html', {'datasets': datasets})
+
+@login_required(login_url='/login')
+def get_prediction_inputs(request):
+    dataset_id = request.GET.get('dataset_id')
+    try:
+        dataset = DatasetCopy.objects.get(id=dataset_id, user=request.user)
+        file_path = dataset.file.path
+
+        # Load the dataset
+        if file_path.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith('.xlsx'):
+            df = pd.read_excel(file_path)
+        else:
+            return JsonResponse({'error': 'Unsupported file format'}, status=400)
+
+        attributes = [col for col in df.columns if col != dataset.target]
+        return JsonResponse({'attributes': attributes, 'type_modele': dataset.type_modele})
+
+    except DatasetCopy.DoesNotExist:
+        return JsonResponse({'error': 'Dataset not found'}, status=404)
+
+@csrf_exempt
+def predict(request):
+    if request.method == 'POST':
+        dataset_id = request.POST.get('dataset_id')
+        model_name = request.POST.get('model_name')
+        inputs = json.loads(request.POST.get('inputs'))
+
+        try:
+            dataset = DatasetCopy.objects.get(id=dataset_id)
+            file_path = dataset.file.path
+
+            # Load and preprocess dataset
+            if file_path.endswith('.csv'):
+                df = pd.read_csv(file_path)
+            elif file_path.endswith('.xlsx'):
+                df = pd.read_excel(file_path)
+            df = df.dropna()
+
+            # Extract target and features
+            X = df.drop(columns=[dataset.target])
+            y = df[dataset.target] if dataset.target else None
+
+            # Prepare input data
+            input_dict = {item['name']: float(item['value']) for item in inputs}
+            input_df = pd.DataFrame([input_dict])
+
+            # Train the selected model
+            model_mapping = {
+                'SVM': SVC(),
+                'KNN': KNeighborsClassifier(),
+                'Random Forest': RandomForestClassifier(),
+                'Decision Tree': DecisionTreeClassifier(),
+                'Naive Bayes': GaussianNB(),
+                'Linear Regression': LinearRegression(),
+                'Ridge Regression': Ridge(),
+                'KMeans': KMeans(n_clusters=3, random_state=42),
+                'DBSCAN': DBSCAN()
+            }
+            model = model_mapping.get(model_name)
+            if model_name in ['SVM', 'KNN', 'Random Forest', 'Decision Tree', 'Naive Bayes']:
+                model.fit(X, y)
+            elif model_name in ['Linear Regression', 'Ridge Regression']:
+                model.fit(X, y)
+            elif model_name in ['KMeans', 'DBSCAN']:
+                model.fit(X)
+
+            # Perform prediction
+            prediction = model.predict(input_df)
+            return JsonResponse({'prediction': prediction[0]})
+
+        except DatasetCopy.DoesNotExist:
+            return JsonResponse({'error': 'Dataset not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=500)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
 # documentation 
 @login_required(login_url='/login')
 def documentation(request):

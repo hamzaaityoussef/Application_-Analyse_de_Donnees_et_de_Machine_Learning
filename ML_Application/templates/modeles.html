@@ -173,15 +173,15 @@ function updateModelAccessibility(columnType) {
     const regressionModels = $('input[name="model-type"][value="Linear Regression"], input[name="model-type"][value="Ridge Regression"]');
     const clusteringModels = $('input[name="model-type"][value="KMeans"], input[name="model-type"][value="DBSCAN"]');
 
-    if (columnType === 'categorical') {
+    if (columnType === 'classification') {
         regressionModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
         clusteringModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
         classificationModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' });
-    } else if (columnType === 'continuous') {
+    } else if (columnType === 'regression') {
         classificationModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
         clusteringModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
         regressionModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' });
-    } else if (columnType === 'none') {
+    } else if (columnType === 'clustering') {
         classificationModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
         regressionModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
         clusteringModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' });
