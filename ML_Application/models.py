@@ -96,6 +96,8 @@ class Historique(models.Model):
     dataset = models.ForeignKey(Dataset, on_delete=models.SET_NULL, null=True, related_name='historiques')  # FK vers Dataset
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='historiques')  # FK vers User
     report_or_path = models.TextField(null=True, blank=True)  # Chemin vers le rapport ou description (optionnel)
+    infos = models.TextField(null=True, blank=True)
+
 
     def _str_(self):
         return f"Action: {self.get_action_display()} - Dataset: {self.dataset.name if self.dataset else 'Aucun'}"
