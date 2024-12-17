@@ -37,6 +37,9 @@ urlpatterns = [
     path('Predictions/', views.Predictions, name='Predictions'),
     path('documentation/', views.documentation, name='documentation'),
     path('report/', views.report, name='report'),
+    path('historique/', views.historique, name='historique'),
+
+
     path('apply_models/', views.apply_models, name='apply_models'),
     path('save_model_selection/', views.save_model_selection, name='save_model_selection'),
     path('predictions_page/', views.predictions_page, name='predictions_page'),

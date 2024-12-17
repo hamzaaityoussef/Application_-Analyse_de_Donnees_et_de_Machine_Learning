@@ -844,3 +844,25 @@ def report(request):
     print('bnjrjr')
     return render(request, 'report.html')
 #end report 
+
+
+# historique 
+@login_required(login_url='/login')
+# @require_GET
+def historique(request):
+    # columns = request.GET.get('columns') or request.session.get('columns', 10)
+    # authenticated_user = request.user.Role
+    # roles = ['senior', 'manager', 'admin_support']
+    actions = Historique.objects.all().order_by('-id')
+
+
+
+    context = {
+        # 'selected_role': authenticated_user,
+        'actions': actions,
+ 
+    }
+
+    return render(request, 'historique.html', context)
+
+#end historique 

@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block content %}
+
+
+<h1 class="mb-7 text-center text-5xl text-white">Gestion des <b> Historiques</b></h1>
+<!-- <h1 class="mb-7 text-5xl" >Gestion des <b> Historiques</b></h1> -->
+<div class="border-t-4 border-t-indigo-500 border-transparent ...">
+    <br><br>
+</div>
+
+<!-- Table -->
+<div class="table-container">
+    <table class="min-w-full bg-[#1E293B] shadow-lg rounded-lg overflow-hidden">
+        <thead>
+            <tr class="bg-[#0F172A] text-white uppercase leading-normal font-semibold">
+                <th class="py-4 px-6 text-left text-lg border-b border-gray-700">ID Action</th>
+                <th class="py-4 px-6 text-left text-lg border-b border-gray-700">Nom Action</th>
+                <th class="py-4 px-6 text-left text-lg border-b border-gray-700">Date Action</th>
+                <th class="py-4 px-6 text-left text-lg border-b border-gray-700">User</th>
+            </tr>
+        </thead>
+        <tbody class="text-gray-300">
+            {% for action in actions %}
+            <tr class="hover:bg-[#334155]">
+                <td class="py-4 px-6 text-base border-b border-gray-700">{{ action.id }}</td>
+                <td class="py-4 px-6 text-base border-b border-gray-700">{{ action.action }}</td>
+                <td class="py-4 px-6 text-base border-b border-gray-700">{{ action.date_action }}</td>
+                <td class="py-4 px-6 text-base border-b border-gray-700">{{ action.user.first_name }} {{ action.user.last_name }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+
+
+
+
+{% endblock %}
