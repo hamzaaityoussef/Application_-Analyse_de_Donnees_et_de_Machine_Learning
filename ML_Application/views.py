@@ -397,9 +397,8 @@ def apply_actions(request):
 
 # visualisation 
 
-@login_required(login_url='/login')
-
 # View to render the visualisation page
+@login_required(login_url='/login')
 def visualisation(request):
     datasets = Dataset.objects.filter(user=request.user)  # Get datasets for the logged-in user
     return render(request, 'visualisation.html', {'datasets': datasets})
@@ -454,7 +453,8 @@ def generate_chart(request):
         buf = io.BytesIO()
 
         fig, ax = plt.subplots(figsize=(4, 3)) 
-
+        # i will add here variable just for test assi diae 
+        test = 0
         if chart_type == 'pie':
             # Pie chart for categorical data
             df[column_x].value_counts().plot(kind='pie', ax=plt.gca(), autopct='%1.1f%%')
@@ -462,6 +462,7 @@ def generate_chart(request):
             plt.ylabel('')
             plt.savefig(buf, format='png')
             plt.close()
+            test = 1
 
         elif chart_type == 'histogram':
             # Histogram for categorical data
@@ -470,6 +471,7 @@ def generate_chart(request):
             plt.ylabel('Frequency')
             plt.savefig(buf, format='png')
             plt.close()
+            test = 1
 
         elif chart_type == 'scatter':
             # Scatter plot for continuous data
@@ -477,11 +479,20 @@ def generate_chart(request):
             plt.title(f'{column_x} vs {column_y} (Scatter Plot)')
             plt.savefig(buf, format='png')
             plt.close()
+            test = 1
 
         buf.seek(0)
         chart_base64 = base64.b64encode(buf.read()).decode('utf-8')  # Base64 encode the image
         buf.close()
-
+        if test == 1:
+            action = Historique(
+                action='Visualisation',
+                date_action=datetime.now(),
+                user=request.user,
+                infos=f"generate chart for the data {dataset.name} " 
+                
+            )
+            action.save()
         # Debugging: log the base64 response
         print("Generated chart base64: ", chart_base64[:50])  # Print a snippet of the base64 string for debugging
 
@@ -636,7 +647,14 @@ def apply_models(request):
                             'model': model_name,
                             'silhouette_score': silhouette_score(X, labels) if len(set(labels)) > 1 else 'N/A',
                         })
-
+                # Log the action history
+            action = Historique(
+                action='Apply Models',
+                date_action=datetime.now(),
+                user=request.user,
+                infos=f"Models applied successfully on dataset '{dataset.name}'"
+            )
+            action.save()
             return JsonResponse({'metrics': metrics})
 
         except DatasetCopy.DoesNotExist:
@@ -645,6 +663,8 @@ def apply_models(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
 
 @login_required(login_url='/login')
 def save_model_selection(request):
@@ -824,9 +844,17 @@ def predict(request):
                 model.fit(X, y)
             elif model_name in ['KMeans', 'DBSCAN']:
                 model.fit(X)
-
+                
             # Perform prediction
             prediction = model.predict(input_df)
+
+            action = Historique(
+                action='Apply Prediction',
+                date_action=datetime.now(),
+                user=request.user,
+                infos=f"Prediction applied successfully on dataset '{dataset.name}'"
+            )
+            action.save()
             return JsonResponse({'prediction': prediction[0]})
 
         except DatasetCopy.DoesNotExist:
@@ -835,6 +863,10 @@ def predict(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
+
+
 # documentation 
 @login_required(login_url='/login')
 def documentation(request):
