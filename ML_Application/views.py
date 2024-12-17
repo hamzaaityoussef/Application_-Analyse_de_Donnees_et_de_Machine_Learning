@@ -740,24 +740,65 @@ def save_selected_model(request):
 
 # Predictions 
 @login_required(login_url='/login')
+def save_model_selection(request):
+    if request.method == 'POST':
+        dataset_id = request.POST.get('dataset_id')
+        target_column = request.POST.get('target_column')
+        model_name = request.POST.get('model_name')
+
+        if not dataset_id or not target_column or not model_name:
+            return JsonResponse({'error': 'Tous les champs sont obligatoires.'}, status=400)
+
+        # Sauvegarder les choix dans la session
+        request.session['selected_dataset_id'] = dataset_id
+        request.session['selected_target_column'] = target_column
+        request.session['selected_model_name'] = model_name
+
+        return JsonResponse({'message': 'Sélection sauvegardée avec succès.'})
+    return JsonResponse({'error': 'Méthode non valide.'}, status=400)
+
+@login_required(login_url='/login')
+def predictions_page(request):
+    dataset_id = request.session.get('selected_dataset_id')
+    target_column = request.session.get('selected_target_column')
+
+    if not dataset_id or not target_column:
+        return render(request, 'predictions.html', {'error': 'Sélectionnez un dataset, un target et un modèle.'})
+
+    try:
+        # Charger la dataset
+        dataset = Dataset.objects.get(id=dataset_id, user=request.user)
+        file_path = dataset.file.path
+        if file_path.endswith('.csv'):
+            df = pd.read_csv(file_path)
+        elif file_path.endswith('.xlsx'):
+            df = pd.read_excel(file_path)
+        else:
+            return render(request, 'predictions.html', {'error': 'Format de fichier non pris en charge.'})
+
+        # Exclure la colonne target
+        input_columns = [col for col in df.columns if col != target_column]
+        return render(request, 'predictions.html', {'columns': input_columns, 'error': None})
+    except Dataset.DoesNotExist:
+        return render(request, 'predictions.html', {'error': 'Dataset introuvable.'})
+
+
+@login_required(login_url='/login')
 def Predictions(request):
     if request.method == 'POST':
         try:
-            model_name = request.POST.get('model_name')
             inputs = request.POST.get('inputs')
-
-            if not model_name:
-                return JsonResponse({'error': 'No model selected.'}, status=400)
             if not inputs:
-                return JsonResponse({'error': 'Inputs are missing.'}, status=400)
+                return JsonResponse({'error': 'Aucune donnée fournie.'}, status=400)
 
-            # Retrieve dataset and target column from session
+            model_name = request.session.get('selected_model_name')
             dataset_id = request.session.get('selected_dataset_id')
             target_column = request.session.get('selected_target_column')
-            if not dataset_id or not target_column:
-                return JsonResponse({'error': 'Dataset or target not specified.'}, status=400)
 
-            # Load the dataset
+            if not model_name or not dataset_id or not target_column:
+                return JsonResponse({'error': 'Informations manquantes.'}, status=400)
+
+            # Charger le modèle et le dataset
             dataset = Dataset.objects.get(id=dataset_id, user=request.user)
             file_path = dataset.file.path
             if file_path.endswith('.csv'):
@@ -765,22 +806,17 @@ def Predictions(request):
             elif file_path.endswith('.xlsx'):
                 df = pd.read_excel(file_path)
             else:
-                return JsonResponse({'error': 'Unsupported file format'}, status=400)
+                return JsonResponse({'error': 'Format non pris en charge.'}, status=400)
 
-            # Drop missing values
-            df = df.dropna()
-
-            # Prepare the data
             X = df.drop(columns=[target_column])
             y = df[target_column]
 
-            # Encode non-numeric columns
-            for column in X.columns:
-                if X[column].dtype == 'object' or X[column].dtype.name == 'category':
-                    le = LabelEncoder()
-                    X[column] = le.fit_transform(X[column])
+            # Préparation des données
+            input_data = json.loads(inputs)
+            input_data_dict = {item['name']: float(item['value']) for item in input_data}
+            input_df = pd.DataFrame([input_data_dict])
 
-            # Map the model name to the actual trained model instance
+            # Charger le modèle
             trained_models = {
                 'KNN': KNeighborsClassifier(),
                 'SVM': SVC(),
@@ -791,36 +827,26 @@ def Predictions(request):
                 'Ridge Regression': Ridge(),
                 'KMeans': KMeans(n_clusters=3, random_state=42),
                 'DBSCAN': DBSCAN(),
+                
             }
-
             model = trained_models.get(model_name)
-            if not model:
-                return JsonResponse({'error': f'Model "{model_name}" is not recognized.'}, status=400)
-
-            # Train the model with the dataset
-            model.fit(X, y)
-
-            # Prepare input data for prediction
-            input_data = json.loads(inputs)
-            input_data_dict = {item['name']: float(item['value']) for item in input_data}
-            input_df = pd.DataFrame([input_data_dict])
-
-            # Perform prediction
+            model.fit(X, y)  # Entraîner avec les données
             prediction = model.predict(input_df)
 
             return JsonResponse({'prediction': prediction[0]})
-        except Dataset.DoesNotExist:
-            return JsonResponse({'error': 'Dataset not found.'}, status=404)
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
+    return JsonResponse({'error': 'Méthode non valide.'}, status=400)
 
-    return JsonResponse({'error': 'Invalid request method.'}, status=400)
 
 
 @login_required(login_url='/login')
 def get_estimation_inputs(request):
     dataset_id = request.session.get('selected_dataset_id')
     target_column = request.session.get('selected_target_column')
+    print("Dataset ID:", dataset_id)
+    print("Target Column:", target_column)
+
 
     if not dataset_id or not target_column:
         return JsonResponse({'error': 'Dataset or target column not selected.'}, status=400)

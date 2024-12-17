@@ -263,19 +263,35 @@ $('#apply-models').click(function () {
     });
 });
 
-let selectedModelName = null; // Initialize the variable to store the selected model name
-
-// Save the selected model
 $('#save-model').click(function () {
     const selectedModel = $('#model-select').val();
-    if (!selectedModel) {
-        alert('Veuillez sélectionner un modèle.');
+    const datasetId = $('#dataset-select').val();
+    const targetColumn = $('#column-select').val();
+
+    if (!selectedModel || !datasetId || !targetColumn) {
+        alert('Veuillez sélectionner un dataset, un target et un modèle.');
         return;
     }
 
-    // Save the model name in the variable
-    selectedModelName = selectedModel;
-    alert(`Le modèle "${selectedModelName}" a été sauvegardé pour les prédictions.`);
+    $.ajax({
+        url: "{% url 'save_model_selection' %}",
+        type: 'POST',
+        data: {
+            dataset_id: datasetId,
+            target_column: targetColumn,
+            model_name: selectedModel,
+            csrfmiddlewaretoken: '{{ csrf_token }}'
+        },
+        success: function (response) {
+            alert(response.message);
+            window.location.href = "{% url 'predictions_page' %}"; // Redirige vers la page de prédiction
+        },
+        error: function (xhr) {
+            console.error('Erreur:', xhr.responseText);
+            alert('Une erreur est survenue lors de la sauvegarde.');
+        }
+    });
 });
+
 </script>
 {% endblock %}
