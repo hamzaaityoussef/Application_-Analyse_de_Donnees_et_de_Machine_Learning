@@ -76,7 +76,7 @@ tbody tr:hover {
 }
 
 /* Button Enhancements */
-button {
+/* button {
     background-color: #1f1f9b;
     color: white;
     padding: 8px 16px;
@@ -88,7 +88,7 @@ button {
 button:hover {
     background-color: #3535b2;
     cursor: pointer;
-}
+} */
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -122,11 +122,21 @@ button:hover {
         {% csrf_token %}
         <!-- FilePond Input -->
         <input type="file" id="fileUpload" name="fileUpload" accept=".csv, .xlsx" required   class="block w-full text-lg text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"><br>
-        <button type="submit" class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
-            <span class="relative px-5 py-2.5 transition-all ease-in duration-75 dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
-                Upload file
+        <div class="flex items-center space-x-4">
+            <!-- Upload Button -->
+            <button type="submit" class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
+                <span class="relative px-5 py-2.5 transition-all ease-in duration-75 dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                    Upload file
                 </span>
-        </button>
+            </button>
+        
+            <!-- Create Dataset Button -->
+            <button type="button" onclick="openCreateDatasetModal()" class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-purple-400 to-pink-600 group-hover:from-purple-400 group-hover:to-pink-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-purple-200 dark:focus:ring-purple-800">
+                <span class="relative px-5 py-2.5 transition-all ease-in duration-75 dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                    Create Dataset
+                </span>
+            </button>
+        </div>
     </form>
 </div>
   
@@ -170,5 +180,152 @@ button:hover {
     <p class="text-gray-400 text-center mt-4">No files uploaded yet. Start uploading to view them here!</p>
     {% endif %}
 </div>
+
+
+
+
+<!-- part of create data  -->
+
+<!-- Create Dataset Modal -->
+<!-- Create Dataset Modal -->
+<div id="createDatasetModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50">
+    <div class="bg-[#05172a] text-white rounded-lg shadow-lg p-6 max-w-lg w-full border border-gray-600">
+        <h2 class="text-2xl font-bold mb-4">Create New Dataset</h2>
+        <form id="createDatasetForm" action="{% url 'upload' %}" method="POST">
+            {% csrf_token %}
+            <input type="hidden" name="create_dataset" value="true">
+            
+            <!-- Number of Rows -->
+            <div>
+                <label for="num-rows" class="block text-sm font-medium text-gray-300">Number of Rows</label>
+                <input type="number" name="num_rows" id="num-rows" class="mt-1 block w-full rounded-md bg-[#0a233a] border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+            </div>
+
+            <!-- Number of Columns -->
+            <div>
+                <label for="num-columns" class="block text-sm font-medium text-gray-300">Number of Columns</label>
+                <input type="number" name="num_columns" id="num-columns" class="mt-1 block w-full rounded-md bg-[#0a233a] border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+            </div>
+
+            <!-- Generate Column Definitions -->
+            <button type="button" id="generate-columns" class="mt-4 relative inline-flex items-center justify-center p-0.5 mb-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
+                <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-[#05172a] rounded-md group-hover:bg-opacity-0">
+                    Define Columns
+                </span>
+            </button>
+
+            <!-- Hidden Generate Table Button -->
+            <button type="button" id="generate-table" class="mt-4 hidden relative inline-flex items-center justify-center p-0.5 mb-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-blue-400 to-purple-600 group-hover:from-blue-400 group-hover:to-purple-600 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-200 dark:focus:ring-blue-800">
+                <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-[#05172a] rounded-md group-hover:bg-opacity-0">
+                    Generate Table
+                </span>
+            </button>
+
+            <!-- Column Definitions -->
+            <div id="column-definitions" class="mt-4"></div>
+
+            <!-- Data Entry Table -->
+            <div id="data-entry-table" class="mt-4"></div>
+
+            <!-- Submit Button -->
+            <button type="submit" class="mt-4 relative inline-flex items-center justify-center p-0.5 mb-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
+                <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-[#05172a] rounded-md group-hover:bg-opacity-0">
+                    Create Dataset
+                </span>
+            </button>
+        </form>
+        <button onclick="closeCreateDatasetModal()" class="text-gray-400 hover:text-white mt-4">Cancel</button>
+    </div>
+</div>
+
+
+
+<script>
+    function openCreateDatasetModal() {
+    // Display the modal for creating a dataset
+    const modal = document.getElementById('createDatasetModal');
+    modal.classList.remove('hidden');
+}
+
+function closeCreateDatasetModal() {
+    // Hide the modal for creating a dataset
+    const modal = document.getElementById('createDatasetModal');
+    modal.classList.add('hidden');
+}
+
+document.getElementById('generate-columns').addEventListener('click', () => {
+    const numColumns = parseInt(document.getElementById('num-columns').value);
+    const columnDefinitions = document.getElementById('column-definitions');
+    columnDefinitions.innerHTML = ''; // Clear previous inputs
+
+    if (isNaN(numColumns) || numColumns <= 0) {
+        alert('Please enter a valid number of columns.');
+        return;
+    }
+
+    // Generate column definition inputs
+    for (let i = 0; i < numColumns; i++) {
+        columnDefinitions.innerHTML += `
+            <div class="mb-2">
+                <label>Column ${i + 1} Name:</label>
+                <input type="text" class="p-2 rounded border w-1/2 bg-[#0a233a] text-white border-gray-500" name="col${i + 1}_name" required>
+                <label>Type:</label>
+                <select name="col${i + 1}_type" class="p-2 rounded border bg-[#0a233a] text-white border-gray-500">
+                    <option value="string">String</option>
+                    <option value="integer">Integer</option>
+                    <option value="float">Float</option>
+                </select>
+            </div>
+        `;
+    }
+
+    // Show the button to generate the data entry table
+    const generateTableButton = document.getElementById('generate-table');
+    generateTableButton.classList.remove('hidden');
+});
+
+document.getElementById('generate-table').addEventListener('click', () => {
+    generateDataEntryTable();
+});
+
+document.getElementById('createDatasetForm').addEventListener('submit', (e) => {
+    const numRows = parseInt(document.getElementById('num-rows').value);
+    const numColumns = parseInt(document.getElementById('num-columns').value);
+
+    if (isNaN(numRows) || isNaN(numColumns) || numRows <= 0 || numColumns <= 0) {
+        alert('Please enter valid numbers for rows and columns.');
+        e.preventDefault();
+    }
+});
+
+function generateDataEntryTable() {
+    const numRows = parseInt(document.getElementById('num-rows').value);
+    const numColumns = parseInt(document.getElementById('num-columns').value);
+    const dataEntryTable = document.getElementById('data-entry-table');
+    dataEntryTable.innerHTML = ''; // Clear previous table
+
+    // Create table
+    let table = '<table class="w-full border-collapse border border-gray-400"><thead><tr>';
+    for (let i = 1; i <= numColumns; i++) {
+        table += `<th class="border border-gray-400 p-2">Column ${i}</th>`;
+    }
+    table += '</tr></thead><tbody>';
+
+    // Create rows for data input
+    for (let i = 0; i < numRows; i++) {
+        table += '<tr>';
+        for (let j = 0; j < numColumns; j++) {
+            table += `<td class="border border-gray-400 p-2"><input type="text" class="w-full p-1" name="row${i}_col${j}" required></td>`;
+        }
+        table += '</tr>';
+    }
+    table += '</tbody></table>';
+
+    dataEntryTable.innerHTML = table;
+}
+
+</script>
+
+<!-- end part of create data  -->
 
 {% endblock %}

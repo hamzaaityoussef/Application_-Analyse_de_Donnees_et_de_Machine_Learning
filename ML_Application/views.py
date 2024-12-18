@@ -114,60 +114,121 @@ def home(request):
 @login_required(login_url='/login')
 def upload(request):
     if request.method == 'POST':
-        uploaded_file = request.FILES.get('fileUpload')  # FilePond sends the file with key 'file'
-        if not uploaded_file:
-            return JsonResponse({'error': 'No file uploaded.'}, status=400)
+        if 'create_dataset' in request.POST:  # Check if the user is creating a dataset
+            try:
+                # Extract form data for dataset creation
+                rows = int(request.POST.get('num_rows'))
+                columns = int(request.POST.get('num_columns'))
+                column_data = []
+                for i in range(1, columns + 1):
+                    col_name = request.POST.get(f'col{i}_name')
+                    col_type = request.POST.get(f'col{i}_type')
+                    column_data.append({'name': col_name, 'type': col_type})
 
-        # Save the file to the user's directory
-        user_folder = os.path.join(settings.MEDIA_ROOT, 'datasets', request.user.username)
-        os.makedirs(user_folder, exist_ok=True)  # Ensure the user's folder exists
-        file_path = os.path.join(user_folder, uploaded_file.name)
+                # Create a blank DataFrame
+                data = []
+                for r in range(rows):
+                    row = []
+                    for c in range(columns):
+                        value = request.POST.get(f'row{r}_col{c}')
+                        row.append(value)
+                    data.append(row)
 
-        with default_storage.open(file_path, 'wb+') as destination:
-            for chunk in uploaded_file.chunks():
-                destination.write(chunk)
+                df = pd.DataFrame(data, columns=[col['name'] for col in column_data])
 
-        # Save the dataset instance to the database
-        dataset = Dataset.objects.create(
-            name=uploaded_file.name,
-            file=f"datasets/{request.user.username}/{uploaded_file.name}",
-            user=request.user
-        )
+                # Save the DataFrame to the user's directory
+                user_folder = os.path.join(settings.MEDIA_ROOT, 'datasets', request.user.username)
+                os.makedirs(user_folder, exist_ok=True)  # Ensure the user's folder exists
+                file_name = f"created_dataset_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+                file_path = os.path.join(user_folder, file_name)
+                df.to_csv(file_path, index=False)
 
-        # Create a copy of the dataset
-        # Generate the copied file name
-        base_name, extension = uploaded_file.name.rsplit('.', 1)
-        copy_name = f"{base_name}_copy.{extension}"
-        copy_file_path = os.path.join(user_folder, copy_name)
+                # Save the dataset instance to the database
+                dataset = Dataset.objects.create(
+                    name=file_name,
+                    file=f"datasets/{request.user.username}/{file_name}",
+                    user=request.user
+                )
 
-        # Save the copied file
-        with default_storage.open(copy_file_path, 'wb+') as copy_destination:
-            for chunk in uploaded_file.chunks():
-                copy_destination.write(chunk)
+                # Save a copy of the dataset
+                copy_name = f"{file_name.rsplit('.', 1)[0]}_copy.csv"
+                copy_file_path = os.path.join(user_folder, copy_name)
+                df.to_csv(copy_file_path, index=False)
 
-        # Save the dataset copy instance to the database
-        DatasetCopy.objects.create(
-            original_dataset=dataset,
-            name=copy_name,
-            file=f"datasets/{request.user.username}/{copy_name}",
-            user=request.user
-        )
-        action = Historique(
+                DatasetCopy.objects.create(
+                    original_dataset=dataset,
+                    name=copy_name,
+                    file=f"datasets/{request.user.username}/{copy_name}",
+                    user=request.user
+                )
+
+                # Log the action
+                action = Historique(
+                    action='create Data',
+                    date_action=datetime.now(),
+                    user=request.user,
+                    infos=f"{file_name} created successfully"
+                )
+                action.save()
+
+                messages.success(request, 'Dataset created successfully.')
+                return redirect('upload')
+            except Exception as e:
+                messages.error(request, f"Error creating dataset: {e}")
+                return redirect('upload')
+
+        else:  # Handle file upload logic
+            uploaded_file = request.FILES.get('fileUpload')  # FilePond sends the file with key 'file'
+            if not uploaded_file:
+                return JsonResponse({'error': 'No file uploaded.'}, status=400)
+
+            # Save the file to the user's directory
+            user_folder = os.path.join(settings.MEDIA_ROOT, 'datasets', request.user.username)
+            os.makedirs(user_folder, exist_ok=True)  # Ensure the user's folder exists
+            file_path = os.path.join(user_folder, uploaded_file.name)
+
+            with default_storage.open(file_path, 'wb+') as destination:
+                for chunk in uploaded_file.chunks():
+                    destination.write(chunk)
+
+            # Save the dataset instance to the database
+            dataset = Dataset.objects.create(
+                name=uploaded_file.name,
+                file=f"datasets/{request.user.username}/{uploaded_file.name}",
+                user=request.user
+            )
+
+            # Create a copy of the dataset
+            base_name, extension = uploaded_file.name.rsplit('.', 1)
+            copy_name = f"{base_name}_copy.{extension}"
+            copy_file_path = os.path.join(user_folder, copy_name)
+
+            with default_storage.open(copy_file_path, 'wb+') as copy_destination:
+                for chunk in uploaded_file.chunks():
+                    copy_destination.write(chunk)
+
+            DatasetCopy.objects.create(
+                original_dataset=dataset,
+                name=copy_name,
+                file=f"datasets/{request.user.username}/{copy_name}",
+                user=request.user
+            )
+
+            # Log the action
+            action = Historique(
                 action='upload Data',
                 date_action=datetime.now(),
                 user=request.user,
-                infos=f"{uploaded_file.name} uploaded successfully" 
-                
+                infos=f"{uploaded_file.name} uploaded successfully"
             )
-        action.save()
-        messages.success(request, 'data uploaded successfully.')
-        # Respond with dataset details
-        return redirect('upload')
+            action.save()
+
+            messages.success(request, 'Dataset uploaded successfully.')
+            return redirect('upload')
 
     # For GET request, render the upload template with datasets
     datasets = Dataset.objects.filter(user=request.user)
     return render(request, 'upload.html', {'datasets': datasets})
-
 
 
 @login_required
