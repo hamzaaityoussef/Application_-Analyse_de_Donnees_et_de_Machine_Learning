@@ -527,6 +527,8 @@ def get_MLcolumns(request):
         dataset = DatasetCopy.objects.get(id=dataset_id, user=request.user)  # Ensure dataset belongs to the user
         file_path = dataset.file.path  # Get file path of dataset
         
+    
+        
         # Read dataset into a DataFrame
         if file_path.endswith('.csv'):
             df = pd.read_csv(file_path)
@@ -578,6 +580,20 @@ def apply_models(request):
         try:
             # Load the dataset
             dataset = DatasetCopy.objects.get(id=dataset_id, user=request.user)
+
+    
+        # Check if preprocessing is required
+            preprocessing_required = (
+    not (dataset.status_normalized or dataset.status_standardized)  # Both normalized and standardized are false
+    or not dataset.status_cleaned  # Cleaned is false
+    or not dataset.status_encoded  # Encoded is false
+)
+            print(f"Dataset Preprocessing Flags: normalized={dataset.status_normalized}, standardized={dataset.status_standardized}, cleaned={dataset.status_cleaned}, encoded={dataset.status_encoded}")
+            print(f"Preprocessing Required: {preprocessing_required}")
+
+            if preprocessing_required:
+                return JsonResponse({'preprocessing_required': True}, status=400)
+            
             file_path = dataset.file.path
             if file_path.endswith('.csv'):
                 df = pd.read_csv(file_path)
@@ -588,10 +604,10 @@ def apply_models(request):
             
             df = df.dropna()
              # Encode non-numeric columns
-            for column in df.columns:
-                if df[column].dtype == 'object' or df[column].dtype.name == 'category':
-                    le = LabelEncoder()
-                    df[column] = le.fit_transform(df[column])
+            #for column in df.columns:
+             #   if df[column].dtype == 'object' or df[column].dtype.name == 'category':
+              #      le = LabelEncoder()
+               #     df[column] = le.fit_transform(df[column])
 
 
             # Split data into features and target
@@ -662,7 +678,7 @@ def apply_models(request):
             )
             action.save()
             messages.success(request, 'Models applied successfully.')  
-            return JsonResponse({'metrics': metrics})
+            return JsonResponse({'metrics': metrics,'preprocessing_required': False})
 
         except DatasetCopy.DoesNotExist:
             return JsonResponse({'error': 'Dataset Not Found'}, status=404)
@@ -790,6 +806,18 @@ def get_prediction_inputs(request):
     dataset_id = request.GET.get('dataset_id')
     try:
         dataset = DatasetCopy.objects.get(id=dataset_id, user=request.user)
+        preprocessing_required = (
+    not (dataset.status_normalized or dataset.status_standardized)  # Both normalized and standardized are false
+    or not dataset.status_cleaned  # Cleaned is false
+    or not dataset.status_encoded  # Encoded is false
+)
+
+        print(f"Dataset Preprocessing Flags: normalized={dataset.status_normalized}, standardized={dataset.status_standardized}, cleaned={dataset.status_cleaned}, encoded={dataset.status_encoded}")
+        print(f"Preprocessing Required: {preprocessing_required}")
+
+        if preprocessing_required:
+            return JsonResponse({'preprocessing_required': True}, status=200)
+
         file_path = dataset.file.path
 
         # Load the dataset
@@ -801,10 +829,11 @@ def get_prediction_inputs(request):
             return JsonResponse({'error': 'Unsupported file format'}, status=400)
 
         attributes = [col for col in df.columns if col != dataset.target]
-        return JsonResponse({'attributes': attributes, 'type_modele': dataset.type_modele})
+        return JsonResponse({'attributes': attributes, 'type_modele': dataset.type_modele, 'preprocessing_required': False})
 
     except DatasetCopy.DoesNotExist:
         return JsonResponse({'error': 'Dataset not found'}, status=404)
+
 
 @csrf_exempt
 def predict(request):

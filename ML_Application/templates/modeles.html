@@ -25,6 +25,9 @@
         #chart-container {
             margin-top: 20px;
         }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
@@ -111,6 +114,27 @@
         <button id="save-model" class="btn btn-success mt-3">Sauvegarder le Modèle</button>
     </div>
 
+    
+    <div id="preprocessing-popup" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 w-1/3">
+            <h3 class="text-xl font-bold mb-4 text-red-600">Prétraitement requis</h3>
+            <p class="mb-4 text-black">
+                Les données nécessitent un prétraitement. Les modèles ne peuvent pas être appliqués.
+                 Veuillez vous retourner à la page de prétraitement.
+            </p>
+            <div class="flex justify-end">
+                <button id="cancel-btn" class="bg-gray-500 text-white px-4 py-2 rounded mr-2">Annuler</button>
+                <a href="{% url 'preprocess' %}" class="bg-blue-500 text-white px-4 py-2 rounded">
+                    Retourner à Preprocessing
+                </a>
+            </div>
+        </div>
+    </div>
+    
+    
+    
+
+
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
     // Handle dataset selection
@@ -188,27 +212,26 @@ function updateModelAccessibility(columnType) {
     }
 }
 
-// Handle model application and display metrics
 $('#apply-models').click(function () {
+    var datasetId = $('#dataset-select').val();
+    var targetColumn = $('#column-select').val();
     var selectedModels = [];
+
     $('input[name="model-type"]:checked').each(function () {
         selectedModels.push($(this).val());
     });
 
-    var datasetId = $('#dataset-select').val();
-    var targetColumn = $('#column-select').val();
+    if (!datasetId) {
+        alert('Veuillez sélectionner un dataset.');
+        return;
+    }
 
     if (selectedModels.length === 0) {
-        alert('Please select at least one model.');
+        alert('Veuillez sélectionner au moins un modèle.');
         return;
     }
 
-    if (!datasetId || !targetColumn) {
-        alert('Please select a dataset and a target column.');
-        return;
-    }
-
-    // Make AJAX request to apply selected models
+    // Check preprocessing requirements and apply models if valid
     $.ajax({
         url: "{% url 'apply_models' %}",
         type: 'POST',
@@ -219,51 +242,85 @@ $('#apply-models').click(function () {
             csrfmiddlewaretoken: '{{ csrf_token }}',
         },
         success: function (response) {
-            // Display metrics in a table
-            var metricsContainer = $('#metrics-container');
-            metricsContainer.empty();
+    if (response.preprocessing_required) {
+        // Show the preprocessing popup
+        $('#preprocessing-popup').removeClass('hidden');
+    } else {
+        // Populate metrics as usual
+        var metricsContainer = $('#metrics-container');
+        metricsContainer.empty();
 
-            var table = $('<table></table>').addClass('w-full text-sm text-center text-blue-100 dark:text-blue-100').css({ 'height': '200px','font-size': '1.2rem' });;
-            var thead = $('<thead></thead>').addClass('text-xs text-white uppercase bg-blue-600 dark:text-white').css({ 'height': '20px','font-size': '1.2rem' });;
-            var tbody = $('<tbody></tbody>');
+        var table = $('<table></table>').addClass('w-full text-sm text-center text-blue-100 dark:text-blue-100').css({ 'height': '200px', 'font-size': '1.2rem' });
+        var thead = $('<thead></thead>').addClass('text-xs text-white uppercase bg-blue-600 dark:text-white').css({ 'height': '20px', 'font-size': '1.2rem' });
+        var tbody = $('<tbody></tbody>');
 
-            var headerRow = $('<tr></tr>');
-            headerRow.append('<th>Model</th>');
-            if (response.metrics.length > 0) {
-                Object.keys(response.metrics[0]).forEach(function (key) {
-                    if (key !== 'model') {
-                        headerRow.append('<th>' + key.charAt(0).toUpperCase() + key.slice(1) + '</th>');
-                    }
-                });
-            }
-            thead.append(headerRow);
-
-            var modelSelect = $('#model-select');
-            modelSelect.empty();
-            modelSelect.append('<option value="">Sélectionner un modèle</option>');
-
-            response.metrics.forEach(function (metric) {
-                var row = $('<tr></tr>');
-                row.append('<td>' + metric.model + '</td>');
-                Object.keys(metric).forEach(function (key) {
-                    if (key !== 'model') {
-                        row.append('<td>' + metric[key] + '</td>');
-                    }
-                });
-                tbody.append(row);
-
-                modelSelect.append('<option value="' + metric.model + '">' + metric.model + '</option>');
+        var headerRow = $('<tr></tr>');
+        headerRow.append('<th>Model</th>');
+        if (response.metrics.length > 0) {
+            Object.keys(response.metrics[0]).forEach(function (key) {
+                if (key !== 'model') {
+                    headerRow.append('<th>' + key.charAt(0).toUpperCase() + key.slice(1) + '</th>');
+                }
             });
-
-            table.append(thead);
-            table.append(tbody);
-            metricsContainer.append(table);
-        },
-        error: function (xhr) {
-            console.error('Error:', xhr.responseText);
         }
+        thead.append(headerRow);
+
+        var modelSelect = $('#model-select');
+        modelSelect.empty();
+        modelSelect.append('<option value="">Sélectionner un modèle</option>');
+
+        response.metrics.forEach(function (metric) {
+            var row = $('<tr></tr>');
+            row.append('<td>' + metric.model + '</td>');
+            Object.keys(metric).forEach(function (key) {
+                if (key !== 'model') {
+                    row.append('<td>' + metric[key] + '</td>');
+                }
+            });
+            tbody.append(row);
+
+            modelSelect.append('<option value="' + metric.model + '">' + metric.model + '</option>');
+        });
+
+        table.append(thead);
+        table.append(tbody);
+        metricsContainer.append(table);
+    }
+},
+error: function (xhr) {
+    if (xhr.status === 400) {
+        try {
+            const response = JSON.parse(xhr.responseText);
+            if (response.preprocessing_required) {
+                // Show the preprocessing popup
+                $('#preprocessing-popup').removeClass('hidden');
+                return;
+            }
+        } catch (e) {
+            console.error('Invalid JSON response:', xhr.responseText);
+        }
+    }
+    // Generic error handling
+    console.error('Erreur:', xhr.responseText);
+    alert('Une erreur est survenue lors de l\'application des modèles.');
+},
+
     });
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const preprocessingPopup = document.getElementById('preprocessing-popup');
+    const cancelBtn = document.getElementById('cancel-btn');
+
+    if (preprocessingPopup) {
+        cancelBtn.addEventListener('click', () => {
+            preprocessingPopup.classList.add('hidden');
+        });
+    }
+});
+
+
+
 
 $('#save-model').click(function () {
     const selectedModel = $('#model-select').val();
@@ -294,6 +351,8 @@ $('#save-model').click(function () {
         }
     });
 });
+
+
 
 </script>
 {% endblock %}
