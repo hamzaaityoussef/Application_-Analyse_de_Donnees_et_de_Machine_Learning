@@ -5,6 +5,19 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ML4U - Home</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html {
+    scroll-behavior: smooth;
+  }
+  .hover-transform {
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .hover-transform:hover {
+    transform: translateY(-10px); /* Moves the card slightly forward */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Adds a shadow effect */
+  }
+  </style>
 </head>
 <body class="bg-gray-900 text-white">
   <!-- Navigation Bar -->
@@ -29,76 +42,65 @@
   </header>
 
   <!-- Hero Section -->
-  <section class="container mx-auto text-center py-20 px-4 lg:px-8">
+  <section class="container mx-auto text-center py-16 px-4 lg:px-8">
     <h1 class="text-4xl lg:text-6xl font-bold mb-4">Welcome to ML4U</h1>
     <p class="text-gray-300 mb-8 max-w-2xl mx-auto">
-      A comprehensive platform to practice programming and machine learning with an intuitive interface, advanced algorithms, and powerful visualization tools.
+      An advanced platform for machine learning and data analysis, offering intuitive tools for data preprocessing, prediction, visualization, and streamlined workflows to enhance your projects.
     </p>
-    <a href="#" class="px-8 py-4 bg-purple-600 rounded-lg text-white hover:bg-purple-500">Explore Features</a>
+    <a href="#features" class="px-8 py-4 bg-purple-600 rounded-lg text-white hover:bg-purple-500">Explore Features</a>
   </section>
 
-  <!-- Project Description -->
-  <!-- <section class="container mx-auto py-16 px-4 lg:px-8">
-    <h2 class="text-3xl font-bold mb-6 text-center">Description du Projet</h2>
-    <p class="text-gray-300 leading-relaxed">
-      Le projet à réaliser vise à fournir aux étudiants une expérience pratique dans le domaine de la programmation
-      et de l'apprentissage automatique en développant une application informatique polyvalente utilisant le
-      langage de programmation Python. Cette application consiste à analyser un ensemble de données qualitatives ou quantitatives en implémentant
-      certains algorithmes de Machine Learning tels que la régression linéaire, les arbres de décision, le naïf bayésien, SVM,
-      Random forest, K-means, et bien plus.
-    </p>
-  </section> -->
 
-  <!-- Key Functionalities -->
-  <section class="container mx-auto py-16 px-4 lg:px-8">
-    <h2 class="text-3xl font-bold mb-6 text-center">Key Features</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-center">
-      
-      <!-- Feature 1 -->
-      <div class="bg-gray-800 p-6 rounded-lg">
-        <img src="../../../static/app/assets/img/import.png" alt="Data Upload" class="w-16 mx-auto mb-4">
-        <h3 class="font-bold text-lg mb-2">Upload and Save Data</h3>
-        <p class="text-gray-300 text-sm">Easily upload your datasets and save them for future use.</p>
-      </div>
-      
-      <!-- Feature 2 -->
-      <div class="bg-gray-800 p-6 rounded-lg">
-        <img src="../../../static/app/assets/img/viz.png" alt="Data Visualization" class="w-20 mx-auto mb-4">
-        <h3 class="font-bold text-lg mb-2">Data Visualization</h3>
-        <p class="text-gray-300 text-sm">Generate clear visualizations to quickly analyze your data.</p>
-      </div>
-      
-      <!-- Feature 3 -->
-      <div class="bg-gray-800 p-6 rounded-lg">
-        <img src="../../../static/app/assets/img/process.png" alt="Data Preprocessing" class="w-20 mx-auto mb-4">
-        <h3 class="font-bold text-lg mb-2">Data Preprocessing</h3>
-        <p class="text-gray-300 text-sm">Clean and encode your data to prepare it for analysis.</p>
-      </div>
-      
-      <!-- Feature 4 -->
-      <div class="bg-gray-800 p-6 rounded-lg">
-        <img src="../../../static/app/assets/img/ML2.png" alt="Machine Learning Models" class="w-24 mx-auto mb-4">
-        <h3 class="font-bold text-lg mb-2">Apply Machine Learning Models</h3>
-        <p class="text-gray-300 text-sm">Leverage advanced algorithms, including deep learning, to train your models.</p>
-      </div>
-      
-      <!-- Feature 5 -->
-      <div class="bg-gray-800 p-6 rounded-lg">
-        <img src="../../../static/app/assets/img/predict.png" alt="Predict New Data" class="w-12 mx-auto mb-4">
-        <h3 class="font-bold text-lg mb-2">Predict on New Data</h3>
-        <p class="text-gray-300 text-sm">Generate accurate predictions using your trained models.</p>
-      </div>
-      
-      <!-- Feature 6 -->
-      <div class="bg-gray-800 p-6 rounded-lg">
-        <img src="../../../static/app/assets/img/export.png" alt="Export Cleaned Data" class="w-20 mx-auto mb-4" >
-        <h3 class="font-bold text-lg mb-2">Export Cleaned Data</h3>
-        <p class="text-gray-300 text-sm">Download your preprocessed data, ready for use in other tools or projects.</p>
-      </div>
-  
+<!-- Key Functionalities -->
+<section id="features" class="container mx-auto py-12 px-4 lg:px-8">
+  <h2 class="text-3xl font-bold mb-6 text-center">Key Features</h2>
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 text-center">
+    
+    <!-- Feature 1 -->
+    <div class="bg-gray-800 p-6 rounded-lg hover-transform">
+      <img src="../../../static/app/assets/img/import.png" alt="Data Upload" class="w-16 mx-auto mb-4">
+      <h3 class="font-bold text-lg mb-2">Upload and Save Data</h3>
+      <p class="text-gray-300 text-sm">Easily upload your datasets and save them for future use.</p>
     </div>
-  </section>
-  
+    
+    <!-- Feature 2 -->
+    <div class="bg-gray-800 p-6 rounded-lg hover-transform">
+      <img src="../../../static/app/assets/img/viz.png" alt="Data Visualization" class="w-20 mx-auto mb-4">
+      <h3 class="font-bold text-lg mb-2">Data Visualization</h3>
+      <p class="text-gray-300 text-sm">Generate clear visualizations to quickly analyze your data.</p>
+    </div>
+    
+    <!-- Feature 3 -->
+    <div class="bg-gray-800 p-6 rounded-lg hover-transform">
+      <img src="../../../static/app/assets/img/process.png" alt="Data Preprocessing" class="w-20 mx-auto mb-4">
+      <h3 class="font-bold text-lg mb-2">Data Preprocessing</h3>
+      <p class="text-gray-300 text-sm">Clean and encode your data to prepare it for analysis.</p>
+    </div>
+    
+    <!-- Feature 4 -->
+    <div class="bg-gray-800 p-6 rounded-lg hover-transform">
+      <img src="../../../static/app/assets/img/ML2.png" alt="Machine Learning Models" class="w-24 mx-auto mb-4">
+      <h3 class="font-bold text-lg mb-2">Apply Machine Learning Models</h3>
+      <p class="text-gray-300 text-sm">Leverage advanced algorithms, including deep learning, to train your models.</p>
+    </div>
+    
+    <!-- Feature 5 -->
+    <div class="bg-gray-800 p-6 rounded-lg hover-transform">
+      <img src="../../../static/app/assets/img/predict.png" alt="Predict New Data" class="w-12 mx-auto mb-4">
+      <h3 class="font-bold text-lg mb-2">Predict on New Data</h3>
+      <p class="text-gray-300 text-sm">Generate accurate predictions using your trained models.</p>
+    </div>
+    
+    <!-- Feature 6 -->
+    <div class="bg-gray-800 p-6 rounded-lg hover-transform">
+      <img src="../../../static/app/assets/img/export.png" alt="Export Cleaned Data" class="w-20 mx-auto mb-4">
+      <h3 class="font-bold text-lg mb-2">Export Cleaned Data</h3>
+      <p class="text-gray-300 text-sm">Download your preprocessed data, ready for use in other tools or projects.</p>
+    </div>
+
+  </div>
+</section>
+
   
 </body>
 </html>

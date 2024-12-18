@@ -72,7 +72,7 @@ def base(request):
 def loginpage(request):
     if request.user.is_authenticated:
         
-        return redirect('upload')
+        return redirect('documentation')
         
 
     if request.method == 'POST':
@@ -87,7 +87,7 @@ def loginpage(request):
         if user is not None and user.password == password:
             
             login(request, user)
-            return redirect('upload')    
+            return redirect('documentation')    
         else:
             messages.error(request, 'Nom d\'utilisateur ou mot de passe invalide. Veuillez réessayer.')
 

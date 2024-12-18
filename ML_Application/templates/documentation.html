@@ -9,16 +9,13 @@
     <title>Documentation</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @keyframes zigzag {
-            0% { transform: translateX(0) rotate(0); }
-            25% { transform: translateX(-5px) rotate(-3deg); }
-            50% { transform: translateX(5px) rotate(3deg); }
-            75% { transform: translateX(-3px) rotate(-2deg); }
-            100% { transform: translateX(0) rotate(0); }
+        .hover-animate {
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
         }
 
         .hover-animate:hover {
-            animation: zigzag 0.5s ease-in-out;
+            transform: translateY(-10px); /* Moves the card slightly forward */
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3); /* Adds a shadow effect */
         }
     </style>
 </head>
@@ -34,84 +31,109 @@
             Explore the functionalities and features available in this application to help you with data preprocessing, machine learning, and visualization.
         </p>
 
+
+
         <!-- Features Section -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            <!-- Feature Card -->
+            
+            <!-- Feature Card 1 -->
             <div class="bg-[#0a233a] rounded-lg shadow-lg p-6 hover-animate">
-                <h2 class="text-2xl font-bold mb-4">Intuitive User Interface</h2>
-                <p class="text-gray-400">
-                    Easily create, import, and export datasets with a user-friendly interface designed for efficiency.
-                </p>
+                <a href="{% url 'upload' %}" class="block no-underline hover:no-underline">
+                    <h2 class="text-2xl font-bold mb-4 text-white hover:text-white ">Intuitive User Interface</h2>
+                    <p class="text-gray-400">
+                        Easily create, import, and export datasets with a user-friendly interface designed for efficiency.
+                    </p>
+                </a>
             </div>
 
-            <!-- Feature Card -->
+            <!-- Feature Card 2 -->
             <div class="bg-[#0a233a] rounded-lg shadow-lg p-6 hover-animate">
-                <h2 class="text-2xl font-bold mb-4">Data Representation</h2>
-                <p class="text-gray-400">
-                    Visualize your datasets with clear and dynamic graphical representations.
-                </p>
+                <a href="{% url 'visualisation' %}" class="block no-underline hover:no-underline">
+                    <h2 class="text-2xl font-bold mb-4 text-white hover:text-white">Data Representation</h2>
+                    <p class="text-gray-400">
+                        Visualize your datasets with clear and dynamic graphical representations.
+                    </p>
+                </a>
             </div>
 
-            <!-- Feature Card -->
+            <!-- Feature Card 3 -->
             <div class="bg-[#0a233a] rounded-lg shadow-lg p-6 hover-animate">
-                <h2 class="text-2xl font-bold mb-4">Data Management</h2>
-                <p class="text-gray-400">
-                    Clean, handle missing values, and normalize your dataset attributes with ease.
-                </p>
+                <a href="{% url 'preprocess' %}" class="block no-underline hover:no-underline">
+                    <h2 class="text-2xl font-bold mb-4 text-white hover:text-white">Data Management</h2>
+                    <p class="text-gray-400">
+                        Clean, handle missing values, and normalize your dataset attributes with ease.
+                    </p>
+                </a>
             </div>
 
-            <!-- Feature Card -->
+            <!-- Feature Card 4 -->
             <div class="bg-[#0a233a] rounded-lg shadow-lg p-6 hover-animate">
-                <h2 class="text-2xl font-bold mb-4">Machine Learning Algorithms</h2>
-                <p class="text-gray-400">
-                    Implement various algorithms including regression, decision trees, SVM, K-means, and neural networks.
-                </p>
+                <a href="{% url 'modeles' %}" class="block no-underline hover:no-underline">
+                    <h2 class="text-2xl font-bold mb-4 text-white hover:text-white">Machine Learning Algorithms</h2>
+                    <p class="text-gray-400">
+                        Implement various algorithms including regression, decision trees, SVM, K-means, and neural networks.
+                    </p>
+                </a>
             </div>
 
-            <!-- Feature Card -->
+            <!-- Feature Card 5 -->
             <div class="bg-[#0a233a] rounded-lg shadow-lg p-6 hover-animate">
-                <h2 class="text-2xl font-bold mb-4">Model Validation</h2>
-                <p class="text-gray-400">
-                    Evaluate and ensure robust performance of your machine learning models.
-                </p>
+                <a href="{% url 'modeles' %}" class="block no-underline hover:no-underline">
+                    <h2 class="text-2xl font-bold mb-4 text-white hover:text-white">Model Validation</h2>
+                    <p class="text-gray-400">
+                        Evaluate and ensure robust performance of your machine learning models.
+                    </p>
+                </a>
             </div>
 
-            <!-- Feature Card -->
+            <!-- Feature Card 6 -->
             <div class="bg-[#0a233a] rounded-lg shadow-lg p-6 hover-animate">
-                <h2 class="text-2xl font-bold mb-4">Result Visualization</h2>
-                <p class="text-gray-400">
-                    View your analysis results through clear graphs and tables.
-                </p>
-            </div>
-            <!-- Feature Card -->
+                <a href="{% url 'modeles' %}" class="block no-underline hover:no-underline">
+                    <h2 class="text-2xl font-bold mb-4 text-white hover:text-white">Result Visualization</h2>
+                    <p class="text-gray-400">
+                        View your analysis results through clear graphs and tables.
+                    </p>
+                </a>
+                </div>
+
+            <!-- Feature Card 7 -->
             <div class="bg-[#0a233a] rounded-lg shadow-lg p-6 hover-animate">
-                <h2 class="text-2xl font-bold mb-4">Data Prediction</h2>
-                <p class="text-gray-400">
-                    Predict outcomes using machine learning models. Choose a target variable, apply algorithms, 
-                    and visualize results to ensure accurate forecasts.
-                </p>
-            </div>
+                <a href="{% url 'data' %}" class="block no-underline hover:no-underline">
+                    <h2 class="text-2xl font-bold mb-4 text-white hover:text-white">Data Prediction</h2>
+                    <p class="text-gray-400">
+                        Predict outcomes using machine learning models. Choose a target variable, apply algorithms, 
+                        and visualize results to ensure accurate forecasts.
+                    </p>
+                </a>
+                </div>
 
-
-
-            <!-- Feature Card -->
+            <!-- Feature Card 8 -->
             <div class="bg-[#0a233a] rounded-lg shadow-lg p-6 hover-animate">
-                <h2 class="text-2xl font-bold mb-4">Result Exportation</h2>
-                <p class="text-gray-400">
-                    Export your analysis, models, and visualizations for further use.
-                </p>
-            </div>
+                <a href="{% url 'report' %}" class="block no-underline hover:no-underline">
+                    <h2 class="text-2xl font-bold mb-4 text-white hover:text-white">Result Exportation</h2>
+                    <p class="text-gray-400">
+                        Export your analysis, models, and visualizations for further use.
+                    </p>
+                </a>
+                </div>
 
-            <!-- Feature Card -->
-            <div class="bg-[#0a233a] rounded-lg shadow-lg p-6 hover-animate">
-                <h2 class="text-2xl font-bold mb-4">Documentation and Tutorials</h2>
-                <p class="text-gray-400">
-                    Access detailed guides and tutorials to make the most of this application.
-                </p>
-            </div>
+            <!-- Feature Card 9 -->
+            <!-- Feature Card for Historical Management -->
+                <div class="bg-[#0a233a] rounded-lg shadow-lg p-6 hover-animate">
+                    <a href="{% url 'historique' %}" class="block no-underline hover:no-underline">
+                        <h2 class="text-2xl font-bold mb-4 text-white hover:text-white ">Historical Management</h2>
+                        <p class="text-gray-400">
+                            Manage and analyze historical data for better decision-making.
+                        </p>
+                    </a>
+                </div>
+            
+
         </div>
+
     </div>
 </body>
 </html>
+
 
 {% endblock %}
