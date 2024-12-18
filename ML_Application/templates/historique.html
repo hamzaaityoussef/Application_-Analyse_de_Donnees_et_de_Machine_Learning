@@ -7,6 +7,19 @@
 <div class="border-t-4 border-t-indigo-500 border-transparent ...">
     <br><br>
 </div>
+<div class="delete-button" align="right" style="margin-right: 30px;">
+    <button type="button"
+   
+     class="rounded-lg group bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 hover:from-purple-400 hover:via-purple-500 hover:to-purple-600 text-white px-6 py-2 rounded flex items-center" 
+     data-toggle="modal" data-target="#deleteHistoryModal">
+        <i class="fas fa-trash-alt mr-2"></i> <span>Delete All</span>
+    </button> 
+    <br> 
+    <!-- <button data-modal-toggle="data-transformation-modal"
+                class="rounded-lg group bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 hover:from-purple-400 hover:via-purple-500 hover:to-purple-600 text-white px-6 py-2 rounded flex items-center">
+                <i class="fas fa-sync-alt mr-2"></i> Data Transformation
+            </button> -->
+</div>  
 
 <!-- Table -->
 <div class="table-container">
@@ -22,14 +35,21 @@
         </thead>
         <tbody class="text-gray-300">
             {% for action in actions %}
-            <tr class="hover:bg-[#334155]">
-                <td class="py-4 px-6 text-base border-b border-gray-700">{{ action.id }}</td>
-                <td class="py-4 px-6 text-base border-b border-gray-700">{{ action.action }}</td>
-                <td class="text-xl py-4 px-6 text-base border-b border-gray-700">{{ action.infos|safe }}</td>
-                <td class="py-4 px-6 text-base border-b border-gray-700">{{ action.date_action }}</td>
-                <td class="py-4 px-6 text-base border-b border-gray-700">{{ action.user.first_name }} {{ action.user.last_name }}</td>
-            </tr>
+                <tr class="hover:bg-[#334155]">
+                    <td class="py-4 px-6 text-base border-b border-gray-700">{{ action.id }}</td>
+                    <td class="py-4 px-6 text-base border-b border-gray-700">{{ action.action }}</td>
+                    <td class="text-xl py-4 px-6 text-base border-b border-gray-700">{{ action.infos|safe }}</td>
+                    <td class="py-4 px-6 text-base border-b border-gray-700">{{ action.date_action }}</td>
+                    <td class="py-4 px-6 text-base border-b border-gray-700">{{ action.user.first_name }} {{ action.user.last_name }}</td>
+                </tr>
+            {% empty %}
+                <tr>
+                    <td colspan="5" class="py-4 px-6 text-center text-gray-400 border-b border-gray-700">
+                        No History available at the moment.
+                    </td>
+                </tr>
             {% endfor %}
+
         </tbody>
     </table>
 </div>
@@ -37,5 +57,43 @@
 
 
 
+<!-- Modal Delete -->
+<div id="deleteHistoryModal" class="modal fade">
+    <div class="modal-dialog">
+        <div class="modal-content bg-[#1E293B] text-gray-300 border border-gray-700 shadow-lg rounded-lg">
+            <form id="confirmDeleteForm" action="{% url 'delete_history' %}" method="post">
+                {% csrf_token %}
+                <!-- Modal Header -->
+                <div class="modal-header d-flex justify-between border-b border-gray-600">
+                    <h4 class="modal-title text-2xl font-semibold text-gray-200">Supprimer l'historique</h4>
+                    <button type="button" class="close text-gray-400 hover:text-gray-200" data-dismiss="modal" aria-hidden="true">
+                        &times;
+                    </button>
+                </div>
 
+                <!-- Modal Body -->
+                <div class="modal-body">
+                    <p class="text-gray-300">Etes-vous sûr de vouloir supprimer les actions historiques ?</p>
+                </div>
+
+                <!-- Modal Footer -->
+                <div class="modal-footer border-t border-gray-600">
+                    <button type="button" class="btn text-gray-300 bg-gray-700 hover:bg-gray-600 rounded px-4 py-2" data-dismiss="modal">
+                        Annuler
+                    </button>
+                    <button type="submit" class="rounded-lg group bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 hover:from-purple-400 hover:via-purple-500 hover:to-purple-600 text-white px-6 py-2 rounded flex items-center">
+                        Supprimer
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+
+
+<script>
+
+</script>
 {% endblock %}

@@ -38,6 +38,7 @@ urlpatterns = [
     path('documentation/', views.documentation, name='documentation'),
     path('report/', views.report, name='report'),
     path('historique/', views.historique, name='historique'),
+    path('delete-history/', views.DeleteHistoryView.as_view(), name='delete_history'),
 
 
     path('apply_models/', views.apply_models, name='apply_models'),

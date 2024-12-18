@@ -903,4 +903,12 @@ def historique(request):
 
     return render(request, 'historique.html', context)
 
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.views import View
+
+class DeleteHistoryView(LoginRequiredMixin, View):
+    def post(self, request, *args, **kwargs):
+        Historique.objects.all().delete()  # Assuming your model is named Action
+        messages.success(request, 'All history records have been deleted successfully.')
+        return redirect('historique')
 #end historique 
