@@ -220,11 +220,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <ul class="sidebar-nav" id="sidebar-nav" style="background-color: #05172a;">
       
-      <li class="nav-item"  > 
+      <!-- <li class="nav-item"  > 
         <a class="nav-link collapsed" href="{% url 'home' %}" style="background-color: #05172a; color :white"> 
           <i class="fa-solid fa-gauge " ></i> 
           <span>Home</span> 
         </a> 
+      </li> -->
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'documentation' %}" style="background-color: #05172a; color :white">
+          <i class="fa-solid fa-sort"></i><span>documentation</span>
+        </a>
       </li>
       
       <li class="nav-item">
@@ -232,14 +237,14 @@ document.addEventListener('DOMContentLoaded', () => {
           <i class="glyphicon glyphicon-user"></i><span>Upload</span>
         </a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'preprocess' %}" style="background-color: #05172a; color :white">
-          <i class="glyphicon glyphicon-user"></i><span>Preprocess</span>
-        </a>
-      </li>
       <li class="nav-item" >
         <a class="nav-link collapsed" href="{% url 'visualisation' %}" style="background-color: #05172a; color :white">
           <i class="fa fa-envelope"></i><span>visualisation</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link collapsed" href="{% url 'preprocess' %}" style="background-color: #05172a; color :white">
+          <i class="glyphicon glyphicon-user"></i><span>Preprocess</span>
         </a>
       </li>
       <li class="nav-item">
@@ -252,11 +257,7 @@ document.addEventListener('DOMContentLoaded', () => {
           <i class="fa fa-envelope"></i><span>Predictions</span>
         </a>
       </li>
-      <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'documentation' %}" style="background-color: #05172a; color :white">
-          <i class="fa-solid fa-sort"></i><span>documentation</span>
-        </a>
-      </li>
+      
       <li class="nav-item">
         <a class="nav-link collapsed" href="{% url 'report' %}" style="background-color: #05172a; color :white">
           <i class="bi bi-envelope-x-fill" ></i><span>report</span>
