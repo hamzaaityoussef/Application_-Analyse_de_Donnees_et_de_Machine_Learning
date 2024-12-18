@@ -344,6 +344,13 @@ document.addEventListener('DOMContentLoaded', (event) => {
 {% endfor %} 
 ]'></div> 
 
+
+<style>
+  .custom-position {
+    top: 30px !important; /* Adjust as needed */
+}
+
+</style>
 <script> 
   $(document).ready(function() { 
   // Setting Toastr options 
@@ -352,7 +359,7 @@ document.addEventListener('DOMContentLoaded', (event) => {
       "debug": false, 
       "newestOnTop": false, 
       "progressBar": false, 
-      "positionClass": "toast-top-center", 
+      "positionClass": "toast-top-center custom-position", 
       "preventDuplicates": false, 
       "showDuration": "300", 
       "hideDuration": "1000", 

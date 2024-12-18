@@ -160,6 +160,7 @@ def upload(request):
                 
             )
         action.save()
+        messages.success(request, 'data uploaded successfully.')
         # Respond with dataset details
         return redirect('upload')
 
@@ -189,6 +190,8 @@ def delete_dataset(request, dataset_id):
             
         )
     action.save()
+    messages.success(request, 'data deleted successfully.')
+
     # Redirect back to the upload page
     return redirect('upload')
 
@@ -335,6 +338,7 @@ def apply_actions(request):
                 
                 )
             action.save()
+            messages.success(request, 'data Cleaned successfully.')
         if 'transform_data' in request.POST:
             transform_type = request.POST.get('transform_type')
             numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
@@ -354,7 +358,8 @@ def apply_actions(request):
                 infos=f"{dataset.name} Transformed successfully" 
                 
                 )
-            action.save()    
+            action.save()  
+            messages.success(request, 'data Transformed successfully.')  
 
         # Save the updated dataset back to file
         if file_path.endswith('.csv'):
@@ -493,6 +498,7 @@ def generate_chart(request):
                 
             )
             action.save()
+            messages.success(request, 'chart are here hh.')  
         # Debugging: log the base64 response
         print("Generated chart base64: ", chart_base64[:50])  # Print a snippet of the base64 string for debugging
 
@@ -655,6 +661,7 @@ def apply_models(request):
                 infos=f"Models applied successfully on dataset '{dataset.name}'"
             )
             action.save()
+            messages.success(request, 'Models applied successfully.')  
             return JsonResponse({'metrics': metrics})
 
         except DatasetCopy.DoesNotExist:
@@ -855,6 +862,7 @@ def predict(request):
                 infos=f"Prediction applied successfully on dataset '{dataset.name}'"
             )
             action.save()
+            messages.success(request, 'Prediction applied successfully.')  
             return JsonResponse({'prediction': prediction[0]})
 
         except DatasetCopy.DoesNotExist:
