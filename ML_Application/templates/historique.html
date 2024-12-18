@@ -7,19 +7,39 @@
 <div class="border-t-4 border-t-indigo-500 border-transparent ...">
     <br><br>
 </div>
-<div class="delete-button" align="right" style="margin-right: 30px;">
-    <button type="button"
-   
-     class="rounded-lg group bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 hover:from-purple-400 hover:via-purple-500 hover:to-purple-600 text-white px-6 py-2 rounded flex items-center" 
-     data-toggle="modal" data-target="#deleteHistoryModal">
-        <i class="fas fa-trash-alt mr-2"></i> <span>Delete All</span>
-    </button> 
-    <br> 
-    <!-- <button data-modal-toggle="data-transformation-modal"
-                class="rounded-lg group bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 hover:from-purple-400 hover:via-purple-500 hover:to-purple-600 text-white px-6 py-2 rounded flex items-center">
-                <i class="fas fa-sync-alt mr-2"></i> Data Transformation
-            </button> -->
-</div>  
+
+
+<!-- Wrapper Container -->
+<div class="d-flex justify-content-between align-items-center mb-4">
+
+    <form id="exportForm" method="post" action="{% url 'export_history' %}">
+        {% csrf_token %}
+        <div class="d-flex justify-content-between form-row align-items-center">
+            <div class="form-group mb-0">
+                <select class="form-control1 form-control-lg" id="export_format_select" name="export_format">
+                    <option value="">Format d'exportation</option>
+                    <option value="csv">CSV</option>
+                    <option value="txt">TXT</option>
+                </select>
+            </div>
+            <div class="form-group ml-2 mb-0">
+                <button type="button" class="rounded-lg group bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 hover:from-purple-400 hover:via-purple-500 hover:to-purple-600 text-white px-6 py-2 rounded flex items-center btn-sm" onclick="exportData()">Exporter</button>
+            </div>
+        </div>
+    </form>
+
+    <!-- Delete Button (Right Aligned) -->
+    <div>
+        <button type="button" 
+            class="rounded-lg group bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 hover:from-purple-400 hover:via-purple-500 hover:to-purple-600 text-white px-6 py-2 rounded flex items-center" 
+            data-toggle="modal" data-target="#deleteHistoryModal">
+            <i class="fas fa-trash-alt mr-2"></i> <span>Delete All</span>
+        </button>
+    </div>
+</div>
+
+
+
 
 <!-- Table -->
 <div class="table-container">
@@ -92,8 +112,16 @@
 
 
 
-
 <script>
-
+        function exportData() {
+        var select = document.getElementById("export_format_select");
+        var selectedFormat = select.options[select.selectedIndex].value;
+        if (selectedFormat) {
+            // Soumettre le formulaire d'exportation
+            document.getElementById("exportForm").submit();
+        } else {
+            alert("Veuillez sélectionner un format d'exportation.");
+        }
+    }
 </script>
 {% endblock %}

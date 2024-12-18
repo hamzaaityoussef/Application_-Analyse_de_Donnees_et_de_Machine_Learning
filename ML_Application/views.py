@@ -892,23 +892,19 @@ def report(request):
 #end report 
 
 
+
+
 # historique 
 @login_required(login_url='/login')
 # @require_GET
 def historique(request):
-    # columns = request.GET.get('columns') or request.session.get('columns', 10)
-    # authenticated_user = request.user.Role
-    # roles = ['senior', 'manager', 'admin_support']
+
     actions = Historique.objects.all().order_by('-id')
-
-
-
     context = {
         # 'selected_role': authenticated_user,
         'actions': actions,
  
     }
-
     return render(request, 'historique.html', context)
 
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -919,4 +915,67 @@ class DeleteHistoryView(LoginRequiredMixin, View):
         Historique.objects.all().delete()  # Assuming your model is named Action
         messages.success(request, 'All history records have been deleted successfully.')
         return redirect('historique')
+    
+
+import csv
+# @require_POST
+def export_history(request):
+
+
+    actions = Historique.objects.all()
+
+
+
+    export_format = request.POST.get('export_format')
+
+    if export_format:
+        action_history_entry = Historique(
+            action='export data ',
+            date_action=datetime.now(),
+            user=request.user,
+            infos=f"Exported data from history with format {export_format}"
+        )
+        action_history_entry.save()
+
+        if export_format == 'csv':
+            response = HttpResponse(content_type='text/csv')
+            response['Content-Disposition'] = 'attachment; filename="exported_data.csv"'
+            writer = csv.writer(response)
+            writer.writerow(['ID Action', 'Nom Action', 'Date Action', ' Utilisateur', 'description'])
+            for action in actions:
+                writer.writerow(
+                    [action.id, action.action, action.date_action, action.user.username +" "+ action.user.username , action.infos])
+            return response
+        elif export_format == 'txt':
+            response = HttpResponse(content_type='text/plain')
+            response['Content-Disposition'] = 'attachment; filename="exported_data.txt"'
+
+            # Column widths
+            col_widths = [15, 20, 40, 20, 50]  # Adjust the widths as needed
+
+            # Header
+            header = (
+                f"{'ID Action'.ljust(col_widths[0])}"
+                f"{'Nom Action'.ljust(col_widths[1])}"
+                f"{'Date Action'.ljust(col_widths[2])}"
+                f"{'Utilisateur'.ljust(col_widths[3])}"
+                f"{'Infos'.ljust(col_widths[4])}\n"
+            )
+
+            content = header
+            for action in actions:
+                row = (
+                    f"{str(action.id).ljust(col_widths[0])}"
+                    f"{action.action.ljust(col_widths[1])}"
+                    f"{str(action.date_action).ljust(col_widths[2])}"
+                    f"{action.user.username.ljust(col_widths[3])}"
+                    f"{action.infos.ljust(col_widths[4])}\n"
+                )
+                content += row
+
+            response.write(content)
+            return response
+
+    return HttpResponse("Invalid export request", status=400)
+
 #end historique 
