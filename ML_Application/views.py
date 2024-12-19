@@ -445,7 +445,7 @@ def apply_actions(request):
             'normalized': dataset.status_normalized,
             'standardized': dataset.status_standardized,
             'cleaned': dataset.status_cleaned,
-            'encoded': dataset.status_encoded,
+            
         }
 
         # Return a JSON response with updated data
@@ -560,7 +560,7 @@ def generate_chart(request):
                 
             )
             action.save()
-            messages.success(request, 'chart are here hh.')  
+            messages.success(request, 'chart is here !')  
         # Debugging: log the base64 response
         print("Generated chart base64: ", chart_base64[:50])  # Print a snippet of the base64 string for debugging
 
@@ -648,7 +648,7 @@ def apply_models(request):
             preprocessing_required = (
     not (dataset.status_normalized or dataset.status_standardized)  # Both normalized and standardized are false
     or not dataset.status_cleaned  # Cleaned is false
-    or not dataset.status_encoded  # Encoded is false
+     # Encoded is false
 )
             print(f"Dataset Preprocessing Flags: normalized={dataset.status_normalized}, standardized={dataset.status_standardized}, cleaned={dataset.status_cleaned}, encoded={dataset.status_encoded}")
             print(f"Preprocessing Required: {preprocessing_required}")
@@ -666,10 +666,10 @@ def apply_models(request):
             
             df = df.dropna()
              # Encode non-numeric columns
-            #for column in df.columns:
-             #   if df[column].dtype == 'object' or df[column].dtype.name == 'category':
-              #      le = LabelEncoder()
-               #     df[column] = le.fit_transform(df[column])
+            for column in df.columns:
+                if df[column].dtype == 'object' or df[column].dtype.name == 'category':
+                    le = LabelEncoder()
+                    df[column] = le.fit_transform(df[column])
 
 
             # Split data into features and target
@@ -825,6 +825,7 @@ def Predictions(request):
             else:
                 return JsonResponse({'error': 'Format non pris en charge.'}, status=400)
 
+
             X = df.drop(columns=[target_column])
             y = df[target_column]
 
@@ -871,10 +872,10 @@ def get_prediction_inputs(request):
         preprocessing_required = (
     not (dataset.status_normalized or dataset.status_standardized)  # Both normalized and standardized are false
     or not dataset.status_cleaned  # Cleaned is false
-    or not dataset.status_encoded  # Encoded is false
+     # Encoded is false
 )
 
-        print(f"Dataset Preprocessing Flags: normalized={dataset.status_normalized}, standardized={dataset.status_standardized}, cleaned={dataset.status_cleaned}, encoded={dataset.status_encoded}")
+        print(f"Dataset Preprocessing Flags: normalized={dataset.status_normalized}, standardized={dataset.status_standardized}, cleaned={dataset.status_cleaned}")
         print(f"Preprocessing Required: {preprocessing_required}")
 
         if preprocessing_required:
@@ -915,9 +916,17 @@ def predict(request):
                 df = pd.read_excel(file_path)
             df = df.dropna()
 
+            
+
             # Extract target and features
             X = df.drop(columns=[dataset.target])
             y = df[dataset.target] if dataset.target else None
+
+            # Encode non-numeric columns
+            for column in X.columns:
+                if X[column].dtype == 'object' or X[column].dtype.name == 'category':
+                    le = LabelEncoder()
+                    X[column] = le.fit_transform(X[column])
 
             # Prepare input data
             input_dict = {item['name']: float(item['value']) for item in inputs}

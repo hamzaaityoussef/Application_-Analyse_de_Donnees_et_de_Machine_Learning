@@ -109,7 +109,7 @@
                         <li id="status-normalized">Normalized: {% if status_normalized %}Yes{% else %}No{% endif %}</li>
                         <li id="status-standardized">Standardized: {% if status_standardized %}Yes{% else %}No{% endif %}</li>
                         <li id="status-cleaned">Cleaned: {% if status_cleaned %}Yes{% else %}No{% endif %}</li>
-                        <li id="status-encoded">Encoded: {% if status_encoded %}Yes{% else %}No{% endif %}</li>
+                        <!-- <li id="status-encoded">Encoded: {% if status_encoded %}Yes{% else %}No{% endif %}</li> -->
                     </ul>
                 </div>
                 
@@ -231,7 +231,7 @@
                 <option value="">-- Select Transformation --</option>
                 <option value="normalize">Normalize</option>
                 <option value="standardize">Standardize</option>
-                <option value="encode">One-Hot Encoding</option>
+                <!-- <option value="encode">One-Hot Encoding</option> -->
             </select>
 
             <!-- Buttons in a flex container to align them inline -->
@@ -388,7 +388,7 @@
             $('#status-normalized').text(response.status.normalized ? 'Normalized: Yes' : 'Normalized: No');
             $('#status-standardized').text(response.status.standardized ? 'Standardized: Yes' : 'Standardized: No');
             $('#status-cleaned').text(response.status.cleaned ? 'Cleaned: Yes' : 'Cleaned: No');
-            $('#status-encoded').text(response.status.encoded ? 'Encoded: Yes' : 'Encoded: No');
+            //$('#status-encoded').text(response.status.encoded ? 'Encoded: Yes' : 'Encoded: No');
 
             // Hide the dataset dropdown after applying the action
             $('#data-cleaning-modal').addClass('hidden'); // Hides the modal after action is completed
@@ -449,7 +449,7 @@ $('#transformation-trigger').on('click', function (event) {
               $('#status-normalized').text(response.status.normalized ? 'Normalized: Yes' : 'Normalized: No');
             $('#status-standardized').text(response.status.standardized ? 'Standardized: Yes' : 'Standardized: No');
             $('#status-cleaned').text(response.status.cleaned ? 'Cleaned: Yes' : 'Cleaned: No');
-            $('#status-encoded').text(response.status.encoded ? 'Encoded: Yes' : 'Encoded: No');
+            //$('#status-encoded').text(response.status.encoded ? 'Encoded: Yes' : 'Encoded: No');
 
             // Hide the modal after applying the action
             $('#data-transformation-modal').addClass('hidden');
