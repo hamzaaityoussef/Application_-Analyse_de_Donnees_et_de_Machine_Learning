@@ -110,7 +110,7 @@ button:hover {
 
     
 </style>
-<br><br><br><br><br><br>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br>
 <div class="upload-container">
     <br><br><br>
     <h1 class="mb-4 text-4xl font-extrabold leading-none tracking-tight text-gray-900 md:text-5xl lg:text-6xl dark:text-white" >Upload Your Dataset</h1>
@@ -121,7 +121,7 @@ button:hover {
         
         {% csrf_token %}
         <!-- FilePond Input -->
-        <input type="file" id="fileUpload" name="fileUpload" accept=".csv, .xlsx" required   class="block w-full text-lg text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"><br>
+        <input type="file" id="fileUpload" name="fileUpload" accept=".csv, .xlsx" required    class="block w-full text-lg text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400"><br>
         <div class="flex items-center space-x-4">
             <!-- Upload Button -->
             <button type="submit" class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
@@ -182,61 +182,99 @@ button:hover {
 </div>
 
 
+<style>
+    #createDatasetModal {
+    /* Ensure the modal takes up the full screen */
+    overflow: hidden;
+}
 
+#createDatasetModal > div {
+    /* Set a fixed max height for the modal content */
+    max-height: 90vh; /* You can adjust this based on your preference */
+    overflow-y: auto; /* Enable vertical scrolling */
+}
+
+</style>
 
 <!-- part of create data  -->
 
 <!-- Create Dataset Modal -->
 <!-- Create Dataset Modal -->
 <div id="createDatasetModal" class="fixed inset-0 z-50 flex items-center justify-center hidden bg-black bg-opacity-50">
-    <div class="bg-[#05172a] text-white rounded-lg shadow-lg p-6 max-w-lg w-full border border-gray-600">
-        <h2 class="text-2xl font-bold mb-4">Create New Dataset</h2>
-        <form id="createDatasetForm" action="{% url 'upload' %}" method="POST">
+    <div class="bg-[#05172a] text-white rounded-lg shadow-lg p-8 max-w-4xl w-full border border-gray-600 mt-10 pt-4" style="max-height: 90vh; overflow-y: auto;">
+        <h2 class="text-3xl font-bold mb-6 text-center">Create New Dataset</h2>
+        <form id="createDatasetForm" action="{% url 'upload' %}" method="POST" class="space-y-6">
             {% csrf_token %}
             <input type="hidden" name="create_dataset" value="true">
             
-            <!-- Number of Rows -->
+            <!-- Dataset Name -->
             <div>
-                <label for="num-rows" class="block text-sm font-medium text-gray-300">Number of Rows</label>
-                <input type="number" name="num_rows" id="num-rows" class="mt-1 block w-full rounded-md bg-[#0a233a] border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+                <label for="file-name" class="block text-sm font-medium text-gray-300">Dataset Name</label>
+                <input type="text" name="file_name" id="file-name" placeholder="Enter dataset name" 
+                       class="mt-2 block w-full h-12 rounded-md bg-[#0a233a] border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                       required>
             </div>
-
-            <!-- Number of Columns -->
-            <div>
-                <label for="num-columns" class="block text-sm font-medium text-gray-300">Number of Columns</label>
-                <input type="number" name="num_columns" id="num-columns" class="mt-1 block w-full rounded-md bg-[#0a233a] border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500 sm:text-sm" required>
+            
+            <!-- Number of Rows and Columns -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div>
+                    <label for="num-rows" class="block text-sm font-medium text-gray-300">Number of Rows</label>
+                    <input type="number" name="num_rows" id="num-rows" 
+                           class="mt-2 block w-full h-12 rounded-md bg-[#0a233a] border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                           required>
+                </div>
+                <div>
+                    <label for="num-columns" class="block text-sm font-medium text-gray-300">Number of Columns</label>
+                    <input type="number" name="num_columns" id="num-columns" 
+                           class="mt-2 block w-full h-12 rounded-md bg-[#0a233a] border-gray-500 text-white focus:ring-blue-500 focus:border-blue-500 sm:text-sm" 
+                           required>
+                </div>
             </div>
 
             <!-- Generate Column Definitions -->
-            <button type="button" id="generate-columns" class="mt-4 relative inline-flex items-center justify-center p-0.5 mb-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
-                <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-[#05172a] rounded-md group-hover:bg-opacity-0">
-                    Define Columns
-                </span>
-            </button>
-
-            <!-- Hidden Generate Table Button -->
-            <button type="button" id="generate-table" class="mt-4 hidden relative inline-flex items-center justify-center p-0.5 mb-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-blue-400 to-purple-600 group-hover:from-blue-400 group-hover:to-purple-600 hover:text-white focus:ring-4 focus:outline-none focus:ring-blue-200 dark:focus:ring-blue-800">
-                <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-[#05172a] rounded-md group-hover:bg-opacity-0">
-                    Generate Table
-                </span>
-            </button>
+            <div class="flex items-center justify-center space-x-4">
+                <button type="button" id="generate-columns" 
+                        class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
+                    <span class="relative px-5 py-2.5 transition-all ease-in duration-75 dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                        Define Columns
+                    </span>
+                </button>
+                
+            </div>
 
             <!-- Column Definitions -->
-            <div id="column-definitions" class="mt-4"></div>
+            <div id="column-definitions" class="mt-4 border-t border-gray-500 pt-4 space-y-4"></div>
 
+            <div class="flex items-center justify-center space-x-4">
+                <button type="button" id="generate-table" 
+                            class="hidden relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
+                        <span class="relative px-5 py-2.5 transition-all ease-in duration-75 dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                            Generate Table
+                        </span>
+                </button>
+            </div>
             <!-- Data Entry Table -->
-            <div id="data-entry-table" class="mt-4"></div>
+            <div id="data-entry-table" class="mt-4 border-t border-gray-500 pt-4 overflow-x-auto"></div>
 
-            <!-- Submit Button -->
-            <button type="submit" class="mt-4 relative inline-flex items-center justify-center p-0.5 mb-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
-                <span class="relative px-5 py-2.5 transition-all ease-in duration-75 bg-[#05172a] rounded-md group-hover:bg-opacity-0">
-                    Create Dataset
-                </span>
-            </button>
+            <!-- Submit and Cancel Buttons -->
+            <div class="flex items-center justify-center space-x-4">
+                <button type="submit" 
+                        class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
+                    <span class="relative px-5 py-2.5 transition-all ease-in duration-75 dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                        Create Dataset
+                    </span>
+                </button>
+                <button type="button" onclick="closeCreateDatasetModal()" 
+                        class="relative inline-flex items-center justify-center p-0.5 mb-2 me-2 overflow-hidden text-sm font-medium text-gray-900 rounded-lg group bg-gradient-to-br from-green-400 to-blue-600 group-hover:from-green-400 group-hover:to-blue-600 hover:text-white dark:text-white focus:ring-4 focus:outline-none focus:ring-green-200 dark:focus:ring-green-800">
+                    <span class="relative px-5 py-2.5 transition-all ease-in duration-75 dark:bg-gray-900 rounded-md group-hover:bg-opacity-0">
+                        Cancel
+                    </span>
+                </button>
+            </div>
         </form>
-        <button onclick="closeCreateDatasetModal()" class="text-gray-400 hover:text-white mt-4">Cancel</button>
     </div>
 </div>
+
 
 
 
@@ -255,15 +293,19 @@ function closeCreateDatasetModal() {
 
 document.getElementById('generate-columns').addEventListener('click', () => {
     const numColumns = parseInt(document.getElementById('num-columns').value);
-    const columnDefinitions = document.getElementById('column-definitions');
-    columnDefinitions.innerHTML = ''; // Clear previous inputs
+    const numRows = parseInt(document.getElementById('num-rows').value);
 
-    if (isNaN(numColumns) || numColumns <= 0) {
-        alert('Please enter a valid number of columns.');
+    // Validate if number of rows and columns are entered properly
+    if (isNaN(numColumns) || numColumns <= 0 || isNaN(numRows) || numRows <= 0) {
+        alert('Please enter valid numbers for both rows and columns.');
         return;
     }
 
-    // Generate column definition inputs
+    // Clear previous inputs if any
+    const columnDefinitions = document.getElementById('column-definitions');
+    columnDefinitions.innerHTML = '';
+
+    // Generate column definition inputs if validation passes
     for (let i = 0; i < numColumns; i++) {
         columnDefinitions.innerHTML += `
             <div class="mb-2">
@@ -282,11 +324,48 @@ document.getElementById('generate-columns').addEventListener('click', () => {
     // Show the button to generate the data entry table
     const generateTableButton = document.getElementById('generate-table');
     generateTableButton.classList.remove('hidden');
+    
+    // Hide the data entry table initially
+    const dataEntryTable = document.getElementById('data-entry-table');
+    dataEntryTable.classList.add('hidden'); // Hide the table when columns are defined
 });
 
 document.getElementById('generate-table').addEventListener('click', () => {
-    generateDataEntryTable();
+    const columnInputs = document.querySelectorAll('#column-definitions input[name^="col"][name$="_name"]');
+    const numRows = parseInt(document.getElementById('num-rows').value);
+    let allFilled = true;
+
+    // Check if all column names are filled
+    columnInputs.forEach(input => {
+        if (input.value.trim() === "") {
+            allFilled = false;
+            input.classList.add("border-red-500"); // Highlight empty input with red border
+        } else {
+            input.classList.remove("border-red-500"); // Remove red border if filled
+        }
+    });
+
+    // Check if the number of rows is valid
+    if (isNaN(numRows) || numRows <= 0) {
+        allFilled = false;
+        alert("Please enter a valid number of rows.");
+    }
+
+    // If all columns and rows are filled, show the table and generate it
+    if (allFilled) {
+        const dataEntryTable = document.getElementById('data-entry-table');
+        
+        // If the table is hidden, generate it and show it
+        if (dataEntryTable.classList.contains('hidden')) {
+            generateDataEntryTable(); // Generate the table if it's hidden
+            dataEntryTable.classList.remove('hidden'); // Show the table
+        }
+    } else {
+        alert("Please fill in all column names and enter a valid number of rows before generating the table.");
+    }
 });
+
+
 
 document.getElementById('createDatasetForm').addEventListener('submit', (e) => {
     const numRows = parseInt(document.getElementById('num-rows').value);
@@ -301,21 +380,30 @@ document.getElementById('createDatasetForm').addEventListener('submit', (e) => {
 function generateDataEntryTable() {
     const numRows = parseInt(document.getElementById('num-rows').value);
     const numColumns = parseInt(document.getElementById('num-columns').value);
+    const columnDefinitions = document.querySelectorAll('#column-definitions input[name^="col"]');
     const dataEntryTable = document.getElementById('data-entry-table');
     dataEntryTable.innerHTML = ''; // Clear previous table
 
+    // Extract column names
+    const columnNames = [];
+    columnDefinitions.forEach((input) => {
+        if (input.name.includes("name")) { // Ensure only names are selected
+            columnNames.push(input.value);
+        }
+    });
+
     // Create table
     let table = '<table class="w-full border-collapse border border-gray-400"><thead><tr>';
-    for (let i = 1; i <= numColumns; i++) {
-        table += `<th class="border border-gray-400 p-2">Column ${i}</th>`;
-    }
+    columnNames.forEach((name) => {
+        table += `<th class="border border-gray-400 p-2">${name}</th>`;
+    });
     table += '</tr></thead><tbody>';
 
     // Create rows for data input
     for (let i = 0; i < numRows; i++) {
         table += '<tr>';
         for (let j = 0; j < numColumns; j++) {
-            table += `<td class="border border-gray-400 p-2"><input type="text" class="w-full p-1" name="row${i}_col${j}" required></td>`;
+            table += `<td class="border border-gray-400 p-2"><input type="text" class="w-full p-1 " style="color: #05172a;" name="row${i}_col${j}" required></td>`;
         }
         table += '</tr>';
     }

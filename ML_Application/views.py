@@ -119,6 +119,7 @@ def upload(request):
                 # Extract form data for dataset creation
                 rows = int(request.POST.get('num_rows'))
                 columns = int(request.POST.get('num_columns'))
+                namefile = request.POST.get('file_name')
                 column_data = []
                 for i in range(1, columns + 1):
                     col_name = request.POST.get(f'col{i}_name')
@@ -139,7 +140,7 @@ def upload(request):
                 # Save the DataFrame to the user's directory
                 user_folder = os.path.join(settings.MEDIA_ROOT, 'datasets', request.user.username)
                 os.makedirs(user_folder, exist_ok=True)  # Ensure the user's folder exists
-                file_name = f"created_dataset_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+                file_name = f"{namefile}.csv"
                 file_path = os.path.join(user_folder, file_name)
                 df.to_csv(file_path, index=False)
 
