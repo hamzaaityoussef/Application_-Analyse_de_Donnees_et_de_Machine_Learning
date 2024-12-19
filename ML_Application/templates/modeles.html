@@ -212,101 +212,101 @@ function updateModelAccessibility(columnType) {
     }
 }
 
-$('#apply-models').click(function () {
-    var datasetId = $('#dataset-select').val();
-    var targetColumn = $('#column-select').val();
-    var selectedModels = [];
+// $('#apply-models').click(function () {
+//     var datasetId = $('#dataset-select').val();
+//     var targetColumn = $('#column-select').val();
+//     var selectedModels = [];
 
-    $('input[name="model-type"]:checked').each(function () {
-        selectedModels.push($(this).val());
-    });
+//     $('input[name="model-type"]:checked').each(function () {
+//         selectedModels.push($(this).val());
+//     });
 
-    if (!datasetId) {
-        alert('Veuillez sélectionner un dataset.');
-        return;
-    }
+//     if (!datasetId) {
+//         alert('Veuillez sélectionner un dataset.');
+//         return;
+//     }
 
-    if (selectedModels.length === 0) {
-        alert('Veuillez sélectionner au moins un modèle.');
-        return;
-    }
+//     if (selectedModels.length === 0) {
+//         alert('Veuillez sélectionner au moins un modèle.');
+//         return;
+//     }
 
-    // Check preprocessing requirements and apply models if valid
-    $.ajax({
-        url: "{% url 'apply_models' %}",
-        type: 'POST',
-        data: {
-            dataset_id: datasetId,
-            target_column: targetColumn,
-            models: JSON.stringify(selectedModels),
-            csrfmiddlewaretoken: '{{ csrf_token }}',
-        },
-        success: function (response) {
-    if (response.preprocessing_required) {
-        // Show the preprocessing popup
-        $('#preprocessing-popup').removeClass('hidden');
-    } else {
-        // Populate metrics as usual
-        var metricsContainer = $('#metrics-container');
-        metricsContainer.empty();
+//     // Check preprocessing requirements and apply models if valid
+//     $.ajax({
+//         url: "{% url 'apply_models' %}",
+//         type: 'POST',
+//         data: {
+//             dataset_id: datasetId,
+//             target_column: targetColumn,
+//             models: JSON.stringify(selectedModels),
+//             csrfmiddlewaretoken: '{{ csrf_token }}',
+//         },
+//         success: function (response) {
+//     if (response.preprocessing_required) {
+//         // Show the preprocessing popup
+//         $('#preprocessing-popup').removeClass('hidden');
+//     } else {
+//         // Populate metrics as usual
+//         var metricsContainer = $('#metrics-container');
+//         metricsContainer.empty();
 
-        var table = $('<table></table>').addClass('w-full text-sm text-center text-blue-100 dark:text-blue-100').css({ 'height': '200px', 'font-size': '1.2rem' });
-        var thead = $('<thead></thead>').addClass('text-xs text-white uppercase bg-blue-600 dark:text-white').css({ 'height': '20px', 'font-size': '1.2rem' });
-        var tbody = $('<tbody></tbody>');
+//         var table = $('<table></table>').addClass('w-full text-sm text-center text-blue-100 dark:text-blue-100').css({ 'height': '200px', 'font-size': '1.2rem' });
+//         var thead = $('<thead></thead>').addClass('text-xs text-white uppercase bg-blue-600 dark:text-white').css({ 'height': '20px', 'font-size': '1.2rem' });
+//         var tbody = $('<tbody></tbody>');
 
-        var headerRow = $('<tr></tr>');
-        headerRow.append('<th>Model</th>');
-        if (response.metrics.length > 0) {
-            Object.keys(response.metrics[0]).forEach(function (key) {
-                if (key !== 'model') {
-                    headerRow.append('<th>' + key.charAt(0).toUpperCase() + key.slice(1) + '</th>');
-                }
-            });
-        }
-        thead.append(headerRow);
+//         var headerRow = $('<tr></tr>');
+//         headerRow.append('<th>Model</th>');
+//         if (response.metrics.length > 0) {
+//             Object.keys(response.metrics[0]).forEach(function (key) {
+//                 if (key !== 'model') {
+//                     headerRow.append('<th>' + key.charAt(0).toUpperCase() + key.slice(1) + '</th>');
+//                 }
+//             });
+//         }
+//         thead.append(headerRow);
 
-        var modelSelect = $('#model-select');
-        modelSelect.empty();
-        modelSelect.append('<option value="">Sélectionner un modèle</option>');
+//         var modelSelect = $('#model-select');
+//         modelSelect.empty();
+//         modelSelect.append('<option value="">Sélectionner un modèle</option>');
 
-        response.metrics.forEach(function (metric) {
-            var row = $('<tr></tr>');
-            row.append('<td>' + metric.model + '</td>');
-            Object.keys(metric).forEach(function (key) {
-                if (key !== 'model') {
-                    row.append('<td>' + metric[key] + '</td>');
-                }
-            });
-            tbody.append(row);
+//         response.metrics.forEach(function (metric) {
+//             var row = $('<tr></tr>');
+//             row.append('<td>' + metric.model + '</td>');
+//             Object.keys(metric).forEach(function (key) {
+//                 if (key !== 'model') {
+//                     row.append('<td>' + metric[key] + '</td>');
+//                 }
+//             });
+//             tbody.append(row);
 
-            modelSelect.append('<option value="' + metric.model + '">' + metric.model + '</option>');
-        });
+//             modelSelect.append('<option value="' + metric.model + '">' + metric.model + '</option>');
+//         });
 
-        table.append(thead);
-        table.append(tbody);
-        metricsContainer.append(table);
-    }
-},
-error: function (xhr) {
-    if (xhr.status === 400) {
-        try {
-            const response = JSON.parse(xhr.responseText);
-            if (response.preprocessing_required) {
-                // Show the preprocessing popup
-                $('#preprocessing-popup').removeClass('hidden');
-                return;
-            }
-        } catch (e) {
-            console.error('Invalid JSON response:', xhr.responseText);
-        }
-    }
-    // Generic error handling
-    console.error('Erreur:', xhr.responseText);
-    alert('Une erreur est survenue lors de l\'application des modèles.');
-},
+//         table.append(thead);
+//         table.append(tbody);
+//         metricsContainer.append(table);
+//     }
+// },
+// error: function (xhr) {
+//     if (xhr.status === 400) {
+//         try {
+//             const response = JSON.parse(xhr.responseText);
+//             if (response.preprocessing_required) {
+//                 // Show the preprocessing popup
+//                 $('#preprocessing-popup').removeClass('hidden');
+//                 return;
+//             }
+//         } catch (e) {
+//             console.error('Invalid JSON response:', xhr.responseText);
+//         }
+//     }
+//     // Generic error handling
+//     console.error('Erreur:', xhr.responseText);
+//     alert('Une erreur est survenue lors de l\'application des modèles.');
+// },
 
-    });
-});
+//     });
+// });
 
 document.addEventListener('DOMContentLoaded', () => {
     const preprocessingPopup = document.getElementById('preprocessing-popup');
@@ -352,6 +352,119 @@ $('#save-model').click(function () {
     });
 });
 
+function highlightBestModel(metrics) {
+    let bestModel = null;
+    let highestAccuracy = 0;
+
+    // Identify the best model by accuracy
+    metrics.forEach((metric) => {
+        if (metric.accuracy && metric.accuracy > highestAccuracy) {
+            highestAccuracy = metric.accuracy;
+            bestModel = metric.model;
+        }
+    });
+
+    // Highlight the best model in the table
+    if (bestModel) {
+        $('table tbody tr').each(function () {
+            const modelName = $(this).find('td:first-child').text();
+            if (modelName === bestModel) {
+                $(this).css('border', '2px solid green');
+            }
+        });
+
+        // Display the recommended model below the table
+        $('#recommended-model').remove(); // Remove any existing message
+        $('#metrics-container').append(
+            `<p id="recommended-model" class="mt-3 text-lg text-center text-green-400 font-bold">
+                <em>${bestModel}</em> est le modèle recommandé pour cette dataset.
+            </p>`
+        );
+    }
+}
+
+// Update the metrics table population to include highlighting and recommendation
+$('#apply-models').click(function () {
+    var datasetId = $('#dataset-select').val();
+    var targetColumn = $('#column-select').val();
+    var selectedModels = [];
+
+    $('input[name="model-type"]:checked').each(function () {
+        selectedModels.push($(this).val());
+    });
+
+    if (!datasetId) {
+        alert('Veuillez sélectionner un dataset.');
+        return;
+    }
+
+    if (selectedModels.length === 0) {
+        alert('Veuillez sélectionner au moins un modèle.');
+        return;
+    }
+
+    // Check preprocessing requirements and apply models if valid
+    $.ajax({
+        url: "{% url 'apply_models' %}",
+        type: 'POST',
+        data: {
+            dataset_id: datasetId,
+            target_column: targetColumn,
+            models: JSON.stringify(selectedModels),
+            csrfmiddlewaretoken: '{{ csrf_token }}',
+        },
+        success: function (response) {
+            if (response.preprocessing_required) {
+                $('#preprocessing-popup').removeClass('hidden');
+            } else {
+                var metricsContainer = $('#metrics-container');
+                metricsContainer.empty();
+
+                var table = $('<table></table>').addClass('w-full text-sm text-center text-blue-100 dark:text-blue-100').css({ 'height': '200px', 'font-size': '1.2rem' });
+                var thead = $('<thead></thead>').addClass('text-xs text-white uppercase bg-blue-600 dark:text-white').css({ 'height': '20px', 'font-size': '1.2rem' });
+                var tbody = $('<tbody></tbody>');
+
+                var headerRow = $('<tr></tr>');
+                headerRow.append('<th>Model</th>');
+                if (response.metrics.length > 0) {
+                    Object.keys(response.metrics[0]).forEach(function (key) {
+                        if (key !== 'model') {
+                            headerRow.append('<th>' + key.charAt(0).toUpperCase() + key.slice(1) + '</th>');
+                        }
+                    });
+                }
+                thead.append(headerRow);
+
+                var modelSelect = $('#model-select');
+                modelSelect.empty();
+                modelSelect.append('<option value="">Sélectionner un modèle</option>');
+
+                response.metrics.forEach(function (metric) {
+                    var row = $('<tr></tr>');
+                    row.append('<td>' + metric.model + '</td>');
+                    Object.keys(metric).forEach(function (key) {
+                        if (key !== 'model') {
+                            row.append('<td>' + metric[key] + '</td>');
+                        }
+                    });
+                    tbody.append(row);
+
+                    modelSelect.append('<option value="' + metric.model + '">' + metric.model + '</option>');
+                });
+
+                table.append(thead);
+                table.append(tbody);
+                metricsContainer.append(table);
+
+                // Call the function to highlight the best model and display recommendation
+                highlightBestModel(response.metrics);
+            }
+        },
+        error: function (xhr) {
+            console.error('Error:', xhr.responseText);
+        },
+    });
+});
 
 
 </script>
