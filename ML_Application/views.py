@@ -408,10 +408,12 @@ def apply_actions(request):
                 scaler = MinMaxScaler()
                 df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
                 dataset.status_normalized = True  # Update the status
+                dataset.status_standardized = False
             elif transform_type == 'standardize':
                 scaler = StandardScaler()
                 df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
                 dataset.status_standardized = True  # Update the status
+                dataset.status_normalized = False 
 
             action = Historique(
                 action='Transform Data',
