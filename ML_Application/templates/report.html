@@ -2,4 +2,147 @@
 {% block content %}
 
 
+<div class="container mx-auto py-8 px-4 lg:px-8">
+    <h1 class="text-4xl font-bold mb-6 text-center">Generate Report</h1>
+    <p class="text-gray-300 text-center mb-8">Create a customized report for your dataset with visualizations, statistics, and more.</p>
+
+    <!-- Dataset Selection -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+        <label for="dataset-select" class="block text-lg font-medium text-white">Select a Dataset</label>
+        <select id="dataset-select" name="dataset_id" class="w-full p-2 mt-2 rounded bg-gray-700 border border-gray-600 text-white">
+            <option value="">-- Select a Dataset --</option>
+            {% for dataset in datasets %}
+                <option value="{{ dataset.id }}">{{ dataset.name }}</option>
+            {% endfor %}
+        </select>
+    </div>
+
+    <!-- Report Customization -->
+    <div class="bg-gray-800 p-6 rounded-lg shadow-lg mb-6">
+        <h2 class="text-2xl font-bold mb-4 text-white">Customize Report</h2>
+        <div class="space-y-4">
+            <label class="flex items-center text-gray-300">
+                <input type="checkbox" name="include_summary" class="mr-2" checked> Include Summary
+            </label>
+            <label class="flex items-center text-gray-300">
+                <input type="checkbox" name="include_statistics" class="mr-2" checked> Include Statistics
+            </label>
+            <label class="flex items-center text-gray-300">
+                <input type="checkbox" name="include_visualizations" class="mr-2" checked> Include Visualizations
+            </label>
+            <label class="flex items-center text-gray-300">
+                <input type="checkbox" name="include_models" class="mr-2"> Include Applied Models
+            </label>
+        </div>
+
+        <!-- Template Selection -->
+        <label for="template-select" class="block text-lg font-medium mt-4 text-white">Select Report Template</label>
+        <select id="template-select" name="template" class="w-full p-2 mt-2 rounded bg-gray-700 border border-gray-600 text-white">
+            <option value="default">Default Template</option>
+            <option value="minimal">Minimal Template</option>
+            <option value="detailed">Detailed Template</option>
+        </select>
+    </div>
+
+    <!-- Progress Bar -->
+    <div id="progress-bar-container" class="hidden">
+        <div class="w-full bg-gray-600 rounded-full h-2 mb-4">
+            <div id="progress-bar" class="bg-blue-500 h-2 rounded-full" style="width: 0%;"></div>
+        </div>
+    </div>
+
+    <!-- Generate Report -->
+    <div class="text-center">
+        <button id="generate-report" class="px-8 py-4 bg-purple-600 text-white rounded-lg hover:bg-purple-500">Generate Report</button>
+    </div>
+</div>
+
+
+
+
+<script>
+   document.getElementById('generate-report').addEventListener('click', () => {
+    const datasetId = document.getElementById('dataset-select').value;
+    const includeSummary = document.querySelector('[name="include_summary"]').checked;
+    console.log('summary',includeSummary)
+    const includeStatistics = document.querySelector('[name="include_statistics"]').checked;
+    const includeVisualizations = document.querySelector('[name="include_visualizations"]').checked;
+    const template = document.getElementById('template-select').value;
+
+    if (!datasetId) {
+        alert('Please select a dataset!');
+        return;
+    }
+
+    // Show progress bar
+    const progressBarContainer = document.getElementById('progress-bar-container');
+    const progressBar = document.getElementById('progress-bar');
+    progressBarContainer.classList.remove('hidden');
+
+    let progress = 0;
+
+    // Simulate progress
+    const interval = setInterval(() => {
+        progress += 10;
+        progressBar.style.width = `${progress}%`;
+
+        if (progress >= 100) {
+            clearInterval(interval);
+
+            const data = {
+                dataset_id: datasetId,
+                include_summary: includeSummary,
+                include_statistics: includeStatistics,
+                include_visualizations: includeVisualizations,
+                template: template,
+            };
+            
+
+fetch('/generate_report/', {
+    method: 'POST',
+    headers: {
+        'X-CSRFToken': getCookie('csrftoken'),
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data),
+})
+
+                .then(response => response.blob())
+                
+                .then(blob => {
+                    
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    a.href = url;
+                    a.download = 'report.pdf';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    progressBarContainer.classList.add('hidden');
+                    
+                })
+                .catch(error => console.error('Error generating report:', error));
+        }
+    }, 500);
+});
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    console.log('cookies here' , cookieValue)
+    return cookieValue;
+}
+
+</script>
+
 {% endblock %}

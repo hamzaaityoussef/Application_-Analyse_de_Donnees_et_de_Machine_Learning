@@ -528,63 +528,61 @@ def generate_chart(request):
         else:
             return JsonResponse({'error': 'Unsupported file format'}, status=400)
 
-        # Prepare a chart buffer
-        buf = io.BytesIO()
+        # Directory structure for charts
+        user_folder = os.path.join(settings.MEDIA_ROOT, 'charts', request.user.username)
+        os.makedirs(user_folder, exist_ok=True)
 
-        fig, ax = plt.subplots(figsize=(4, 3)) 
-        # i will add here variable just for test assi diae 
-        test = 0
+        # Filepath for the chart
+        chart_file_name = f"{chart_type}_{column_x}_{'vs_' + column_y if chart_type == 'scatter' else ''}.png"
+        chart_file_path = os.path.join(user_folder, chart_file_name)
+
+        # Remove old chart of the same type
+        if os.path.exists(chart_file_path):
+            os.remove(chart_file_path)
+
+        # Generate chart and save it
+        buf = BytesIO()
+        fig, ax = plt.subplots(figsize=(4, 3))
         if chart_type == 'pie':
-            # Pie chart for categorical data
-            df[column_x].value_counts().plot(kind='pie', ax=plt.gca(), autopct='%1.1f%%')
+            df[column_x].value_counts().plot(kind='pie', ax=ax, autopct='%1.1f%%')
             plt.title(f'{column_x} Distribution (Pie Chart)')
             plt.ylabel('')
-            plt.savefig(buf, format='png')
-            plt.close()
-            test = 1
-            message = 'pie chart is here !'
-
         elif chart_type == 'histogram':
-            # Histogram for categorical data
-            df[column_x].value_counts().plot(kind='bar', ax=plt.gca())
+            df[column_x].value_counts().plot(kind='bar', ax=ax)
             plt.title(f'{column_x} Distribution (Histogram)')
             plt.ylabel('Frequency')
-            plt.savefig(buf, format='png')
-            plt.close()
-            test = 1
-            message = 'histogram chart is here !'
-
         elif chart_type == 'scatter':
-            # Scatter plot for continuous data
-            df.plot.scatter(x=column_x, y=column_y, ax=plt.gca())
+            df.plot.scatter(x=column_x, y=column_y, ax=ax)
             plt.title(f'{column_x} vs {column_y} (Scatter Plot)')
-            plt.savefig(buf, format='png')
-            plt.close()
-            test = 1
-            message = 'scatter chart is here !'
+
+        plt.savefig(chart_file_path, format='png')  # Save the chart to the user's folder
+        plt.savefig(buf, format='png')  # Save to buffer for frontend
+        plt.close()
 
         buf.seek(0)
-        chart_base64 = base64.b64encode(buf.read()).decode('utf-8')  # Base64 encode the image
+        chart_base64 = base64.b64encode(buf.read()).decode('utf-8')  # Base64 encode the image for frontend display
         buf.close()
-        if test == 1:
-            action = Historique(
-                action='Visualisation',
-                date_action=datetime.now(),
-                user=request.user,
-                infos=f"generate chart for the data {dataset.name} " 
-                
-            )
-            action.save()
-            # messages.success(request, 'chart is here !')  
-           
-        # Debugging: log the base64 response
-        print("Generated chart base64: ", chart_base64[:50])  # Print a snippet of the base64 string for debugging
 
-        return JsonResponse({'chart_base64': chart_base64,'message':message})
+        # Save action to history
+        action = Historique(
+            action='Visualisation',
+            date_action=datetime.now(),
+            user=request.user,
+            infos=f"Generated {chart_type} chart for the dataset {dataset.name}."
+        )
+        action.save()
+
+        # Respond with chart path and Base64
+        return JsonResponse({
+            'chart_base64': chart_base64,
+            'chart_url': os.path.join(settings.MEDIA_URL, 'charts', request.user.username, chart_file_name),
+            'message': f'{chart_type.capitalize()} chart generated successfully!'
+        })
 
     except Dataset.DoesNotExist:
         return JsonResponse({'error': 'Dataset not found'}, status=400)
-
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 
