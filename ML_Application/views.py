@@ -392,6 +392,13 @@ def apply_actions(request):
                     df.fillna(method='ffill', inplace=True)
                 dataset.status_cleaned = True  # Update the status
 
+            elif action == 'drop_column':
+                column_to_drop = request.POST.get('column')
+                if column_to_drop in df.columns:
+                    df = df.drop(columns=[column_to_drop])
+                else:
+                    return JsonResponse({'error': 'Column not found'}, status=400)
+
             action = Historique(
                 action='Clean Data',
                 date_action=datetime.now(),
