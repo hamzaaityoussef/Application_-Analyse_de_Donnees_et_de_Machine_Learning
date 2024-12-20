@@ -510,6 +510,10 @@ def get_columns(request):
     except Dataset.DoesNotExist:
         return JsonResponse({'error': 'Dataset not found'}, status=400)
     
+
+
+
+
 def generate_chart(request):
     dataset_id = request.GET.get('dataset_id')
     chart_type = request.GET.get('chart_type')  # 'pie', 'histogram', or 'scatter'
@@ -519,7 +523,7 @@ def generate_chart(request):
     try:
         dataset = Dataset.objects.get(id=dataset_id, user=request.user)
         file_path = dataset.file.path
-        
+
         # Load the dataset
         if file_path.endswith('.csv'):
             df = pd.read_csv(file_path)
@@ -528,13 +532,18 @@ def generate_chart(request):
         else:
             return JsonResponse({'error': 'Unsupported file format'}, status=400)
 
+        # Sanitize the dataset name to create a valid folder name
+        dataset_folder_name = dataset.name.replace(" ", "_")  # Replace spaces with underscores
+        dataset_folder_name = ''.join(e for e in dataset_folder_name if e.isalnum() or e == '_')  # Remove special characters
+
         # Directory structure for charts
         user_folder = os.path.join(settings.MEDIA_ROOT, 'charts', request.user.username)
-        os.makedirs(user_folder, exist_ok=True)
+        dataset_folder = os.path.join(user_folder, dataset_folder_name)
+        os.makedirs(dataset_folder, exist_ok=True)
 
         # Filepath for the chart
         chart_file_name = f"{chart_type}_{column_x}_{'vs_' + column_y if chart_type == 'scatter' else ''}.png"
-        chart_file_path = os.path.join(user_folder, chart_file_name)
+        chart_file_path = os.path.join(dataset_folder, chart_file_name)
 
         # Remove old chart of the same type
         if os.path.exists(chart_file_path):
@@ -555,7 +564,7 @@ def generate_chart(request):
             df.plot.scatter(x=column_x, y=column_y, ax=ax)
             plt.title(f'{column_x} vs {column_y} (Scatter Plot)')
 
-        plt.savefig(chart_file_path, format='png')  # Save the chart to the user's folder
+        plt.savefig(chart_file_path, format='png')  # Save the chart to the dataset folder
         plt.savefig(buf, format='png')  # Save to buffer for frontend
         plt.close()
 
@@ -575,7 +584,7 @@ def generate_chart(request):
         # Respond with chart path and Base64
         return JsonResponse({
             'chart_base64': chart_base64,
-            'chart_url': os.path.join(settings.MEDIA_URL, 'charts', request.user.username, chart_file_name),
+            'chart_url': os.path.join(settings.MEDIA_URL, 'charts', request.user.username, dataset_folder_name, chart_file_name),
             'message': f'{chart_type.capitalize()} chart generated successfully!'
         })
 
@@ -997,6 +1006,11 @@ def documentation(request):
     print('bnjrjr')
     return render(request, 'documentation.html')
 #end documentation 
+
+
+
+
+
 
 # report 
 @login_required(login_url='/login')
