@@ -93,9 +93,16 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+        // Clear chart containers
+        function clearCharts() {
+            $('#pie-chart-container, #histogram-chart-container, #scatter-plot-container, #scatter2-plot-container').html('');
+        }
+
         // Handle dataset selection
         $('#dataset-select').change(function() {
             var datasetId = $(this).val();
+            clearCharts(); // Clear charts when switching datasets
+
             if (datasetId) {
                 // Make AJAX request to get columns for the selected dataset
                 $.ajax({
@@ -107,8 +114,7 @@
                             var categoricalSelects = ['#pie-column-select', '#histogram-column-select'];
                             categoricalSelects.forEach(function(selectId) {
                                 var columnSelect = $(selectId);
-                                columnSelect.empty();
-                                columnSelect.append('<option value="">Choisir une colonne</option>');
+                                columnSelect.empty().append('<option value="">Choisir une colonne</option>');
                                 response.categorical_vars.forEach(function(col) {
                                     columnSelect.append('<option value="' + col + '">' + col + '</option>');
                                 });
@@ -120,22 +126,20 @@
                             var continuousSelects = ['#scatter-column-x-select', '#scatter-column-y-select', '#scatter2-column-x-select', '#scatter2-column-y-select'];
                             continuousSelects.forEach(function(selectId) {
                                 var columnSelect = $(selectId);
-                                columnSelect.empty();
-                                columnSelect.append('<option value="">Choisir une colonne</option>');
+                                columnSelect.empty().append('<option value="">Choisir une colonne</option>');
                                 response.continuous_vars.forEach(function(col) {
                                     columnSelect.append('<option value="' + col + '">' + col + '</option>');
                                 });
                                 columnSelect.prop('disabled', false);
                             });
                         }
-                        
                     },
                     error: function(xhr) {
                         console.error('Error:', xhr.responseText);
                     }
                 });
             } else {
-                // Disable all dropdowns if no dataset is selected
+                // Disable and clear all dropdowns if no dataset is selected
                 $('#pie-column-select, #histogram-column-select, #scatter-column-x-select, #scatter-column-y-select, #scatter2-column-x-select, #scatter2-column-y-select')
                     .prop('disabled', true)
                     .empty()
@@ -143,74 +147,71 @@
             }
         });
 
-        // Handle chart selection and update
-        // Handle chart selection and update
-function updateChart(chartType, columnX, columnY, section) {
-    var datasetId = $('#dataset-select').val();
-    if (datasetId && columnX) {
-        $.ajax({
-            url: "{% url 'generate_chart' %}",
-            data: {
-                dataset_id: datasetId,
-                chart_type: chartType,
-                column_x: columnX,
-                column_y: columnY
-            },
-            success: function(response) {
-                if (response.chart_base64) {
-                    var imgElement = '<img src="data:image/png;base64,' + response.chart_base64 + '" alt="Chart">';
-                    if (chartType === 'pie' && section === 'categorical') {
-                        $('#pie-chart-container').html(imgElement);  // For categorical pie chart
-                    } else if (chartType === 'histogram' && section === 'categorical') {
-                        $('#histogram-chart-container').html(imgElement);  // For categorical histogram
-                    } else if (chartType === 'scatter' && section === 'scatter1') {
-                        $('#scatter-plot-container').html(imgElement);  // For Scatter Plot 1
-                    } else if (chartType === 'scatter' && section === 'scatter2') {
-                        $('#scatter2-plot-container').html(imgElement);  // For Scatter Plot 2
+        // Chart update logic remains unchanged
+        function updateChart(chartType, columnX, columnY, section) {
+            var datasetId = $('#dataset-select').val();
+            if (datasetId && columnX) {
+                $.ajax({
+                    url: "{% url 'generate_chart' %}",
+                    data: {
+                        dataset_id: datasetId,
+                        chart_type: chartType,
+                        column_x: columnX,
+                        column_y: columnY
+                    },
+                    success: function(response) {
+                        if (response.chart_base64) {
+                            var imgElement = '<img src="data:image/png;base64,' + response.chart_base64 + '" alt="Chart">';
+                            if (chartType === 'pie' && section === 'categorical') {
+                                $('#pie-chart-container').html(imgElement);  // For categorical pie chart
+                            } else if (chartType === 'histogram' && section === 'categorical') {
+                                $('#histogram-chart-container').html(imgElement);  // For categorical histogram
+                            } else if (chartType === 'scatter' && section === 'scatter1') {
+                                $('#scatter-plot-container').html(imgElement);  // For Scatter Plot 1
+                            } else if (chartType === 'scatter' && section === 'scatter2') {
+                                $('#scatter2-plot-container').html(imgElement);  // For Scatter Plot 2
+                            }
+                        }
+                    },
+                    error: function(xhr) {
+                        console.error('Error:', xhr.responseText);
                     }
-                }
-                // Display success message
-                if (response.message) {
-                    toastr.success(response.message);
-                    }
+                });
+            }
+        }
+
+        // Handle Categorical Column Selection for Pie and Histogram charts
+        $('#pie-column-select').change(function() {
+            var column = $(this).val();
+            if (column) {
+                updateChart('pie', column, null, 'categorical');
             }
         });
-    }
-}
 
-// Handle Categorical Column Selection for Pie and Histogram charts
-$('#pie-column-select').change(function() {
-    var column = $(this).val();
-    if (column) {
-        updateChart('pie', column, null, 'categorical');
-    }
-});
+        $('#histogram-column-select').change(function() {
+            var column = $(this).val();
+            if (column) {
+                updateChart('histogram', column, null, 'categorical');
+            }
+        });
 
-$('#histogram-column-select').change(function() {
-    var column = $(this).val();
-    if (column) {
-        updateChart('histogram', column, null, 'categorical');
-    }
-});
+        // Handle Continuous Column Selection for Scatter Plot 1
+        $('#scatter-column-x-select, #scatter-column-y-select').change(function() {
+            var xColumn = $('#scatter-column-x-select').val();
+            var yColumn = $('#scatter-column-y-select').val();
+            if (xColumn && yColumn) {
+                updateChart('scatter', xColumn, yColumn, 'scatter1');
+            }
+        });
 
-// Handle Continuous Column Selection for Scatter Plot 1
-$('#scatter-column-x-select, #scatter-column-y-select').change(function() {
-    var xColumn = $('#scatter-column-x-select').val();
-    var yColumn = $('#scatter-column-y-select').val();
-    if (xColumn && yColumn) {
-        updateChart('scatter', xColumn, yColumn, 'scatter1');
-    }
-});
-
-// Handle Continuous Column Selection for Scatter Plot 2
-$('#scatter2-column-x-select, #scatter2-column-y-select').change(function() {
-    var xColumn = $('#scatter2-column-x-select').val();
-    var yColumn = $('#scatter2-column-y-select').val();
-    if (xColumn && yColumn) {
-        updateChart('scatter', xColumn, yColumn, 'scatter2');
-    }
-});
-
+        // Handle Continuous Column Selection for Scatter Plot 2
+        $('#scatter2-column-x-select, #scatter2-column-y-select').change(function() {
+            var xColumn = $('#scatter2-column-x-select').val();
+            var yColumn = $('#scatter2-column-y-select').val();
+            if (xColumn && yColumn) {
+                updateChart('scatter', xColumn, yColumn, 'scatter2');
+            }
+        });
     </script>
 </body>
 {% endblock %}
