@@ -407,7 +407,8 @@ def apply_actions(request):
                 
                 )
             action.save()
-            messages.success(request, 'data Cleaned successfully.')
+            message = 'Data cleaned successfully.'
+        
         if 'transform_data' in request.POST:
             transform_type = request.POST.get('transform_type')
             numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
@@ -430,7 +431,7 @@ def apply_actions(request):
                 
                 )
             action.save()  
-            messages.success(request, 'data Transformed successfully.')  
+            message = 'Data transformed successfully.' 
 
         # Save the updated dataset back to file
         if file_path.endswith('.csv'):
@@ -456,6 +457,8 @@ def apply_actions(request):
             'cleaned': dataset.status_cleaned,
             
         }
+        updated_data['message'] = message
+
 
         # Return a JSON response with updated data
         return JsonResponse(updated_data, status=200)
@@ -539,6 +542,7 @@ def generate_chart(request):
             plt.savefig(buf, format='png')
             plt.close()
             test = 1
+            message = 'pie chart is here !'
 
         elif chart_type == 'histogram':
             # Histogram for categorical data
@@ -548,6 +552,7 @@ def generate_chart(request):
             plt.savefig(buf, format='png')
             plt.close()
             test = 1
+            message = 'histogram chart is here !'
 
         elif chart_type == 'scatter':
             # Scatter plot for continuous data
@@ -556,6 +561,7 @@ def generate_chart(request):
             plt.savefig(buf, format='png')
             plt.close()
             test = 1
+            message = 'scatter chart is here !'
 
         buf.seek(0)
         chart_base64 = base64.b64encode(buf.read()).decode('utf-8')  # Base64 encode the image
@@ -569,11 +575,12 @@ def generate_chart(request):
                 
             )
             action.save()
-            messages.success(request, 'chart is here !')  
+            # messages.success(request, 'chart is here !')  
+           
         # Debugging: log the base64 response
         print("Generated chart base64: ", chart_base64[:50])  # Print a snippet of the base64 string for debugging
 
-        return JsonResponse({'chart_base64': chart_base64})
+        return JsonResponse({'chart_base64': chart_base64,'message':message})
 
     except Dataset.DoesNotExist:
         return JsonResponse({'error': 'Dataset not found'}, status=400)
@@ -655,8 +662,7 @@ def apply_models(request):
     
         # Check if preprocessing is required
             preprocessing_required = (
-    not (dataset.status_normalized or dataset.status_standardized)  # Both normalized and standardized are false
-    or not dataset.status_cleaned  # Cleaned is false
+     False  # Cleaned is false
      # Encoded is false
 )
             print(f"Dataset Preprocessing Flags: normalized={dataset.status_normalized}, standardized={dataset.status_standardized}, cleaned={dataset.status_cleaned}, encoded={dataset.status_encoded}")
@@ -748,8 +754,9 @@ def apply_models(request):
                 infos=f"Models applied successfully on dataset '{dataset.name}'"
             )
             action.save()
-            messages.success(request, 'Models applied successfully.')  
-            return JsonResponse({'metrics': metrics,'preprocessing_required': False})
+            # messages.success(request, 'Models applied successfully.')  
+            message = 'Models applied successfully.'
+            return JsonResponse({'metrics': metrics,'preprocessing_required': False,'message':message})
 
         except DatasetCopy.DoesNotExist:
             return JsonResponse({'error': 'Dataset Not Found'}, status=404)
@@ -971,8 +978,9 @@ def predict(request):
                 infos=f"Prediction applied successfully on dataset '{dataset.name}'"
             )
             action.save()
-            messages.success(request, 'Prediction applied successfully.')  
-            return JsonResponse({'prediction': prediction[0]})
+            # messages.success(request, 'Prediction applied successfully.')
+            message = 'Prediction applied successfully.'  
+            return JsonResponse({'prediction': prediction[0],'message':message})
 
         except DatasetCopy.DoesNotExist:
             return JsonResponse({'error': 'Dataset not found'}, status=404)
@@ -1045,6 +1053,7 @@ def export_history(request):
             infos=f"Exported data from history with format {export_format}"
         )
         action_history_entry.save()
+        # messages.success(request,'History exported successfully')
 
         if export_format == 'csv':
             response = HttpResponse(content_type='text/csv')
@@ -1084,7 +1093,6 @@ def export_history(request):
 
             response.write(content)
             return response
-
     return HttpResponse("Invalid export request", status=400)
 
 #end historique 

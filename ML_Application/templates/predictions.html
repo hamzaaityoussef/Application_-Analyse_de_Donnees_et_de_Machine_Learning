@@ -118,7 +118,9 @@
                                 modelSelect.append('<option value="DBSCAN">DBSCAN</option>');
                             }
                             modelSelect.prop('disabled', false);
+                            
                         }
+
                     },
                     error: function (xhr) {
                         console.error('Error:', xhr.responseText);
@@ -153,6 +155,10 @@
                 success: function (response) {
                     $('#prediction-result').show();
                     $('#prediction-value').text(response.prediction);
+                    // Display success message
+                    if (response.message) {
+                        toastr.success(response.message);
+                        }
                 },
                 error: function (xhr) {
                     console.error('Error:', xhr.responseText);

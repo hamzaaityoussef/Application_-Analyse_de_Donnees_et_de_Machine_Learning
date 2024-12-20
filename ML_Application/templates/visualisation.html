@@ -128,6 +128,7 @@
                                 columnSelect.prop('disabled', false);
                             });
                         }
+                        
                     },
                     error: function(xhr) {
                         console.error('Error:', xhr.responseText);
@@ -168,6 +169,10 @@ function updateChart(chartType, columnX, columnY, section) {
                         $('#scatter2-plot-container').html(imgElement);  // For Scatter Plot 2
                     }
                 }
+                // Display success message
+                if (response.message) {
+                    toastr.success(response.message);
+                    }
             }
         });
     }

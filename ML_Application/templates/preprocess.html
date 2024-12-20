@@ -428,6 +428,12 @@
                 columnSelect.append(`<option value="${column}">${column}</option>`);
             });
 
+
+            // Display success message
+            if (response.message) {
+                toastr.success(response.message);
+            }
+
             // Hide the dataset dropdown after applying the action
             $('#data-cleaning-modal').addClass('hidden'); // Hides the modal after action is completed
         },
@@ -488,6 +494,11 @@ $('#transformation-trigger').on('click', function (event) {
             $('#status-standardized').text(response.status.standardized ? 'Standardized: Yes' : 'Standardized: No');
             $('#status-cleaned').text(response.status.cleaned ? 'Cleaned: Yes' : 'Cleaned: No');
             //$('#status-encoded').text(response.status.encoded ? 'Encoded: Yes' : 'Encoded: No');
+
+            // Display success message
+            if (response.message) {
+                toastr.success(response.message);
+            }
 
             // Hide the modal after applying the action
             $('#data-transformation-modal').addClass('hidden');
