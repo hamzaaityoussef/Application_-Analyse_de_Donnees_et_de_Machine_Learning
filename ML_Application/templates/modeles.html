@@ -507,6 +507,10 @@ $('#apply-models').click(function () {
 
                 metricsContainer.append(visualizationsContainer);
             }
+            // Display success message
+            if (response.message) {
+            toastr.success(response.message);
+            }
         },
         error: function (xhr) {
             console.error('Error:', xhr.responseText);

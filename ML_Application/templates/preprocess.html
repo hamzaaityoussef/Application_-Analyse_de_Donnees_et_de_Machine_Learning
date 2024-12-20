@@ -186,7 +186,9 @@
                 <option value="delete">Delete Nulls</option>
                 <option value="fill">Fill Nulls</option>
                 <option value="duplicated">Drop Duplicates</option>
+                <option value="drop_column">Drop Columns</option> <!-- New Option -->
             </select>
+
 
             <!-- Fill Method (Hidden initially) -->
             <div id="fill-method-container" class="hidden">
@@ -196,6 +198,17 @@
                     <option value="mean">Fill with Mean</option>
                     <option value="next">Fill with previous Value</option>
                     <option value="most_frequent">Fill with Most Frequent</option>
+                </select>
+            </div>
+
+            <!-- Column Selection Dropdown (Hidden Initially) -->
+            <div id="column-container" class="hidden mt-4">
+                <label for="column-select" class="block text-lg font-medium">Select Column to Drop</label>
+                <select id="column-select" name="column" class="w-full p-2 rounded bg-gray-700 border border-gray-600 text-white">
+                    <option value="">-- Select Column --</option>
+                    {% for column in columns %}
+                        <option value="{{ column }}">{{ column }}</option>
+                    {% endfor %}
                 </select>
             </div>
 
@@ -273,12 +286,25 @@
 
         // Show fill method select if "Fill Nulls" is selected
         document.getElementById('action').addEventListener('change', function() {
-            if (this.value === 'fill') {
-                document.getElementById('fill-method-container').classList.remove('hidden');
-            } else {
-                document.getElementById('fill-method-container').classList.add('hidden');
-            }
-        });
+        const action = this.value;
+        const fillMethodContainer = document.getElementById('fill-method-container');
+        const columnContainer = document.getElementById('column-container');
+
+        // Show/Hide Fill Method Dropdown
+        if (action === 'fill') {
+            fillMethodContainer.classList.remove('hidden');
+        } else {
+            fillMethodContainer.classList.add('hidden');
+        }
+
+        // Show/Hide Column Dropdown
+        if (action === 'drop_column') {
+            columnContainer.classList.remove('hidden');
+        } else {
+            columnContainer.classList.add('hidden');
+        }
+    });
+
     </script>
 
     <!-- fonctions i use  -->
@@ -343,6 +369,7 @@
     const action = $('#action').val();
     const datasetId = $('#dataset-id').val();
     const fillMethod = $('#fill-method').val();
+    const column = $('#column-select').val();
 
     // Prepare request data
     let requestData = {
@@ -354,6 +381,9 @@
 
     if (action === 'fill') {
         requestData.fill_method = fillMethod; // Include fill method if action is 'fill'
+    }
+    if (action === 'drop_column') {
+        requestData.column = column; // Add selected column to request data
     }
 
     // Send AJAX request
@@ -389,6 +419,20 @@
             $('#status-standardized').text(response.status.standardized ? 'Standardized: Yes' : 'Standardized: No');
             $('#status-cleaned').text(response.status.cleaned ? 'Cleaned: Yes' : 'Cleaned: No');
             //$('#status-encoded').text(response.status.encoded ? 'Encoded: Yes' : 'Encoded: No');
+
+            // Update the column dropdown
+            const columnSelect = $('#column-select');
+            columnSelect.empty(); // Clear existing options
+            columnSelect.append('<option value="">-- Select Column --</option>'); // Add default option
+            response.columns.forEach(column => {
+                columnSelect.append(`<option value="${column}">${column}</option>`);
+            });
+
+
+            // Display success message
+            if (response.message) {
+                toastr.success(response.message);
+            }
 
             // Hide the dataset dropdown after applying the action
             $('#data-cleaning-modal').addClass('hidden'); // Hides the modal after action is completed
@@ -450,6 +494,11 @@ $('#transformation-trigger').on('click', function (event) {
             $('#status-standardized').text(response.status.standardized ? 'Standardized: Yes' : 'Standardized: No');
             $('#status-cleaned').text(response.status.cleaned ? 'Cleaned: Yes' : 'Cleaned: No');
             //$('#status-encoded').text(response.status.encoded ? 'Encoded: Yes' : 'Encoded: No');
+
+            // Display success message
+            if (response.message) {
+                toastr.success(response.message);
+            }
 
             // Hide the modal after applying the action
             $('#data-transformation-modal').addClass('hidden');

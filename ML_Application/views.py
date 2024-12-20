@@ -395,6 +395,13 @@ def apply_actions(request):
                     df.fillna(method='ffill', inplace=True)
                 dataset.status_cleaned = True  # Update the status
 
+            elif action == 'drop_column':
+                column_to_drop = request.POST.get('column')
+                if column_to_drop in df.columns:
+                    df = df.drop(columns=[column_to_drop])
+                else:
+                    return JsonResponse({'error': 'Column not found'}, status=400)
+
             action = Historique(
                 action='Clean Data',
                 date_action=datetime.now(),
@@ -403,7 +410,8 @@ def apply_actions(request):
                 
                 )
             action.save()
-            messages.success(request, 'data Cleaned successfully.')
+            message = 'Data cleaned successfully.'
+        
         if 'transform_data' in request.POST:
             transform_type = request.POST.get('transform_type')
             numeric_columns = df.select_dtypes(include=['float64', 'int64']).columns
@@ -411,10 +419,12 @@ def apply_actions(request):
                 scaler = MinMaxScaler()
                 df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
                 dataset.status_normalized = True  # Update the status
+                dataset.status_standardized = False
             elif transform_type == 'standardize':
                 scaler = StandardScaler()
                 df[numeric_columns] = scaler.fit_transform(df[numeric_columns])
                 dataset.status_standardized = True  # Update the status
+                dataset.status_normalized = False 
 
             action = Historique(
                 action='Transform Data',
@@ -424,7 +434,7 @@ def apply_actions(request):
                 
                 )
             action.save()  
-            messages.success(request, 'data Transformed successfully.')  
+            message = 'Data transformed successfully.' 
 
         # Save the updated dataset back to file
         if file_path.endswith('.csv'):
@@ -450,6 +460,8 @@ def apply_actions(request):
             'cleaned': dataset.status_cleaned,
             
         }
+        updated_data['message'] = message
+
 
         # Return a JSON response with updated data
         return JsonResponse(updated_data, status=200)
@@ -501,6 +513,10 @@ def get_columns(request):
     except Dataset.DoesNotExist:
         return JsonResponse({'error': 'Dataset not found'}, status=400)
     
+
+
+
+
 def generate_chart(request):
     dataset_id = request.GET.get('dataset_id')
     chart_type = request.GET.get('chart_type')  # 'pie', 'histogram', or 'scatter'
@@ -510,7 +526,7 @@ def generate_chart(request):
     try:
         dataset = Dataset.objects.get(id=dataset_id, user=request.user)
         file_path = dataset.file.path
-        
+
         # Load the dataset
         if file_path.endswith('.csv'):
             df = pd.read_csv(file_path)
@@ -519,59 +535,66 @@ def generate_chart(request):
         else:
             return JsonResponse({'error': 'Unsupported file format'}, status=400)
 
-        # Prepare a chart buffer
-        buf = io.BytesIO()
+        # Sanitize the dataset name to create a valid folder name
+        dataset_folder_name = dataset.name.replace(" ", "_")  # Replace spaces with underscores
+        dataset_folder_name = ''.join(e for e in dataset_folder_name if e.isalnum() or e == '_')  # Remove special characters
 
-        fig, ax = plt.subplots(figsize=(4, 3)) 
-        # i will add here variable just for test assi diae 
-        test = 0
+        # Directory structure for charts
+        user_folder = os.path.join(settings.MEDIA_ROOT, 'charts', request.user.username)
+        dataset_folder = os.path.join(user_folder, dataset_folder_name)
+        os.makedirs(dataset_folder, exist_ok=True)
+
+        # Filepath for the chart
+        chart_file_name = f"{chart_type}_{column_x}_{'vs_' + column_y if chart_type == 'scatter' else ''}.png"
+        chart_file_path = os.path.join(dataset_folder, chart_file_name)
+
+        # Remove old chart of the same type
+        if os.path.exists(chart_file_path):
+            os.remove(chart_file_path)
+
+        # Generate chart and save it
+        buf = BytesIO()
+        fig, ax = plt.subplots(figsize=(4, 3))
         if chart_type == 'pie':
-            # Pie chart for categorical data
-            df[column_x].value_counts().plot(kind='pie', ax=plt.gca(), autopct='%1.1f%%')
+            df[column_x].value_counts().plot(kind='pie', ax=ax, autopct='%1.1f%%')
             plt.title(f'{column_x} Distribution (Pie Chart)')
             plt.ylabel('')
-            plt.savefig(buf, format='png')
-            plt.close()
-            test = 1
-
         elif chart_type == 'histogram':
-            # Histogram for categorical data
-            df[column_x].value_counts().plot(kind='bar', ax=plt.gca())
+            df[column_x].value_counts().plot(kind='bar', ax=ax)
             plt.title(f'{column_x} Distribution (Histogram)')
             plt.ylabel('Frequency')
-            plt.savefig(buf, format='png')
-            plt.close()
-            test = 1
-
         elif chart_type == 'scatter':
-            # Scatter plot for continuous data
-            df.plot.scatter(x=column_x, y=column_y, ax=plt.gca())
+            df.plot.scatter(x=column_x, y=column_y, ax=ax)
             plt.title(f'{column_x} vs {column_y} (Scatter Plot)')
-            plt.savefig(buf, format='png')
-            plt.close()
-            test = 1
+
+        plt.savefig(chart_file_path, format='png')  # Save the chart to the dataset folder
+        plt.savefig(buf, format='png')  # Save to buffer for frontend
+        plt.close()
 
         buf.seek(0)
-        chart_base64 = base64.b64encode(buf.read()).decode('utf-8')  # Base64 encode the image
+        chart_base64 = base64.b64encode(buf.read()).decode('utf-8')  # Base64 encode the image for frontend display
         buf.close()
-        if test == 1:
-            action = Historique(
-                action='Visualisation',
-                date_action=datetime.now(),
-                user=request.user,
-                infos=f"generate chart for the data {dataset.name} " 
-                
-            )
-            action.save()
-            messages.success(request, 'chart is here !')  
-        # Debugging: log the base64 response
-        print("Generated chart base64: ", chart_base64[:50])  # Print a snippet of the base64 string for debugging
 
-        return JsonResponse({'chart_base64': chart_base64})
+        # Save action to history
+        action = Historique(
+            action='Visualisation',
+            date_action=datetime.now(),
+            user=request.user,
+            infos=f"Generated {chart_type} chart for the dataset {dataset.name}."
+        )
+        action.save()
+
+        # Respond with chart path and Base64
+        return JsonResponse({
+            'chart_base64': chart_base64,
+            'chart_url': os.path.join(settings.MEDIA_URL, 'charts', request.user.username, dataset_folder_name, chart_file_name),
+            'message': f'{chart_type.capitalize()} chart generated successfully!'
+        })
 
     except Dataset.DoesNotExist:
         return JsonResponse({'error': 'Dataset not found'}, status=400)
-
+    except Exception as e:
+        return JsonResponse({'error': str(e)}, status=500)
 
 
 
@@ -860,8 +883,9 @@ def apply_models(request):
                 infos=f"Models applied successfully on dataset '{dataset.name}'"
             )
             action.save()
-            messages.success(request, 'Models applied successfully.')  
-            return JsonResponse({'metrics': metrics,'preprocessing_required': False,'visualizations': visualizations})
+            # messages.success(request, 'Models applied successfully.')  
+            message = 'Models applied successfully.'
+            return JsonResponse({'metrics': metrics,'preprocessing_required': False,'message':message,'visualizations': visualizations})
 
         except DatasetCopy.DoesNotExist:
             return JsonResponse({'error': 'Dataset Not Found'}, status=404)
@@ -1086,8 +1110,9 @@ def predict(request):
                 infos=f"Prediction applied successfully on dataset '{dataset.name}'"
             )
             action.save()
-            messages.success(request, 'Prediction applied successfully.')  
-            return JsonResponse({'prediction': prediction[0]})
+            # messages.success(request, 'Prediction applied successfully.')
+            message = 'Prediction applied successfully.'  
+            return JsonResponse({'prediction': prediction[0],'message':message})
 
         except DatasetCopy.DoesNotExist:
             return JsonResponse({'error': 'Dataset not found'}, status=404)
@@ -1106,6 +1131,11 @@ def documentation(request):
     print('bnjrjr')
     return render(request, 'documentation.html')
 #end documentation 
+
+
+
+
+
 
 # report 
 @login_required(login_url='/login')
@@ -1160,6 +1190,7 @@ def export_history(request):
             infos=f"Exported data from history with format {export_format}"
         )
         action_history_entry.save()
+        # messages.success(request,'History exported successfully')
 
         if export_format == 'csv':
             response = HttpResponse(content_type='text/csv')
@@ -1199,7 +1230,6 @@ def export_history(request):
 
             response.write(content)
             return response
-
     return HttpResponse("Invalid export request", status=400)
 
 #end historique 

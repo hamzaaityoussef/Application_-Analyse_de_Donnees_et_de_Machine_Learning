@@ -119,6 +119,7 @@
         if (selectedFormat) {
             // Soumettre le formulaire d'exportation
             document.getElementById("exportForm").submit();
+            toastr.success('History exported successfully');
         } else {
             alert("Veuillez sélectionner un format d'exportation.");
         }
