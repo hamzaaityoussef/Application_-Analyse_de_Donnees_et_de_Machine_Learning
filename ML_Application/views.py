@@ -514,13 +514,25 @@ def get_columns(request):
 
 
 
+import os
+import base64
+import pandas as pd
+import matplotlib.pyplot as plt
+from io import BytesIO
+from django.conf import settings
+from django.http import JsonResponse
+from datetime import datetime
+
+
+
 def generate_chart(request):
     dataset_id = request.GET.get('dataset_id')
     chart_type = request.GET.get('chart_type')  # 'pie', 'histogram', or 'scatter'
     column_x = request.GET.get('column_x')  # For scatter plot, x-axis column
-    column_y = request.GET.get('column_y')  # For scatter plot, y-axis column
+    column_y = request.GET.get('column_y')  # For scatter plot, y-axis column (optional)
 
     try:
+        # Fetch dataset associated with the user
         dataset = Dataset.objects.get(id=dataset_id, user=request.user)
         file_path = dataset.file.path
 
@@ -532,24 +544,21 @@ def generate_chart(request):
         else:
             return JsonResponse({'error': 'Unsupported file format'}, status=400)
 
-        # Sanitize the dataset name to create a valid folder name
-        dataset_folder_name = dataset.name.replace(" ", "_")  # Replace spaces with underscores
-        dataset_folder_name = ''.join(e for e in dataset_folder_name if e.isalnum() or e == '_')  # Remove special characters
-
-        # Directory structure for charts
+        # Sanitize the dataset name and prepare directories
+        sanitized_name = sanitize_folder_name(dataset.name)
         user_folder = os.path.join(settings.MEDIA_ROOT, 'charts', request.user.username)
-        dataset_folder = os.path.join(user_folder, dataset_folder_name)
+        dataset_folder = os.path.join(user_folder, sanitized_name)
         os.makedirs(dataset_folder, exist_ok=True)
 
-        # Filepath for the chart
+        # Define chart file path
         chart_file_name = f"{chart_type}_{column_x}_{'vs_' + column_y if chart_type == 'scatter' else ''}.png"
         chart_file_path = os.path.join(dataset_folder, chart_file_name)
 
-        # Remove old chart of the same type
+        # Remove existing chart of the same type
         if os.path.exists(chart_file_path):
             os.remove(chart_file_path)
 
-        # Generate chart and save it
+        # Generate the chart
         buf = BytesIO()
         fig, ax = plt.subplots(figsize=(4, 3))
         if chart_type == 'pie':
@@ -561,18 +570,22 @@ def generate_chart(request):
             plt.title(f'{column_x} Distribution (Histogram)')
             plt.ylabel('Frequency')
         elif chart_type == 'scatter':
+            if column_y is None:
+                return JsonResponse({'error': 'Scatter plots require both x and y columns.'}, status=400)
             df.plot.scatter(x=column_x, y=column_y, ax=ax)
             plt.title(f'{column_x} vs {column_y} (Scatter Plot)')
 
-        plt.savefig(chart_file_path, format='png')  # Save the chart to the dataset folder
-        plt.savefig(buf, format='png')  # Save to buffer for frontend
+        # Save chart to file and buffer
+        plt.savefig(chart_file_path, format='png')  # Save to file
+        plt.savefig(buf, format='png')  # Save to buffer for Base64
         plt.close()
 
+        # Encode chart as Base64
         buf.seek(0)
-        chart_base64 = base64.b64encode(buf.read()).decode('utf-8')  # Base64 encode the image for frontend display
+        chart_base64 = base64.b64encode(buf.read()).decode('utf-8')
         buf.close()
 
-        # Save action to history
+        # Log the action
         action = Historique(
             action='Visualisation',
             date_action=datetime.now(),
@@ -581,18 +594,21 @@ def generate_chart(request):
         )
         action.save()
 
-        # Respond with chart path and Base64
+        # Return JSON response
         return JsonResponse({
             'chart_base64': chart_base64,
-            'chart_url': os.path.join(settings.MEDIA_URL, 'charts', request.user.username, dataset_folder_name, chart_file_name),
+            'chart_url': os.path.join(settings.MEDIA_URL, 'charts', request.user.username, sanitized_name, chart_file_name).replace("\\", "/"),
             'message': f'{chart_type.capitalize()} chart generated successfully!'
         })
 
     except Dataset.DoesNotExist:
         return JsonResponse({'error': 'Dataset not found'}, status=400)
+    except KeyError as e:
+        return JsonResponse({'error': f'Missing required parameter: {str(e)}'}, status=400)
+    except ValueError as e:
+        return JsonResponse({'error': f'Invalid parameter value: {str(e)}'}, status=400)
     except Exception as e:
         return JsonResponse({'error': str(e)}, status=500)
-
 
 
 
@@ -1015,9 +1031,103 @@ def documentation(request):
 # report 
 @login_required(login_url='/login')
 def report(request):
-    
+    datasets = DatasetCopy.objects.filter(user=request.user) 
     print('bnjrjr')
-    return render(request, 'report.html')
+    return render(request, 'report.html', {'datasets': datasets})
+
+
+
+
+
+from django.http import JsonResponse, HttpResponse
+from django.template.loader import render_to_string
+from weasyprint import HTML
+import pandas as pd
+import matplotlib.pyplot as plt
+from io import BytesIO
+import time
+from django.views.decorators.csrf import csrf_exempt
+from django.template import TemplateDoesNotExist, TemplateSyntaxError
+# Adding CSRF exempt temporarily if you still face issues (for debugging)
+
+import os
+from django.conf import settings
+
+def generate_report(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        dataset_copy_id = data.get('dataset_id')  # ID of the copied dataset
+        include_summary = data.get('include_summary')
+        include_statistics = data.get('include_statistics')
+        include_visualizations = data.get('include_visualizations') 
+        template_choice = data.get('template', 'default')
+
+        try:
+            # Load the copied dataset
+            dataset_copy = DatasetCopy.objects.get(id=dataset_copy_id, user=request.user)
+            original_dataset = dataset_copy.original_dataset  # Access the original dataset
+            file_path = dataset_copy.file.path  # Use the copied dataset's file for data
+
+            # Load the copied dataset file
+            df = pd.read_csv(file_path) if file_path.endswith('.csv') else pd.read_excel(file_path, engine='openpyxl')
+
+            # Generate summary
+            summary = df.describe().to_html(classes='table table-striped') if include_summary else None
+
+            # Generate statistics
+            statistics = None
+            if include_statistics:
+                statistics = {
+                    'row_count': df.shape[0],
+                    'column_count': df.shape[1],
+                    'missing_values': df.isnull().sum().to_dict(),
+                }
+
+            # Retrieve pre-generated visualizations from the original dataset
+            visualizations = []
+            if include_visualizations:
+                user_folder = os.path.join(settings.MEDIA_ROOT, 'charts', request.user.username)
+                sanitized_name = sanitize_folder_name(original_dataset.name)
+                dataset_folder = os.path.join(user_folder, sanitized_name)
+
+                print("dataset_folder :", dataset_folder)
+
+                # Check for the existence of the dataset folder
+                if os.path.exists(dataset_folder):
+                    for chart_file in os.listdir(dataset_folder):
+                        if chart_file.endswith('.png'):  # Ensure only image files are included
+                            chart_path = os.path.join(dataset_folder, chart_file)
+                            with open(chart_path, "rb") as image_file:
+                                base64_image = base64.b64encode(image_file.read()).decode('utf-8')
+                                visualizations.append(f"data:image/png;base64,{base64_image}")
+
+                print("visualizations :", visualizations)
+                # Context for the template
+                context = {
+                    'dataset_name': dataset_copy.name,
+                    'summary': summary,
+                    'statistics': statistics,
+                    'visualizations': visualizations,
+                    'template': template_choice,
+                }
+
+                # Render report
+                html_content = render_to_string(f'report_{template_choice}.html', context)
+
+                # Generate PDF
+                pdf = HTML(string=html_content).write_pdf()
+
+                # Return PDF
+                response = HttpResponse(pdf, content_type='application/pdf')
+                response['Content-Disposition'] = f'attachment; filename="{dataset_copy.name}_report.pdf"'
+                return response
+
+        except Exception as e:
+            return JsonResponse({'error': str(e)}, status=400)
+
+    return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
 #end report 
 
 
@@ -1108,3 +1218,13 @@ def export_history(request):
     return HttpResponse("Invalid export request", status=400)
 
 #end historique 
+
+
+
+
+# fonction pour nous aider en donnant meme nom 
+def sanitize_folder_name(name):
+    """Sanitize the dataset name to create a valid folder name."""
+    sanitized_name = name.replace(" ", "_")  # Replace spaces with underscores
+    sanitized_name = ''.join(e for e in sanitized_name if e.isalnum() or e == '_')  # Remove special characters
+    return sanitized_name

@@ -37,6 +37,7 @@ urlpatterns = [
     path('Predictions/', views.Predictions, name='Predictions'),
     path('documentation/', views.documentation, name='documentation'),
     path('report/', views.report, name='report'),
+    path('generate_report/', views.generate_report, name='generate_report'),
     path('historique/', views.historique, name='historique'),
     path('export_history/', views.export_history, name='export_history'),
     path('delete-history/', views.DeleteHistoryView.as_view(), name='delete_history'),

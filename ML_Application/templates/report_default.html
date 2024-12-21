@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ dataset_name }} Report</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container mt-4">
+        <h1 class="text-center">{{ dataset_name }} Report</h1>
+
+        {% if summary %}
+        <h2 class="mt-4">Summary</h2>
+        <div>{{ summary|safe }}</div>
+        {% endif %}
+
+        {% if statistics %}
+        <h2 class="mt-4">Statistics</h2>
+        <ul>
+            <li>Row Count: {{ statistics.row_count }}</li>
+            <li>Column Count: {{ statistics.column_count }}</li>
+            <li>Missing Values:</li>
+            <ul>
+                {% for column, count in statistics.missing_values.items %}
+                <li>{{ column }}: {{ count }}</li>
+                {% endfor %}
+            </ul>
+        </ul>
+        {% endif %}
+
+        {% if visualizations %}
+<h2 class="mt-4">Visualizations</h2>
+<div class="row">
+    {% for visualization in visualizations %}
+    <div class="col-md-6 mb-3">
+        <img src="{{ visualization }}" alt="Chart" class="img-fluid border border-secondary rounded">
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<p>No visualizations available for this dataset.</p>
+{% endif %}
+
+
+    </div>
+</body>
+</html>
