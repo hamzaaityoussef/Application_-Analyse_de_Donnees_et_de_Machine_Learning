@@ -4,45 +4,104 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ dataset_name }} Report</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <!-- Materialize CSS -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
+    <!-- Custom Styles -->
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .report-header {
+            margin-bottom: 30px;
+        }
+        .report-header .card {
+            border-radius: 10px;
+        }
+        .summary-table {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .chart-card {
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+        .chart-card img {
+            width: 100%;
+            height: auto;
+        }
+        .section-title {
+            border-bottom: 3px solid #64b5f6;
+            margin-bottom: 20px;
+        }
+    </style>
 </head>
-<body>
-    <div class="container mt-4">
-        <h1 class="text-center">{{ dataset_name }} Report</h1>
+<body class="grey lighten-4">
+    <div class="container">
+        <!-- Report Header -->
+        <div class="report-header">
+            <div class="card blue darken-1">
+                <div class="card-content white-text center-align">
+                    <h1 class="card-title">{{ dataset_name }}</h1>
+                    <p>Comprehensive Dataset Analysis Report</p>
+                </div>
+            </div>
+        </div>
 
+        <!-- Summary Section -->
         {% if summary %}
-        <h2 class="mt-4">Summary</h2>
-        <div>{{ summary|safe }}</div>
+        <h2 class="section-title blue-text text-darken-2">Summary</h2>
+        <div class="card summary-table">
+            <div class="card-content">
+                <table class="striped highlight">
+                    {{ summary|safe }}
+                </table>
+            </div>
+        </div>
         {% endif %}
 
+        <!-- Statistics Section -->
         {% if statistics %}
-        <h2 class="mt-4">Statistics</h2>
-        <ul>
-            <li>Row Count: {{ statistics.row_count }}</li>
-            <li>Column Count: {{ statistics.column_count }}</li>
-            <li>Missing Values:</li>
-            <ul>
-                {% for column, count in statistics.missing_values.items %}
-                <li>{{ column }}: {{ count }}</li>
-                {% endfor %}
-            </ul>
+        <h2 class="section-title blue-text text-darken-2">Statistics</h2>
+        <ul class="collection with-header">
+            <li class="collection-header">
+                <strong>Row Count:</strong> {{ statistics.row_count }}
+            </li>
+            <li class="collection-header">
+                <strong>Column Count:</strong> {{ statistics.column_count }}
+            </li>
+            <li class="collection-header">
+                <strong>Missing Values:</strong>
+                <ul>
+                    {% for column, count in statistics.missing_values.items %}
+                    <li>{{ column }}: {{ count }}</li>
+                    {% endfor %}
+                </ul>
+            </li>
         </ul>
         {% endif %}
 
+        <!-- Visualizations Section -->
         {% if visualizations %}
-<h2 class="mt-4">Visualizations</h2>
-<div class="row">
-    {% for visualization in visualizations %}
-    <div class="col-md-6 mb-3">
-        <img src="{{ visualization }}" alt="Chart" class="img-fluid border border-secondary rounded">
+        <h2 class="section-title blue-text text-darken-2">Visualizations</h2>
+        <div class="row">
+            {% for visualization in visualizations %}
+            <div class="col s12 m6">
+                <div class="card chart-card">
+                    <div class="card-image">
+                        <img src="{{ visualization }}" alt="Chart">
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <p class="center-align grey-text">No visualizations available for this dataset.</p>
+        {% endif %}
     </div>
-    {% endfor %}
-</div>
-{% else %}
-<p>No visualizations available for this dataset.</p>
-{% endif %}
 
-
-    </div>
+    <!-- Materialize JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
 </body>
 </html>
