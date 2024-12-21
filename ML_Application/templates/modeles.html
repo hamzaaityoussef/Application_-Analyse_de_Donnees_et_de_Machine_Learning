@@ -28,6 +28,31 @@
         .hidden {
             display: none;
         }
+        .flex {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.flex-wrap {
+    flex-wrap: wrap;
+}
+
+.m-3 {
+    margin: 1rem;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.rounded {
+    border-radius: 8px;
+}
+
+.shadow-lg {
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
     </style>
 </head>
 <body>
@@ -74,18 +99,18 @@
                 </thead>
                 <tbody>
                     <tr>
-                        <td scope="col" class="px-6 py-3 bg-blue-500">
+                        <td scope="col" class="px-6 py-3 ">
                             <label><input type="checkbox" name="model-type" value="SVM"> SVM</label><br>
                             <label><input type="checkbox" name="model-type" value="KNN"> KNN</label><br>
                             <label><input type="checkbox" name="model-type" value="Random Forest"> Random Forest</label><br>
                             <label><input type="checkbox" name="model-type" value="Decision Tree"> Decision Tree</label><br>
                             <label><input type="checkbox" name="model-type" value="Naive Bayes"> Naive Bayes</label>
                         </td>
-                        <td scope="col" class="px-6 py-3 bg-blue-600" >
+                        <td scope="col" class="px-6 py-3 " >
                             <label><input type="checkbox" name="model-type" value="Linear Regression"> Linear Regression</label><br>
                             <label><input type="checkbox" name="model-type" value="Ridge Regression"> Ridge Regression</label>
                         </td>
-                        <td scope="col" class="px-6 py-3 bg-blue-500">
+                        <td scope="col" class="px-6 py-3 ">
                             <label><input type="checkbox" name="model-type" value="KMeans"> KMeans</label><br>
                             <label><input type="checkbox" name="model-type" value="DBSCAN"> DBSCAN</label>
                         </td>
@@ -105,7 +130,7 @@
     </div>
     
     <!-- Dropdown for selecting the final model -->
-    <div class="mt-4 text-center">
+    <div id = "model-select-container" class="mt-4 text-center">
         <h3>Choisir le modèle à utiliser pour les prédictions</h3>
         <select id="model-select" class="form-select w-50 mx-auto">
             <option value="">Sélectionner un modèle</option>
@@ -137,9 +162,13 @@
 
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
+function resetModelSelection() {
+    $('input[name="model-type"]').prop('checked', false); // Uncheck all checkboxes
+}
     // Handle dataset selection
 $('#dataset-select').change(function () {
     var datasetId = $(this).val();
+    
     if (datasetId) {
         // Make AJAX request to get columns for the selected dataset
         $.ajax({
@@ -169,6 +198,7 @@ $('#dataset-select').change(function () {
 // Handle target column selection
 $('#column-select').change(function () {
     var selectedColumn = $(this).val();
+    resetModelSelection();
     var datasetId = $('#dataset-select').val(); // Ensure datasetId is included
     if (selectedColumn) {
         // Make AJAX request to check the column type
@@ -187,7 +217,7 @@ $('#column-select').change(function () {
         });
     } else {
         // If no column is selected, treat it as "none"
-        updateModelAccessibility('none');
+        updateModelAccessibility('clustering');
     }
 });
 
@@ -196,19 +226,23 @@ function updateModelAccessibility(columnType) {
     const classificationModels = $('input[name="model-type"][value="SVM"], input[name="model-type"][value="KNN"], input[name="model-type"][value="Random Forest"], input[name="model-type"][value="Decision Tree"], input[name="model-type"][value="Naive Bayes"]');
     const regressionModels = $('input[name="model-type"][value="Linear Regression"], input[name="model-type"][value="Ridge Regression"]');
     const clusteringModels = $('input[name="model-type"][value="KMeans"], input[name="model-type"][value="DBSCAN"]');
+    const modelSelectContainer = $('#model-select').parent(); // Parent container for the dropdown
 
     if (columnType === 'classification') {
         regressionModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
         clusteringModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
         classificationModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' });
+        modelSelectContainer.show(); // Show the dropdown
     } else if (columnType === 'regression') {
         classificationModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
         clusteringModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
         regressionModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' });
+        modelSelectContainer.show(); // Show the dropdown
     } else if (columnType === 'clustering') {
         classificationModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
         regressionModels.prop('disabled', true).parent().css({ 'color': 'grey', 'text-decoration': 'line-through' });
         clusteringModels.prop('disabled', false).parent().css({ 'color': '', 'text-decoration': '' });
+        modelSelectContainer.hide(); // Hide the dropdown for clustering
     }
 }
 
@@ -458,6 +492,20 @@ $('#apply-models').click(function () {
 
                 // Call the function to highlight the best model and display recommendation
                 highlightBestModel(response.metrics);
+
+                 // Display visualizations
+                var visualizationsContainer = $('<div></div>').addClass('flex flex-wrap justify-center mt-5').attr('id', 'visualizations-container');
+                response.visualizations.forEach(function (vis) {
+                    var visDiv = `
+                        <div class="m-3 text-center">
+                            <h3 class="text-md font-bold text-white">${vis.model} Visualization</h3>
+                            <img src="data:image/png;base64,${vis.plot}" alt="Visualization for ${vis.model}" class="rounded shadow-lg" style="width: 200px; height: auto;">
+                        </div>
+                    `;
+                    visualizationsContainer.append(visDiv);
+                });
+
+                metricsContainer.append(visualizationsContainer);
             }
             // Display success message
             if (response.message) {

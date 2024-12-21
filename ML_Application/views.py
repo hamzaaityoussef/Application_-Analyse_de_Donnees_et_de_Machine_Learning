@@ -48,6 +48,9 @@ from django.http import JsonResponse
 from .models import Dataset
 import pandas as pd
 import os
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import numpy as np
 
 @login_required(login_url='/login')
 def base(request):
@@ -681,18 +684,6 @@ def apply_models(request):
         try:
             # Load the dataset
             dataset = DatasetCopy.objects.get(id=dataset_id, user=request.user)
-
-    
-        # Check if preprocessing is required
-            preprocessing_required = (
-     False  # Cleaned is false
-     # Encoded is false
-)
-            print(f"Dataset Preprocessing Flags: normalized={dataset.status_normalized}, standardized={dataset.status_standardized}, cleaned={dataset.status_cleaned}, encoded={dataset.status_encoded}")
-            print(f"Preprocessing Required: {preprocessing_required}")
-
-            if preprocessing_required:
-                return JsonResponse({'preprocessing_required': True}, status=400)
             
             file_path = dataset.file.path
             if file_path.endswith('.csv'):
@@ -702,24 +693,52 @@ def apply_models(request):
             else:
                 return JsonResponse({'error': 'Unsupported file format'}, status=400)
             
-            df = df.dropna()
-             # Encode non-numeric columns
-            for column in df.columns:
-                if df[column].dtype == 'object' or df[column].dtype.name == 'category':
-                    le = LabelEncoder()
-                    df[column] = le.fit_transform(df[column])
+
+            # Check if preprocessing is required
+            preprocessing_required = (
+      # Both normalized and standardized are false
+    df.duplicated().sum()!=0 or
+    df.isnull().sum().sum()!=0 # Cleaned is false
+     # Encoded is false
+)
+            print(f"Dataset Preprocessing Flags: normalized={dataset.status_normalized}, standardized={dataset.status_standardized}, cleaned={dataset.status_cleaned}, encoded={dataset.status_encoded}")
+            print(f"Preprocessing Required: {preprocessing_required}")
+
+            if preprocessing_required:
+                return JsonResponse({'preprocessing_required': True}, status=400)
+            
+            if not target_column:  # Clustering task
+                # Use only numeric columns for clustering
+                numeric_columns = df.select_dtypes(include=[np.number]).columns
+                if numeric_columns.empty:
+                    return JsonResponse({'error': 'No numeric columns available for clustering'}, status=400)
+                X = df[numeric_columns]
+                y = None  # No target for clustering
+            else:
+                # Classification or regression task
+                if target_column not in df.columns:
+                    return JsonResponse({'error': f"Target column {target_column} not found in dataset"}, status=400)
+                X = df.drop(columns=[target_column])
+                y = df[target_column]
+                # Encode non-numeric columns
+                for column in X.columns:
+                    if X[column].dtype == 'object' or X[column].dtype.name == 'category':
+                        le = LabelEncoder()
+                        X[column] = le.fit_transform(X[column])
+                X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 
-            # Split data into features and target
-            X = df.drop(columns=[target_column])
-            y = df[target_column]
+            
+            
+
 
             # Handle categorical vs. continuous targets
-            is_classification = len(y.unique()) < 20  # Example threshold for categorical data
-            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+            
+            
 
             # Dictionary to store metrics for each model
             metrics = []
+            visualizations = []
 
             # Apply selected models
             for model_name in models:
@@ -745,15 +764,37 @@ def apply_models(request):
                     continue
 
                 # Train and evaluate the model
+                
                 if model_name in ['KNN', 'SVM', 'Random Forest', 'Decision Tree', 'Naive Bayes']:  # Classification
                     model.fit(X_train, y_train)
                     y_pred = model.predict(X_test)
                     metrics.append({
                         'model': model_name,
-                        'accuracy': round(accuracy_score(y_test, y_pred) , 3),
+                        'accuracy': round(accuracy_score(y_test, y_pred) , 2),
                         'precision': round(precision_score(y_test, y_pred, average='weighted', zero_division=0),3),
                         'recall': round(recall_score(y_test, y_pred, average='weighted', zero_division=0),3),
                     })
+                    # Generate heatmap for confusion matrix
+                    cm = confusion_matrix(y_test, y_pred)
+                    plt.figure(figsize=(4, 3))  # Reduce the figure size
+                    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", xticklabels=np.unique(y), yticklabels=np.unique(y))
+                    plt.title(f"Confusion Matrix for {model_name}", fontsize=10)
+                    plt.xlabel("Predicted", fontsize=8)
+                    plt.ylabel("True", fontsize=8)
+                    plt.xticks(fontsize=7)
+                    plt.yticks(fontsize=7)
+
+                    # Save the heatmap as a base64-encoded image
+                    buf = io.BytesIO()
+                    plt.savefig(buf, format='png')
+                    buf.seek(0)
+                    image_base64 = base64.b64encode(buf.read()).decode('utf-8')
+                    buf.close()
+                    plt.close()
+
+                    # Store heatmap
+                    visualizations.append({'model': model_name, 'plot': image_base64})
+
                 elif model_name in ['Linear Regression', 'Ridge Regression']:  # Regression
                     model.fit(X_train, y_train)
                     y_pred = model.predict(X_test)
@@ -761,7 +802,32 @@ def apply_models(request):
                         'model': model_name,
                         'mse': mean_squared_error(y_test, y_pred),
                     })
+
+                    # Generate scatter plot
+                    plt.figure(figsize=(4, 3))
+                    plt.scatter(y_test, y_pred, alpha=0.6)
+                    plt.plot([min(y_test), max(y_test)], [min(y_test), max(y_test)], color='red', linestyle='--')
+                    plt.title(f'Actual vs Predicted - {model_name}')
+                    plt.xlabel('Actual')
+                    plt.ylabel('Predicted')
+                    plt.tight_layout()
+
+                    # Save plot as Base64
+                    buf = io.BytesIO()
+                    plt.savefig(buf, format='png')
+                    buf.seek(0)
+                    image_base64 = base64.b64encode(buf.read()).decode('utf-8')
+                    buf.close()
+
+                    visualizations.append({'model': model_name, 'plot': image_base64})
+
                 elif model_name in ['KMeans', 'DBSCAN']:  # Clustering
+                    model = {
+                        'KMeans': KMeans(n_clusters=3, random_state=42),
+                        'DBSCAN': DBSCAN()
+                    }[model_name]
+
+                    # Train and evaluate clustering model
                     model.fit(X)
                     if hasattr(model, 'labels_'):
                         labels = model.labels_
@@ -769,6 +835,62 @@ def apply_models(request):
                             'model': model_name,
                             'silhouette_score': silhouette_score(X, labels) if len(set(labels)) > 1 else 'N/A',
                         })
+                    
+                    if model_name == 'KMeans':  # KMeans-specific logic
+                    # Elbow Method
+                        distortions = []
+                        range_k = range(1, 11)  # Test for k=1 to k=10
+                        for k in range_k:
+                            kmeans = KMeans(n_clusters=k, random_state=42)
+                            kmeans.fit(X)
+                            distortions.append(kmeans.inertia_)
+
+                        # Plot Elbow Method
+                        plt.figure(figsize=(6, 4))
+                        plt.plot(range_k, distortions, marker='o')
+                        plt.title('Elbow Method for Optimal k')
+                        plt.xlabel('Number of Clusters')
+                        plt.ylabel('Distortion')
+                        plt.tight_layout()
+
+                        # Save elbow plot as Base64
+                        buf = io.BytesIO()
+                        plt.savefig(buf, format='png')
+                        buf.seek(0)
+                        elbow_image_base64 = base64.b64encode(buf.read()).decode('utf-8')
+                        buf.close()
+                        plt.close()
+
+                        # Append Elbow visualization
+                        visualizations.append({'model': 'KMeans Elbow', 'plot': elbow_image_base64})
+
+                        # Fit KMeans with optimal k (for simplicity, use 3 or dynamically determine it)
+                        optimal_k = 3  # You can replace this with the dynamic choice of optimal k
+                        kmeans = KMeans(n_clusters=optimal_k, random_state=42)
+                        labels = kmeans.fit_predict(X)
+
+                        # Scatter plot of clusters
+                        plt.figure(figsize=(6, 4))
+                        scatter = plt.scatter(X.iloc[:, 0], X.iloc[:, 1], c=labels, cmap='viridis', alpha=0.7)
+                        plt.colorbar(scatter)
+                        plt.title('KMeans Clustering Visualization')
+                        plt.xlabel('Feature 1')
+                        plt.ylabel('Feature 2')
+                        plt.tight_layout()
+
+                        # Save cluster visualization as Base64
+                        buf = io.BytesIO()
+                        plt.savefig(buf, format='png')
+                        buf.seek(0)
+                        cluster_image_base64 = base64.b64encode(buf.read()).decode('utf-8')
+                        buf.close()
+                        plt.close()
+
+                    # Append Cluster visualization
+                    visualizations.append({'model': 'KMeans Clustering', 'plot': cluster_image_base64})
+                            
+            print("Visualizations:", visualizations)
+
                 # Log the action history
             action = Historique(
                 action='Apply Models',
@@ -779,7 +901,7 @@ def apply_models(request):
             action.save()
             # messages.success(request, 'Models applied successfully.')  
             message = 'Models applied successfully.'
-            return JsonResponse({'metrics': metrics,'preprocessing_required': False,'message':message})
+            return JsonResponse({'metrics': metrics,'preprocessing_required': False,'message':message,'visualizations': visualizations})
 
         except DatasetCopy.DoesNotExist:
             return JsonResponse({'error': 'Dataset Not Found'}, status=404)
@@ -909,15 +1031,18 @@ def get_prediction_inputs(request):
     try:
         dataset = DatasetCopy.objects.get(id=dataset_id, user=request.user)
         preprocessing_required = (
-    not (dataset.status_normalized or dataset.status_standardized)  # Both normalized and standardized are false
-    or not dataset.status_cleaned  # Cleaned is false
-     # Encoded is false
+     # Both normalized and standardized are false
+    df.duplicated().sum()!=0 or
+    df.isnull().sum().sum()!=0 # Cleaned is false
+    
 )
 
         print(f"Dataset Preprocessing Flags: normalized={dataset.status_normalized}, standardized={dataset.status_standardized}, cleaned={dataset.status_cleaned}")
         print(f"Preprocessing Required: {preprocessing_required}")
 
-        if preprocessing_required:
+        
+
+        if preprocessing_required :
             return JsonResponse({'preprocessing_required': True}, status=200)
 
         file_path = dataset.file.path
