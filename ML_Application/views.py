@@ -171,7 +171,7 @@ def upload(request):
                     action='create Data',
                     date_action=datetime.now(),
                     user=request.user,
-                    dataset = dataset,
+                    dataset = dataset.original_dataset,
                     infos=f"{file_name} created successfully"
                 )
                 action.save()
@@ -224,7 +224,7 @@ def upload(request):
                 action='upload Data',
                 date_action=datetime.now(),
                 user=request.user,
-                dataset = dataset,
+                dataset = dataset.original_dataset,
                 infos=f"{uploaded_file.name} uploaded successfully"
             )
             action.save()
@@ -253,7 +253,7 @@ def delete_dataset(request, dataset_id):
             action='Delete Data',
             date_action=datetime.now(),
             user=request.user,
-            dataset = dataset,
+            dataset = dataset.original_dataset,
             infos=f"{dataset.name} deleted successfully" 
             
         )
@@ -409,7 +409,7 @@ def apply_actions(request):
                 action='Clean Data',
                 date_action=datetime.now(),
                 user=request.user,
-                dataset = dataset,
+                dataset = dataset.original_dataset,
                 infos=f"{dataset.name} Cleaned successfully" 
                 
                 )
@@ -434,7 +434,7 @@ def apply_actions(request):
                 action='Transform Data',
                 date_action=datetime.now(),
                 user=request.user,
-                dataset = dataset,
+                dataset = dataset.original_dataset,
                 infos=f"{dataset.name} Transformed successfully" 
                 
                 )
@@ -598,7 +598,7 @@ def generate_chart(request):
             action='Visualisation',
             date_action=datetime.now(),
             user=request.user,
-            dataset = dataset,
+            dataset = dataset.original_dataset,
             infos=f"Generated {chart_type} chart for the dataset {dataset.name}."
         )
         action.save()
@@ -702,11 +702,11 @@ def apply_models(request):
 
             # Check if preprocessing is required
             preprocessing_required = (
-      # Both normalized and standardized are false
-    df.duplicated().sum()!=0 or
-    df.isnull().sum().sum()!=0 # Cleaned is false
-     # Encoded is false
-)
+            # Both normalized and standardized are false
+            df.duplicated().sum()!=0 or
+            df.isnull().sum().sum()!=0 # Cleaned is false
+            # Encoded is false
+        )
             print(f"Dataset Preprocessing Flags: normalized={dataset.status_normalized}, standardized={dataset.status_standardized}, cleaned={dataset.status_cleaned}, encoded={dataset.status_encoded}")
             print(f"Preprocessing Required: {preprocessing_required}")
 
@@ -897,13 +897,22 @@ def apply_models(request):
                             
             print("Visualizations:", visualizations)
 
-                # Log the action history
+
+            # Save results to the dataset copy
+            dataset.last_applied_models = json.dumps({
+                'models': models,  # List of models applied
+                'metrics': metrics,  # Metrics for each model
+                'applied_at': str(datetime.now())  # Timestamp of when the models were applied
+            })
+            dataset.save()
+
+            # Log the action history
             action = Historique(
                 action='Apply Models',
                 date_action=datetime.now(),
                 user=request.user,
-                dataset = dataset,
-                infos=f"Models applied successfully on dataset '{dataset.name}'"
+                dataset = dataset.original_dataset,
+                infos=f"Models applied successfully on dataset '{dataset.name}': {', '.join(models)}"
             )
             action.save()
             # messages.success(request, 'Models applied successfully.')  
@@ -1130,7 +1139,7 @@ def predict(request):
                 action='Apply Prediction',
                 date_action=datetime.now(),
                 user=request.user,
-                dataset= dataset,
+                dataset= dataset.original_dataset,
                 infos=f"Prediction applied successfully on dataset '{dataset.name}'"
             )
             action.save()
@@ -1193,9 +1202,10 @@ def generate_report(request):
         include_summary = data.get('include_summary')
         include_statistics = data.get('include_statistics')
         include_visualizations = data.get('include_visualizations')
-        include_history =  data.get('include_history')   # New option for including history
+        include_models = data.get('include_models')
+        include_history =  data.get('include_history')   
         template_choice = data.get('template', 'default')
-        print('include_history',include_history) 
+        print('include_models',include_models) 
         try:
             # Load the copied dataset
             dataset_copy = DatasetCopy.objects.get(id=dataset_copy_id, user=request.user)
@@ -1276,12 +1286,19 @@ def generate_report(request):
                     </table>
                 """
             print('after history')
+
+            # Retrieve applied models
+            applied_models = None
+            if include_models:
+                applied_models = dataset_copy.get_last_models()  # Retrieve and parse JSON data from the field
+                print('applied models truee :',applied_models)
             # Context for the template
             context = {
                 'dataset_name': dataset_copy.name,
                 'summary': summary,
                 'statistics': statistics,
                 'visualizations': visualizations,
+                 'applied_models': applied_models,
                 'history': history_table,
                 'template': template_choice,
             }

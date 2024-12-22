@@ -99,7 +99,38 @@
         {% else %}
         <p class="center-align grey-text">No visualizations available for this dataset.</p>
         {% endif %}
+        <br>
+        {% if applied_models %}
+        <h2 class="mt-4">Applied Models</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Model</th>
+                    <th>Accuracy</th>
+                    <th>Precision</th>
+                    <th>Recall</th>
+                    <th>Applied At</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for metric in applied_models.metrics %}
+                <tr>
+                    <td>{{ metric.model }}</td>
+                    <td>{{ metric.accuracy|default:'' }}</td>
+                    <td>{{ metric.precision|default:'' }}</td>
+                    <td>{{ metric.recall|default:'' }}</td>
+                    {% if forloop.first %}
+                    <td rowspan="{{ applied_models.metrics|length }}">{{ applied_models.applied_at }}</td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No models applied yet for this dataset.</p>
+        {% endif %}
 
+        <br><br>
         {% if history %}
         <h2 class="mt-4">Historique des Actions</h2>
         <div>{{ history|safe }}</div>
