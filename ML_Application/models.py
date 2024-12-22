@@ -51,7 +51,7 @@ class Dataset(models.Model):
         db_table = 'Dataset'  
 
 
-
+import json
 
 class DatasetCopy(models.Model):
     original_dataset = models.ForeignKey(Dataset, on_delete=models.CASCADE, related_name='copies')  
@@ -71,10 +71,18 @@ class DatasetCopy(models.Model):
     target = models.CharField(max_length=255,null=True, blank=True) 
     type_modele = models.CharField(max_length=255,null=True, blank=True) 
     best_modele = models.CharField(max_length=255,null=True, blank=True) 
+    last_applied_models = models.TextField(null=True, blank=True)  # Store metrics as JSON string
 
 
     def __str__(self):
         return f"{self.name} (Copy of {self.original_dataset.name})"
+    
+     # Add a helper method to retrieve the JSON data
+    def get_last_models(self):
+        try:
+            return json.loads(self.last_applied_models) if self.last_applied_models else None
+        except json.JSONDecodeError:
+            return None
 
     class Meta:
         db_table = 'DatasetCopy'
