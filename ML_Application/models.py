@@ -72,6 +72,7 @@ class DatasetCopy(models.Model):
     type_modele = models.CharField(max_length=255,null=True, blank=True) 
     best_modele = models.CharField(max_length=255,null=True, blank=True) 
     last_applied_models = models.TextField(null=True, blank=True)  # Store metrics as JSON string
+    encoding = models.JSONField(null=True, blank=True)
 
 
     def __str__(self):

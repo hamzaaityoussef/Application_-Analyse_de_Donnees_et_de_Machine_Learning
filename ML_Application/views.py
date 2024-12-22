@@ -598,7 +598,7 @@ def generate_chart(request):
             action='Visualisation',
             date_action=datetime.now(),
             user=request.user,
-            dataset = dataset.original_dataset,
+            dataset = dataset,
             infos=f"Generated {chart_type} chart for the dataset {dataset.name}."
         )
         action.save()
@@ -727,10 +727,15 @@ def apply_models(request):
                 X = df.drop(columns=[target_column])
                 y = df[target_column]
                 # Encode non-numeric columns
+                encodings = {}
                 for column in X.columns:
                     if X[column].dtype == 'object' or X[column].dtype.name == 'category':
                         le = LabelEncoder()
                         X[column] = le.fit_transform(X[column])
+                        encodings[column] = dict(zip(le.classes_, le.transform(le.classes_)))  # Save mappings as dict
+                # Save the encodings in the DatasetCopy model
+                dataset.encoding = encodings
+                dataset.save()
                 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 
@@ -976,7 +981,7 @@ def predictions_page(request):
     except DatasetCopy.DoesNotExist:
         return render(request, 'predictionsmodeles.html', {'error': 'Dataset introuvable.'})
 
-
+import joblib
 @login_required(login_url='/login')
 def Predictions(request):
     if request.method == 'POST':
@@ -995,6 +1000,7 @@ def Predictions(request):
             # Charger le modèle et le dataset
             dataset = DatasetCopy.objects.get(id=dataset_id, user=request.user)
             file_path = dataset.file.path
+            encodings = dataset.encoding
             if file_path.endswith('.csv'):
                 df = pd.read_csv(file_path)
             elif file_path.endswith('.xlsx'):
@@ -1009,7 +1015,14 @@ def Predictions(request):
             # Préparation des données
             input_data = json.loads(inputs)
             input_data_dict = {item['name']: float(item['value']) for item in input_data}
+
+            # Use the saved encodings to transform the input data
+            for col, mapping in encodings.items():
+                if col in input_data_dict:
+                    input_data_dict[col] = mapping.get(input_data_dict[col], -1)  # Use -1 for unknown categories
+
             input_df = pd.DataFrame([input_data_dict])
+            
 
             # Charger le modèle
             trained_models = {
@@ -1024,9 +1037,14 @@ def Predictions(request):
                 'DBSCAN': DBSCAN(),
                 
             }
+            print("Input:", input_data_dict)
             model = trained_models.get(model_name)
+            print(model)
             model.fit(X, y)  # Entraîner avec les données
             prediction = model.predict(input_df)
+            print("Input:", input_data_dict)
+            print("Prediction:", prediction[0])
+            
 
             return JsonResponse({'prediction': prediction[0]})
         except Exception as e:
