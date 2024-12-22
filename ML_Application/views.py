@@ -171,6 +171,7 @@ def upload(request):
                     action='create Data',
                     date_action=datetime.now(),
                     user=request.user,
+                    dataset = dataset,
                     infos=f"{file_name} created successfully"
                 )
                 action.save()
@@ -223,6 +224,7 @@ def upload(request):
                 action='upload Data',
                 date_action=datetime.now(),
                 user=request.user,
+                dataset = dataset,
                 infos=f"{uploaded_file.name} uploaded successfully"
             )
             action.save()
@@ -251,6 +253,7 @@ def delete_dataset(request, dataset_id):
             action='Delete Data',
             date_action=datetime.now(),
             user=request.user,
+            dataset = dataset,
             infos=f"{dataset.name} deleted successfully" 
             
         )
@@ -406,6 +409,7 @@ def apply_actions(request):
                 action='Clean Data',
                 date_action=datetime.now(),
                 user=request.user,
+                dataset = dataset,
                 infos=f"{dataset.name} Cleaned successfully" 
                 
                 )
@@ -430,6 +434,7 @@ def apply_actions(request):
                 action='Transform Data',
                 date_action=datetime.now(),
                 user=request.user,
+                dataset = dataset,
                 infos=f"{dataset.name} Transformed successfully" 
                 
                 )
@@ -593,6 +598,7 @@ def generate_chart(request):
             action='Visualisation',
             date_action=datetime.now(),
             user=request.user,
+            dataset = dataset,
             infos=f"Generated {chart_type} chart for the dataset {dataset.name}."
         )
         action.save()
@@ -896,6 +902,7 @@ def apply_models(request):
                 action='Apply Models',
                 date_action=datetime.now(),
                 user=request.user,
+                dataset = dataset,
                 infos=f"Models applied successfully on dataset '{dataset.name}'"
             )
             action.save()
@@ -1123,6 +1130,7 @@ def predict(request):
                 action='Apply Prediction',
                 date_action=datetime.now(),
                 user=request.user,
+                dataset= dataset,
                 infos=f"Prediction applied successfully on dataset '{dataset.name}'"
             )
             action.save()
@@ -1184,16 +1192,17 @@ def generate_report(request):
         dataset_copy_id = data.get('dataset_id')  # ID of the copied dataset
         include_summary = data.get('include_summary')
         include_statistics = data.get('include_statistics')
-        include_visualizations = data.get('include_visualizations') 
+        include_visualizations = data.get('include_visualizations')
+        include_history =  data.get('include_history')   # New option for including history
         template_choice = data.get('template', 'default')
-
+        print('include_history',include_history) 
         try:
             # Load the copied dataset
             dataset_copy = DatasetCopy.objects.get(id=dataset_copy_id, user=request.user)
-            original_dataset = dataset_copy.original_dataset  # Access the original dataset
-            file_path = dataset_copy.file.path  # Use the copied dataset's file for data
+            original_dataset = dataset_copy.original_dataset
+            file_path = dataset_copy.file.path
 
-            # Load the copied dataset file
+            # Load the dataset
             df = pd.read_csv(file_path) if file_path.endswith('.csv') else pd.read_excel(file_path, engine='openpyxl')
 
             # Generate summary
@@ -1208,49 +1217,92 @@ def generate_report(request):
                     'missing_values': df.isnull().sum().to_dict(),
                 }
 
-            # Retrieve pre-generated visualizations from the original dataset
+            # Retrieve pre-generated visualizations
             visualizations = []
             if include_visualizations:
                 user_folder = os.path.join(settings.MEDIA_ROOT, 'charts', request.user.username)
                 sanitized_name = sanitize_folder_name(original_dataset.name)
                 dataset_folder = os.path.join(user_folder, sanitized_name)
 
-                print("dataset_folder :", dataset_folder)
-
-                # Check for the existence of the dataset folder
                 if os.path.exists(dataset_folder):
                     for chart_file in os.listdir(dataset_folder):
-                        if chart_file.endswith('.png'):  # Ensure only image files are included
+                        if chart_file.endswith('.png'):
                             chart_path = os.path.join(dataset_folder, chart_file)
                             with open(chart_path, "rb") as image_file:
                                 base64_image = base64.b64encode(image_file.read()).decode('utf-8')
                                 visualizations.append(f"data:image/png;base64,{base64_image}")
 
-                print("visualizations :", visualizations)
-                # Context for the template
-                context = {
-                    'dataset_name': dataset_copy.name,
-                    'summary': summary,
-                    'statistics': statistics,
-                    'visualizations': visualizations,
-                    'template': template_choice,
-                }
+            # Retrieve history for both original dataset and its copies
+            history_table = None
+            if include_history:
+                print("Include History is True")
+                # Query history for the original dataset and its copies
+                # Get all DatasetCopy objects linked to the original dataset
+                dataset_copies = DatasetCopy.objects.filter(original_dataset=original_dataset)
 
-                # Render report
-                html_content = render_to_string(f'report_{template_choice}.html', context)
+                # Retrieve history for both the original dataset and its copies
+                actions = Historique.objects.filter(
+                    models.Q(dataset=original_dataset) | models.Q(dataset__in=dataset_copies.values_list('id', flat=True))
+                ).order_by('-date_action')
 
-                # Generate PDF
-                pdf = HTML(string=html_content).write_pdf()
+                # Format the history into an HTML table
+                history_rows = ""
+                for action in actions:
+                    history_rows += f"""
+                        <tr class="hover:bg-[#334155]">
+                            <td class="py-4 px-6 text-base border-b border-gray-700">{action.id}</td>
+                            <td class="py-4 px-6 text-base border-b border-gray-700">{action.action}</td>
+                            <td class="py-4 px-6 text-base border-b border-gray-700">{action.infos or ''}</td>
+                            <td class="py-4 px-6 text-base border-b border-gray-700">{action.date_action}</td>
+                            <td class="py-4 px-6 text-base border-b border-gray-700">{action.dataset.name}</td>
+                            <td class="py-4 px-6 text-base border-b border-gray-700">{action.user.first_name} {action.user.last_name}</td>
+                        </tr>
+                    """
+                history_table = f"""
+                    <table class="min-w-full bg-[#1E293B] shadow-lg rounded-lg overflow-hidden">
+                        <thead>
+                            <tr class="bg-[#0F172A] text-white uppercase leading-normal font-semibold">
+                                <th class="py-4 px-6 text-left text-lg border-b border-gray-700">ID Action</th>
+                                <th class="py-4 px-6 text-left text-lg border-b border-gray-700">Nom Action</th>
+                                <th class="py-4 px-6 text-left text-lg border-b border-gray-700">Description</th>
+                                <th class="py-4 px-6 text-left text-lg border-b border-gray-700">Date Action</th>
+                                <th class="py-4 px-6 text-left text-lg border-b border-gray-700">Dataset</th>
+                                <th class="py-4 px-6 text-left text-lg border-b border-gray-700">User</th>
+                            </tr>
+                        </thead>
+                        <tbody class="text-gray-300">
+                            {history_rows or '<tr><td colspan="5" class="py-4 px-6 text-center text-gray-400 border-b border-gray-700">No history available at the moment.</td></tr>'}
+                        </tbody>
+                    </table>
+                """
+            print('after history')
+            # Context for the template
+            context = {
+                'dataset_name': dataset_copy.name,
+                'summary': summary,
+                'statistics': statistics,
+                'visualizations': visualizations,
+                'history': history_table,
+                'template': template_choice,
+            }
 
-                # Return PDF
-                response = HttpResponse(pdf, content_type='application/pdf')
-                response['Content-Disposition'] = f'attachment; filename="{dataset_copy.name}_report.pdf"'
-                return response
+            # Render report
+            html_content = render_to_string(f'report_{template_choice}.html', context)
+
+            # Generate PDF
+            pdf = HTML(string=html_content).write_pdf()
+
+            # Return PDF
+            response = HttpResponse(pdf, content_type='application/pdf')
+            response['Content-Disposition'] = f'attachment; filename="{dataset_copy.name}_report.pdf"'
+            return response
 
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=400)
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
+
 
 
 #end report 
