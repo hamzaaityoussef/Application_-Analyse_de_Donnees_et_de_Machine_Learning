@@ -227,52 +227,61 @@ document.addEventListener('DOMContentLoaded', () => {
         </a> 
       </li> -->
       <li class="nav-item">
-        <a class="nav-link collapsed" href="{% url 'documentation' %}" style="background-color: #05172a; color :white">
-          <i class="fa-solid fa-sort"></i><span>documentation</span>
+        <a class="nav-link collapsed" href="{% url 'documentation' %}" style="background-color: #05172a; color: white;">
+            <img src="{% static 'app/assets/img/image.png' %}" alt="Cloud Computing Logo" style="height: 20px; width: 20px; margin-right: 8px;">
+            <i></i><span>documentation</span>
         </a>
-      </li>
+    </li>
       
       <li class="nav-item">
         <a class="nav-link collapsed" href="{% url 'upload' %}" style="background-color: #05172a; color :white">
-          <i class="glyphicon glyphicon-user"></i><span>Upload</span>
+          <img src="{% static 'app/assets/img/import.png' %}" alt="Cloud Computing Logo" style="height: 20px; width: 20px; margin-right: 8px;">
+          <i ></i><span>Upload</span>
         </a>
       </li>
       <li class="nav-item" >
         <a class="nav-link collapsed" href="{% url 'visualisation' %}" style="background-color: #05172a; color :white">
-          <i class="fa fa-envelope"></i><span>visualisation</span>
+          <img src="{% static 'app/assets/img/viz.png' %}" alt="Cloud Computing Logo" style="height: 25px; width: 25px; margin-right: 8px;">
+          <i ></i><span>visualisation</span>
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link collapsed" href="{% url 'preprocess' %}" style="background-color: #05172a; color :white">
-          <i class="glyphicon glyphicon-user"></i><span>Preprocess</span>
+          <img src="{% static 'app/assets/img/process.png' %}" alt="Cloud Computing Logo" style="height: 25px; width: 25px; margin-right: 8px;">
+          <i ></i><span>Preprocess</span>
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link collapsed" href="{% url 'modeles' %}" style="background-color: #05172a; color :white">
-          <i class="fa fa-envelope"></i><span>Modeles</span>
+          <img src="{% static 'app/assets/img/image (3).png' %}" alt="Cloud Computing Logo" style="height: 20px; width: 20px; margin-right: 8px;">
+          <i ></i><span>Modeles</span>
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link collapsed" href="{% url 'data' %}" style="background-color: #05172a; color :white">
-          <i class="fa fa-envelope"></i><span>Predictions</span>
+          <img src="{% static 'app/assets/img/predict.png' %}" alt="Cloud Computing Logo" style="height: 20px; width: 20px; margin-right: 8px;">
+          <i ></i><span>Predictions</span>
         </a>
       </li>
       
       <li class="nav-item">
         <a class="nav-link collapsed" href="{% url 'report' %}" style="background-color: #05172a; color :white">
-          <i class="bi bi-envelope-x-fill" ></i><span>report</span>
+          <img src="{% static 'app/assets/img/image (2).png' %}" alt="Cloud Computing Logo" style="height: 20px; width: 20px; margin-right: 8px;">
+          <i ></i><span>report</span>
         </a>
       </li>
       <li class="nav-item">
         <a class="nav-link collapsed" href="{% url 'historique' %}" style="background-color: #05172a; color :white">
-          <i class="fa fa-history" ></i><span>historique</span>
+          <img src="{% static 'app/assets/img/image (1).png' %}" alt="Cloud Computing Logo" style="height: 20px; width: 20px; margin-right: 8px;">
+          <i  ></i><span>historique</span>
         </a>
       </li>
       
       
       <li class="nav-item">
         <a class="nav-link collapsed" href="{% url 'logout' %}" style="background-color: #05172a; color :white">
-          <i class="bi bi-box-arrow-right"></i>
+          <img src="{% static 'app/assets/img/image (4).png' %}" alt="Cloud Computing Logo" style="height: 20px; width: 20px; margin-right: 8px;">
+          <i ></i>
           <span>Sign out</span>
         </a>
       </li> 
