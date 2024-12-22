@@ -1022,7 +1022,7 @@ def Predictions(request):
 #predictions
 @login_required(login_url='/login')
 def data(request):
-    datasets = DatasetCopy.objects.filter(user=request.user)
+    datasets = DatasetCopy.objects.filter(user=request.user).exclude(type_modele='clustering')
     return render(request, 'predictions.html', {'datasets': datasets})
 
 @login_required(login_url='/login')
@@ -1030,21 +1030,7 @@ def get_prediction_inputs(request):
     dataset_id = request.GET.get('dataset_id')
     try:
         dataset = DatasetCopy.objects.get(id=dataset_id, user=request.user)
-        preprocessing_required = (
-     # Both normalized and standardized are false
-    df.duplicated().sum()!=0 or
-    df.isnull().sum().sum()!=0 # Cleaned is false
-    
-)
-
-        print(f"Dataset Preprocessing Flags: normalized={dataset.status_normalized}, standardized={dataset.status_standardized}, cleaned={dataset.status_cleaned}")
-        print(f"Preprocessing Required: {preprocessing_required}")
-
         
-
-        if preprocessing_required :
-            return JsonResponse({'preprocessing_required': True}, status=200)
-
         file_path = dataset.file.path
 
         # Load the dataset
@@ -1054,12 +1040,26 @@ def get_prediction_inputs(request):
             df = pd.read_excel(file_path)
         else:
             return JsonResponse({'error': 'Unsupported file format'}, status=400)
+        
+        preprocessing_required = (
+            df.duplicated().sum() != 0 or
+            df.isnull().sum().sum() != 0
+        )
+        
+
+
+        print(f"Dataset Preprocessing Flags: normalized={dataset.status_normalized}, standardized={dataset.status_standardized}, cleaned={dataset.status_cleaned}")
+        print(f"Preprocessing Required: {preprocessing_required}")
+
+        if preprocessing_required:
+            return JsonResponse({'preprocessing_required': True}, status=200)
 
         attributes = [col for col in df.columns if col != dataset.target]
         return JsonResponse({'attributes': attributes, 'type_modele': dataset.type_modele, 'preprocessing_required': False})
 
     except DatasetCopy.DoesNotExist:
         return JsonResponse({'error': 'Dataset not found'}, status=404)
+
 
 
 @csrf_exempt
@@ -1070,33 +1070,35 @@ def predict(request):
         inputs = json.loads(request.POST.get('inputs'))
 
         try:
+            # Réinitialiser la variable 'prediction'
+            prediction = None
+
+            # Charger le dataset
             dataset = DatasetCopy.objects.get(id=dataset_id)
             file_path = dataset.file.path
 
-            # Load and preprocess dataset
             if file_path.endswith('.csv'):
                 df = pd.read_csv(file_path)
             elif file_path.endswith('.xlsx'):
                 df = pd.read_excel(file_path)
             df = df.dropna()
 
-            
-
-            # Extract target and features
+            # Extraire les features et la target
             X = df.drop(columns=[dataset.target])
             y = df[dataset.target] if dataset.target else None
+            print(y.value_counts())
 
-            # Encode non-numeric columns
+            # Encoder les colonnes non numériques
             for column in X.columns:
                 if X[column].dtype == 'object' or X[column].dtype.name == 'category':
                     le = LabelEncoder()
                     X[column] = le.fit_transform(X[column])
 
-            # Prepare input data
+            # Préparer les données d'entrée
             input_dict = {item['name']: float(item['value']) for item in inputs}
             input_df = pd.DataFrame([input_dict])
 
-            # Train the selected model
+            # Définir les modèles
             model_mapping = {
                 'SVM': SVC(),
                 'KNN': KNeighborsClassifier(),
@@ -1105,20 +1107,19 @@ def predict(request):
                 'Naive Bayes': GaussianNB(),
                 'Linear Regression': LinearRegression(),
                 'Ridge Regression': Ridge(),
-                'KMeans': KMeans(n_clusters=3, random_state=42),
-                'DBSCAN': DBSCAN()
             }
             model = model_mapping.get(model_name)
-            if model_name in ['SVM', 'KNN', 'Random Forest', 'Decision Tree', 'Naive Bayes']:
-                model.fit(X, y)
-            elif model_name in ['Linear Regression', 'Ridge Regression']:
-                model.fit(X, y)
-            elif model_name in ['KMeans', 'DBSCAN']:
-                model.fit(X)
-                
-            # Perform prediction
-            prediction = model.predict(input_df)
 
+            # Split et entraîner le modèle
+            X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+            model.fit(X_train, y_train)
+
+            # Effectuer la prédiction
+            prediction = model.predict(input_df)
+            print("Input:", input_dict)
+            print("Prediction:", prediction)
+
+            # Enregistrer l'action dans l'historique
             action = Historique(
                 action='Apply Prediction',
                 date_action=datetime.now(),
@@ -1126,9 +1127,10 @@ def predict(request):
                 infos=f"Prediction applied successfully on dataset '{dataset.name}'"
             )
             action.save()
-            # messages.success(request, 'Prediction applied successfully.')
-            message = 'Prediction applied successfully.'  
-            return JsonResponse({'prediction': prediction[0],'message':message})
+
+            # Retourner le résultat
+            message = 'Prediction applied successfully.'
+            return JsonResponse({'prediction': prediction[0], 'message': message})
 
         except DatasetCopy.DoesNotExist:
             return JsonResponse({'error': 'Dataset not found'}, status=404)
@@ -1136,6 +1138,7 @@ def predict(request):
             return JsonResponse({'error': str(e)}, status=500)
 
     return JsonResponse({'error': 'Invalid request method'}, status=400)
+
 
 
 
