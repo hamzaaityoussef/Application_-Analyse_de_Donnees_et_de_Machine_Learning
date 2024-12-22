@@ -31,7 +31,10 @@
                 <input type="checkbox" name="include_visualizations" class="mr-2" checked> Include Visualizations
             </label>
             <label class="flex items-center text-gray-300">
-                <input type="checkbox" name="include_models" class="mr-2"> Include Applied Models
+                <input type="checkbox" name="include_models" class="mr-2" checked> Include Applied Models
+            </label>
+            <label class="flex items-center text-gray-300">
+                <input type="checkbox" name="include_history" class="mr-2" checked> Include Historiques
             </label>
         </div>
 
@@ -67,6 +70,9 @@
     console.log('summary',includeSummary)
     const includeStatistics = document.querySelector('[name="include_statistics"]').checked;
     const includeVisualizations = document.querySelector('[name="include_visualizations"]').checked;
+    const includeModels = document.querySelector('[name="include_models"]').checked;
+    const includeHistoriques = document.querySelector('[name="include_history"]').checked;
+    console.log('includeHistoriques',includeHistoriques)
     const template = document.getElementById('template-select').value;
 
     if (!datasetId) {
@@ -94,8 +100,11 @@
                 include_summary: includeSummary,
                 include_statistics: includeStatistics,
                 include_visualizations: includeVisualizations,
+                include_history: includeHistoriques,
+                include_models: includeModels,
                 template: template,
             };
+            console.log('Data sent to backend:', data);
             
 
 fetch('/generate_report/', {
