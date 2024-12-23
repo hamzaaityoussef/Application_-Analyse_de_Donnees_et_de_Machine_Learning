@@ -79,16 +79,16 @@
                   <div class="text-center">
                     <img src="{% static 'app/assets/img/ML2.png' %}" alt="ML Logo" width="150px" class="mb-4 mt-3">
                     <h5 class="card-title pb-0 fs-4">Login to Your Account</h5>
-                    <p class="small">Enter your username & password to login</p>
+                    <p class="small">Enter your Email & password to login</p>
                   </div>
 
                   <form class="row g-3 needs-validation" method="post" novalidate>
                     {% csrf_token %}
                     <div class="col-12">
-                      <label for="username" class="form-label">Username</label>
+                      <label for="username" class="form-label">Email</label>
                       <div class="input-group">
                         <input class="form-control" type="text" name="username" id="username" required>
-                        <div class="invalid-feedback">Please enter your username.</div>
+                        <div class="invalid-feedback">Please enter your Email.</div>
                       </div>
                     </div>
 

@@ -171,7 +171,7 @@ def upload(request):
                     action='create Data',
                     date_action=datetime.now(),
                     user=request.user,
-                    dataset = dataset.original_dataset,
+                    dataset = dataset,
                     infos=f"{file_name} created successfully"
                 )
                 action.save()
@@ -224,7 +224,7 @@ def upload(request):
                 action='upload Data',
                 date_action=datetime.now(),
                 user=request.user,
-                dataset = dataset.original_dataset,
+                dataset = dataset,
                 infos=f"{uploaded_file.name} uploaded successfully"
             )
             action.save()
@@ -248,16 +248,16 @@ def delete_dataset(request, dataset_id):
             os.remove(file_path)
 
     # Delete the database entry
-    dataset.delete()
     action = Historique(
             action='Delete Data',
             date_action=datetime.now(),
             user=request.user,
-            dataset = dataset.original_dataset,
+            dataset = dataset,
             infos=f"{dataset.name} deleted successfully" 
             
         )
     action.save()
+    dataset.delete()
     messages.success(request, 'data deleted successfully.')
 
     # Redirect back to the upload page
