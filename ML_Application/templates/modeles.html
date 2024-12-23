@@ -155,6 +155,14 @@
             </div>
         </div>
     </div>
+    <div id="metrics-container" class="mt-4">
+        <!-- Metrics will be dynamically loaded here -->
+        <div id="loading-spinner" class="hidden text-center">
+            <div class="spinner-border text-light" role="status" style="width: 3rem; height: 3rem;">
+                <span class="sr-only">Loading...</span>
+            </div>
+        </div>
+    </div>
     
     
     
@@ -437,6 +445,9 @@ $('#apply-models').click(function () {
         return;
     }
 
+    // Show the spinner
+    $('#loading-spinner').removeClass('hidden');
+
     // Check preprocessing requirements and apply models if valid
     $.ajax({
         url: "{% url 'apply_models' %}",
@@ -448,6 +459,9 @@ $('#apply-models').click(function () {
             csrfmiddlewaretoken: '{{ csrf_token }}',
         },
         success: function (response) {
+            // Hide the spinner
+            $('#loading-spinner').addClass('hidden');
+
             if (response.preprocessing_required) {
                 $('#preprocessing-popup').removeClass('hidden');
             } else {
@@ -490,10 +504,10 @@ $('#apply-models').click(function () {
                 table.append(tbody);
                 metricsContainer.append(table);
 
-                // Call the function to highlight the best model and display recommendation
+                // Highlight the best model
                 highlightBestModel(response.metrics);
 
-                 // Display visualizations
+                // Display visualizations
                 var visualizationsContainer = $('<div></div>').addClass('flex flex-wrap justify-center mt-5').attr('id', 'visualizations-container');
                 response.visualizations.forEach(function (vis) {
                     var visDiv = `
@@ -507,12 +521,15 @@ $('#apply-models').click(function () {
 
                 metricsContainer.append(visualizationsContainer);
             }
+
             // Display success message
             if (response.message) {
-            toastr.success(response.message);
+                toastr.success(response.message);
             }
         },
         error: function (xhr) {
+            // Hide the spinner
+            $('#loading-spinner').addClass('hidden');
             console.error('Error:', xhr.responseText);
         },
     });
