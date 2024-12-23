@@ -241,27 +241,36 @@ def upload(request):
 def delete_dataset(request, dataset_id):
     dataset = get_object_or_404(Dataset, id=dataset_id, user=request.user)
 
-    # Delete the file from storage
+    dataset_copies = DatasetCopy.objects.filter(original_dataset=dataset)
+    for dataset_copy in dataset_copies:
+        if dataset_copy.file:
+            copy_file_path = dataset_copy.file.path
+            if os.path.isfile(copy_file_path):
+                os.remove(copy_file_path)
+        dataset_copy.delete()
+
+    # Delete the file from storage for the original dataset
     if dataset.file:
         file_path = dataset.file.path
         if os.path.isfile(file_path):
             os.remove(file_path)
 
-    # Delete the database entry
+    
     action = Historique(
-            action='Delete Data',
-            date_action=datetime.now(),
-            user=request.user,
-            dataset = dataset,
-            infos=f"{dataset.name} deleted successfully" 
-            
-        )
+        action='Delete Data',
+        date_action=datetime.now(),
+        user=request.user,
+        dataset=dataset,
+        infos=f"{dataset.name} and its copies deleted successfully"
+    )
     action.save()
+    
     dataset.delete()
-    messages.success(request, 'data deleted successfully.')
+    messages.success(request, 'Dataset and its copies deleted successfully.')
 
     # Redirect back to the upload page
     return redirect('upload')
+
 
 #end upload 
 
