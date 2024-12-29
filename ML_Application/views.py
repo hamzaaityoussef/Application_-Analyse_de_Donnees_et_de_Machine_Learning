@@ -735,17 +735,26 @@ def apply_models(request):
                     return JsonResponse({'error': f"Target column {target_column} not found in dataset"}, status=400)
                 X = df.drop(columns=[target_column])
                 y = df[target_column]
+                
                 # Encode non-numeric columns
                 encodings = {}
                 for column in X.columns:
                     if X[column].dtype == 'object' or X[column].dtype.name == 'category':
                         le = LabelEncoder()
                         X[column] = le.fit_transform(X[column])
-                        encodings[column] = dict(zip(le.classes_, le.transform(le.classes_)))  # Save mappings as dict
-                # Save the encodings in the DatasetCopy model
+                        # Save the mappings as a dictionary
+                        encodings[column] = {key: int(value) for key, value in zip(le.classes_, le.transform(le.classes_))}
+
+                
+
+                print("Encodings saved as dictionary:", dataset.encoding)
+              
+                # Save encodings to the DatasetCopy model
                 dataset.encoding = encodings
                 dataset.save()
+                print("Encodings saved:", encodings)
                 X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+                print(dataset.encoding)
 
 
             
@@ -909,7 +918,7 @@ def apply_models(request):
                     # Append Cluster visualization
                     visualizations.append({'model': 'KMeans Clustering', 'plot': cluster_image_base64})
                             
-            print("Visualizations:", visualizations)
+            
 
 
             # Save results to the dataset copy
@@ -996,8 +1005,15 @@ def Predictions(request):
     if request.method == 'POST':
         try:
             inputs = request.POST.get('inputs')
-            if not inputs:
-                return JsonResponse({'error': 'Aucune donnée fournie.'}, status=400)
+            print(inputs)
+            # Parse inputs as JSON
+            try:
+                inputs = json.loads(inputs)  # Parse the string as JSON
+            except json.JSONDecodeError:
+                return JsonResponse({'error': 'Invalid JSON format.'}, status=400)
+
+            if not isinstance(inputs, list):  # Ensure it's a list of dictionaries
+                return JsonResponse({'error': 'Invalid input format. Expected a list of dictionaries.'}, status=400)
 
             model_name = request.session.get('selected_model_name')
             dataset_id = request.session.get('selected_dataset_id')
@@ -1006,34 +1022,42 @@ def Predictions(request):
             if not model_name or not dataset_id or not target_column:
                 return JsonResponse({'error': 'Informations manquantes.'}, status=400)
 
-            # Charger le modèle et le dataset
+            # Load the dataset and encodings
             dataset = DatasetCopy.objects.get(id=dataset_id, user=request.user)
             file_path = dataset.file.path
-            encodings = dataset.encoding
+            encodings = dataset.encoding  # Encodings saved as a dictionary
             if file_path.endswith('.csv'):
                 df = pd.read_csv(file_path)
             elif file_path.endswith('.xlsx'):
                 df = pd.read_excel(file_path)
             else:
-                return JsonResponse({'error': 'Format non pris en charge.'}, status=400)
+                return JsonResponse({'error': 'Unsupported file format.'}, status=400)
 
+            # Extraire les features et la target
+            X = df.drop(columns=[dataset.target])
+            y = df[dataset.target] if dataset.target else None
+            print(y.value_counts())
+            
 
-            X = df.drop(columns=[target_column])
-            y = df[target_column]
+            # Encoder les colonnes non numériques
+            for column in X.columns:
+                if X[column].dtype == 'object' or X[column].dtype.name == 'category':
+                    le = LabelEncoder()
+                    X[column] = le.fit_transform(X[column])
 
-            # Préparation des données
-            input_data = json.loads(inputs)
-            input_data_dict = {item['name']: float(item['value']) for item in input_data}
+            # Prepare input data
+            input_data_dict = {item['name']: item['value'] for item in inputs}  # Keep values as strings for now
+            print("Input before encoding:", input_data_dict)
 
-            # Use the saved encodings to transform the input data
+            # Use the saved encodings to transform categorical columns in input data
             for col, mapping in encodings.items():
                 if col in input_data_dict:
                     input_data_dict[col] = mapping.get(input_data_dict[col], -1)  # Use -1 for unknown categories
 
-            input_df = pd.DataFrame([input_data_dict])
-            
+            input_df = pd.DataFrame([input_data_dict])  # Convert to DataFrame
+            print("Input after encoding:", input_df)
 
-            # Charger le modèle
+            # Load the selected model
             trained_models = {
                 'KNN': KNeighborsClassifier(),
                 'SVM': SVC(),
@@ -1044,21 +1068,23 @@ def Predictions(request):
                 'Ridge Regression': Ridge(),
                 'KMeans': KMeans(n_clusters=3, random_state=42),
                 'DBSCAN': DBSCAN(),
-                
             }
-            print("Input:", input_data_dict)
             model = trained_models.get(model_name)
-            print(model)
-            model.fit(X, y)  # Entraîner avec les données
-            prediction = model.predict(input_df)
-            print("Input:", input_data_dict)
-            print("Prediction:", prediction[0])
+            if not model:
+                return JsonResponse({'error': f"Model '{model_name}' not found."}, status=400)
+
+            # Train the model on the dataset
+            model.fit(X, y)
             
+            # Predict with the encoded input
+            prediction = model.predict(input_df)
+            print("Prediction:", prediction[0])
 
             return JsonResponse({'prediction': prediction[0]})
         except Exception as e:
             return JsonResponse({'error': str(e)}, status=500)
-    return JsonResponse({'error': 'Méthode non valide.'}, status=400)
+    return JsonResponse({'error': 'Invalid request method.'}, status=400)
+
 
 #fin preditions modeles
 
@@ -1119,6 +1145,7 @@ def predict(request):
             # Charger le dataset
             dataset = DatasetCopy.objects.get(id=dataset_id)
             file_path = dataset.file.path
+            encodings = dataset.encoding
 
             if file_path.endswith('.csv'):
                 df = pd.read_csv(file_path)
@@ -1137,9 +1164,17 @@ def predict(request):
                     le = LabelEncoder()
                     X[column] = le.fit_transform(X[column])
 
-            # Préparer les données d'entrée
-            input_dict = {item['name']: float(item['value']) for item in inputs}
-            input_df = pd.DataFrame([input_dict])
+            # Prepare input data
+            input_data_dict = {item['name']: item['value'] for item in inputs}  # Keep values as strings for now
+            print("Input before encoding:", input_data_dict)
+
+             # Use the saved encodings to transform categorical columns in input data
+            for col, mapping in encodings.items():
+                if col in input_data_dict:
+                    input_data_dict[col] = mapping.get(input_data_dict[col], -1)  # Use -1 for unknown categories
+
+            input_df = pd.DataFrame([input_data_dict])  # Convert to DataFrame
+            print("Input after encoding:", input_df)
 
             # Définir les modèles
             model_mapping = {
@@ -1159,7 +1194,7 @@ def predict(request):
 
             # Effectuer la prédiction
             prediction = model.predict(input_df)
-            print("Input:", input_dict)
+            print("Input:", input_data_dict)
             print("Prediction:", prediction)
 
             # Enregistrer l'action dans l'historique
