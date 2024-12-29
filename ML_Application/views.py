@@ -303,7 +303,7 @@ def preprocess(request):
 
             # Load the dataset
             if file_path.endswith('.csv'):
-                df = pd.read_csv(file_path)
+                df = pd.read_csv(file_path, sep=r'[;,]', engine='python')
             elif file_path.endswith('.xlsx'):
                 df = pd.read_excel(file_path, engine='openpyxl')
 
@@ -366,7 +366,7 @@ def apply_actions(request):
         # Load the dataset
         file_path = dataset.file.path
         if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path)
+            df = pd.read_csv(file_path, sep=r'[;,]', engine='python')
         elif file_path.endswith('.xlsx'):
             df = pd.read_excel(file_path, engine='openpyxl')
 
@@ -505,10 +505,10 @@ def get_columns(request):
     try:
         dataset = Dataset.objects.get(id=dataset_id, user=request.user)  # Ensure it's the user's dataset
         file_path = dataset.file.path  # Get the file path for the selected dataset
-        
+        print('gii')
         # Read the dataset into a pandas DataFrame
         if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path)
+            df = pd.read_csv(file_path, sep=r'[;,]', engine='python')
         elif file_path.endswith('.xlsx'):
             df = pd.read_excel(file_path)
         else:
@@ -517,7 +517,8 @@ def get_columns(request):
         # Get columns from the DataFrame
         categorical_vars = [col for col in df.columns if df[col].nunique() <= 20]
         continuous_vars = [col for col in df.columns if col not in categorical_vars and df[col].dtype in ['float64', 'int64']]
-
+        print('categorical_vars',categorical_vars)
+        print('continuous_vars',continuous_vars)
 
         return JsonResponse({
             'categorical_vars': categorical_vars,
@@ -555,7 +556,7 @@ def generate_chart(request):
 
         # Load the dataset
         if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path)
+            df = pd.read_csv(file_path, sep=r'[;,]', engine='python')
         elif file_path.endswith('.xlsx'):
             df = pd.read_excel(file_path)
         else:
@@ -650,7 +651,7 @@ def get_MLcolumns(request):
         
         # Read dataset into a DataFrame
         if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path)
+            df = pd.read_csv(file_path, sep=r'[;,]', engine='python')
         elif file_path.endswith('.xlsx'):
             df = pd.read_excel(file_path)
         else:
@@ -702,7 +703,7 @@ def apply_models(request):
             
             file_path = dataset.file.path
             if file_path.endswith('.csv'):
-                df = pd.read_csv(file_path)
+                df = pd.read_csv(file_path, sep=r'[;,]', engine='python')
             elif file_path.endswith('.xlsx'):
                 df = pd.read_excel(file_path)
             else:
@@ -978,7 +979,7 @@ def predictions_page(request):
         dataset = DatasetCopy.objects.get(id=dataset_id, user=request.user)
         file_path = dataset.file.path
         if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path)
+            df = pd.read_csv(file_path, sep=r'[;,]', engine='python')
         elif file_path.endswith('.xlsx'):
             df = pd.read_excel(file_path)
         else:
@@ -1011,7 +1012,7 @@ def Predictions(request):
             file_path = dataset.file.path
             encodings = dataset.encoding
             if file_path.endswith('.csv'):
-                df = pd.read_csv(file_path)
+                df = pd.read_csv(file_path, sep=r'[;,]', engine='python')
             elif file_path.endswith('.xlsx'):
                 df = pd.read_excel(file_path)
             else:
@@ -1078,7 +1079,7 @@ def get_prediction_inputs(request):
 
         # Load the dataset
         if file_path.endswith('.csv'):
-            df = pd.read_csv(file_path)
+            df = pd.read_csv(file_path, sep=r'[;,]', engine='python')
         elif file_path.endswith('.xlsx'):
             df = pd.read_excel(file_path)
         else:
@@ -1121,7 +1122,7 @@ def predict(request):
             file_path = dataset.file.path
 
             if file_path.endswith('.csv'):
-                df = pd.read_csv(file_path)
+                df = pd.read_csv(file_path, sep=r'[;,]', engine='python')
             elif file_path.endswith('.xlsx'):
                 df = pd.read_excel(file_path)
             df = df.dropna()
@@ -1243,7 +1244,7 @@ def generate_report(request):
             file_path = dataset_copy.file.path
 
             # Load the dataset
-            df = pd.read_csv(file_path) if file_path.endswith('.csv') else pd.read_excel(file_path, engine='openpyxl')
+            df = pd.read_csv(file_path, sep=r'[;,]', engine='python') if file_path.endswith('.csv') else pd.read_excel(file_path, engine='openpyxl')
 
             # Generate summary
             summary = df.describe().to_html(classes='table table-striped') if include_summary else None
