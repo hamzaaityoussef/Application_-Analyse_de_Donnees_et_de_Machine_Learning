@@ -1057,6 +1057,7 @@ def Predictions(request):
 
             input_df = pd.DataFrame([input_data_dict])  # Convert to DataFrame
             print("Input after encoding:", input_df)
+            print(input_df.columns)
 
             # Load the selected model
             trained_models = {
