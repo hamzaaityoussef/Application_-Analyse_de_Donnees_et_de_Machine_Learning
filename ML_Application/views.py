@@ -515,10 +515,12 @@ def get_columns(request):
             return JsonResponse({'error': 'Unsupported file format'}, status=400)
         
         # Get columns from the DataFrame
-        categorical_vars = [col for col in df.columns if any(df[col].astype(str).str.contains('[a-zA-Z]', regex=True)) or df[col].nunique() <= 20]
-        continuous_vars = [col for col in df.columns if col not in categorical_vars and df[col].dtype in ['float64', 'int64']]
+        categorical_vars = [col for col in df.columns if any(df[col].astype(str).str.contains('[a-zA-Z]', regex=True)) or (df[col].nunique() < 20 and df[col].dtype in ['int64'])]
+        continuous_vars = [col for col in df.columns if col not in categorical_vars ]
         print('categorical_vars',categorical_vars)
         print('continuous_vars',continuous_vars)
+        print(df.dtypes)
+        
 
         return JsonResponse({
             'categorical_vars': categorical_vars,
@@ -665,7 +667,7 @@ def get_MLcolumns(request):
                 # Infer column type
                 if pd.api.types.is_numeric_dtype(df[column_name]):
                     unique_values = df[column_name].nunique()
-                    if unique_values < 20:  # Considered categorical for classification
+                    if unique_values < 20 and df[column_name].dtype in ['int64']:  # Considered categorical for classification
                         column_type = 'classification'
                     else:  # Continuous for regression
                         column_type = 'regression'
@@ -721,7 +723,7 @@ def apply_models(request):
             print(f"Preprocessing Required: {preprocessing_required}")
 
             if preprocessing_required:
-                return JsonResponse({'preprocessing_required': True}, status=400)
+                return JsonResponse({'preprocessing_required': True}, status=200)
             
             if not target_column:  # Clustering task
                 # Use only numeric columns for clustering
@@ -787,7 +789,7 @@ def apply_models(request):
                 elif model_name == 'Ridge Regression':
                     model = Ridge()
                 elif model_name == 'KMeans':
-                    model = KMeans(n_clusters=3, random_state=42)
+                    model = KMeans(random_state=42)
                 elif model_name == 'DBSCAN':
                     model = DBSCAN()
                 else:
@@ -869,11 +871,16 @@ def apply_models(request):
                     if model_name == 'KMeans':  # KMeans-specific logic
                     # Elbow Method
                         distortions = []
+                        silhouette_scores = []
                         range_k = range(1, 11)  # Test for k=1 to k=10
                         for k in range_k:
                             kmeans = KMeans(n_clusters=k, random_state=42)
                             kmeans.fit(X)
                             distortions.append(kmeans.inertia_)
+                            if len(set(kmeans.labels_)) > 1:
+                                silhouette_scores.append(silhouette_score(X, kmeans.labels_))
+                            else:
+                                silhouette_scores.append(-1)  # Invalid silhouette score for single cluster
 
                         # Plot Elbow Method
                         plt.figure(figsize=(6, 4))
@@ -894,9 +901,21 @@ def apply_models(request):
                         # Append Elbow visualization
                         visualizations.append({'model': 'KMeans Elbow', 'plot': elbow_image_base64})
 
+                        # Select the best k based on the Elbow Method
+                        optimal_k = range_k[np.argmin(np.diff(distortions)) + 1]  # Optimal k using the second derivative (elbow point)
+                        print(f"Optimal k determined by Elbow Method: {optimal_k}")
+
+                        # Optional: Use Silhouette Score to validate or adjust `k`
+                        max_silhouette_k = range_k[np.argmax(silhouette_scores)]
+                        print(f"Optimal k determined by Silhouette Score: {max_silhouette_k}")
+
+                        # You can decide whether to use the Elbow Method or Silhouette Score:
+                        final_k = optimal_k  # Replace this with `max_silhouette_k` if preferred
+                        print(f"Final chosen k: {final_k}")
+
                         # Fit KMeans with optimal k (for simplicity, use 3 or dynamically determine it)
-                        optimal_k = 3  # You can replace this with the dynamic choice of optimal k
-                        kmeans = KMeans(n_clusters=optimal_k, random_state=42)
+                          # You can replace this with the dynamic choice of optimal k
+                        kmeans = KMeans(n_clusters=final_k, random_state=42)
                         labels = kmeans.fit_predict(X)
 
                         # Scatter plot of clusters
