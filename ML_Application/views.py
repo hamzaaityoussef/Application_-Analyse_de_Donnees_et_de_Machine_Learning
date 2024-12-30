@@ -855,7 +855,7 @@ def apply_models(request):
 
                 elif model_name in ['KMeans', 'DBSCAN']:  # Clustering
                     model = {
-                        'KMeans': KMeans(n_clusters=3, random_state=42),
+                        'KMeans': KMeans(random_state=42),
                         'DBSCAN': DBSCAN()
                     }[model_name]
 
@@ -938,7 +938,7 @@ def apply_models(request):
                     # Append Cluster visualization
                     visualizations.append({'model': 'KMeans Clustering', 'plot': cluster_image_base64})
                             
-            
+                    
 
 
             # Save results to the dataset copy
