@@ -3,7 +3,7 @@
 ## Overview
 This is a Python and Django application for managing datasets, visualizing data, and applying machine learning models. It provides an end-to-end data science workflow.
 
-## Features
+# Features
 ### Dataset Management
 - Import datasets in CSV, Excel, or JSON formats.
 - Create new datasets directly in the application.
@@ -100,10 +100,10 @@ This is a Python and Django application for managing datasets, visualizing data,
 -   Backend: Django, Python
 -   Frontend: HTML, CSS, JavaScript, Chart.js/Plotly
 -   Machine Learning: Scikit-learn, Pandas, Numpy
--   Database: SQLite (default), PostgreSQL (production)
+-   Database:  PostgreSQL (production)
 
 
-#Future Enhancements
+# Future Enhancements
 -   Add support for deep learning models using TensorFlow or PyTorch.
 -   Implement scheduling for automated analysis tasks.
 -   Provide an API for programmatic access to datasets and models.
